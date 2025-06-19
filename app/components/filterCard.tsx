@@ -1,10 +1,10 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 interface FilterCardProps {
-  tags: Array<String>;
-  name: String
+  tags: Array<string>;
+  name: string
 }
 
 const FilterCard = ({ tags, name }: FilterCardProps) => {
@@ -41,8 +41,8 @@ const FilterCard = ({ tags, name }: FilterCardProps) => {
             }}
           >
             <div className='grid grids-cols-2 gap-2 p-2'>
-              {tags.map((tag, _) => (
-                <button className='bg-purple-300 h-8 rounded-full flex items-center justify-center'>
+              {tags.map((tag, idx) => (
+                <button key={idx} className='bg-purple-300 h-8 rounded-full flex items-center justify-center'>
                   {tag}
                 </button>
               ))}
