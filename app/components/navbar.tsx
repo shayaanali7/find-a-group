@@ -65,28 +65,27 @@ const NavigationBar: React.FC = () => {
         onClick={toggleMenu}
         className='md:hidden fixed top-2.5 left-0.5 z-50 p-1.5 hover:bg-purple-200 rounded-full '
       >
-        {isMobileMenuOpen ? <X className='w-6 h-6' /> : <Menu className='w-6 h-6' />}
+        <Menu className='w-6 h-6' />
       </button>
 
       <div className='hidden md:flex md:w-3/20 h-full flex-col bg-white border-r border-purple-500'>
-        <NavigationContent onItemClick={handleClick} />
+        <NavigationContent />
       </div>
 
-      {isMobileMenuOpen && (
-        <>
-          <div className='md:hidden fixed left-0 top-0 h-full w-64 bg-white border-r border-purple-500 z-50 transform transition-transform duration-300'>
-            <div className='p-4 border-b border-purple-500'>
-              <button 
-                onClick={toggleMenu}
-                className='p-2 hover:bg-purple-200 rounded-full'
-              >
-                <X className='w-6 h-6' />
-              </button>
-            </div>
-            <NavigationContent onItemClick={handleClick} />
-          </div>
-        </>
-      )}    
+      <div 
+        className={`md:hidden fixed left-0 top-0 h-full w-64 bg-white border-r border-purple-500 z-50 
+          transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className='p-4 border-b border-purple-500 flex justify-between items-center'>
+          <h2 className='text-lg font-semibold'>Menu</h2>
+          <button 
+            onClick={toggleMenu}
+            className='p-2 hover:bg-purple-200 rounded-full'
+          >
+            <X className='w-6 h-6' />
+          </button>
+        </div>
+        <NavigationContent onItemClick={handleClick} />
+      </div>   
     </>
 
   )

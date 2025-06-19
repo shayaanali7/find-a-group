@@ -1,7 +1,10 @@
 import React from 'react'
 import { CircleUserRound } from "lucide-react";
+import {courses, groupSizes, roles, groupStatus, locations} from '../data/tags.js'
 import NavigationBar from '../components/navbar';
 import SearchBar from '../components/searchbar';
+import FilterCard from '../components/filterCard';
+
 
 const mainPage = () => {
   return (
@@ -24,12 +27,21 @@ const mainPage = () => {
         <div className='w-full flex flex-1'>
             <NavigationBar />
             
-            <div className='w-13/20 h-full bg-white'>
+            <div className='w-7/10 h-full bg-white'>
               <h3 className='text-black'>hELLO</h3>
             </div>
 
-            <div className='hidden md:block w-1/5 h-full bg-white'>
-                <h3 className='text-black'>hELLO</h3>
+            <div className='hidden md:block w-3/20 h-full mt-2'>
+              <div className='text-xl text-center border-b border-purple-500 mr-2 ml-2'>
+                <span>Filters</span>
+              </div>
+
+              <FilterCard tags={courses} name='Courses' />
+              <FilterCard tags={groupSizes} name='Size' />
+              <FilterCard tags={roles} name='Roles' />
+              <FilterCard tags={locations} name='Locations' />
+              <FilterCard tags={groupStatus} name='Status' />
+              
             </div>
         </div>
         
