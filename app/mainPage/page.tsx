@@ -36,11 +36,11 @@ const mainPage = () => {
                 <span>Filters</span>
               </div>
 
-              <FilterCard tags={courses} name='Courses' />
-              <FilterCard tags={groupSizes} name='Size' />
-              <FilterCard tags={roles} name='Roles' />
-              <FilterCard tags={locations} name='Locations' />
-              <FilterCard tags={groupStatus} name='Status' />
+              <FilterCard tags={courses} name='Courses' length={3} />
+              <FilterCard tags={groupSizes} name='Size' length={5} />
+              <FilterCard tags={roles} name='Roles' length={3} />
+              <FilterCard tags={locations} name='Locations' length={3} />
+              <FilterCard tags={groupStatus} name='Status' length={2} />
               
             </div>
         </div>
