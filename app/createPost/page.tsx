@@ -9,7 +9,6 @@ const CreatePostPage = () => {
   const buttonClass = 'border-black border-1 hover:bg-gray-100';
 
   return (
-    <>
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
         <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
           <div className='md:w-12 w-16'></div>
@@ -84,7 +83,7 @@ const CreatePostPage = () => {
                   </li>
                   <li className="flex items-start">
                     <span className='pr-3'>5</span>
-                    <span className='break-words'>Do not share personal information (yours or others') publicly.</span>
+                    <span className='break-words'>Do not share personal information (yours or others&apos;) publicly.</span>
                   </li>
                   <li className="flex items-start">
                     <span className='pr-3'>6</span>
@@ -93,10 +92,8 @@ const CreatePostPage = () => {
                 </ol>
               </div>
             </div>
-        </div>
-        
+        </div>    
     </main>
-    </>
   )
 }
 
