@@ -3,7 +3,11 @@
 import React, { useState } from 'react'
 import { Search } from "lucide-react"
 
-const SearchBar: React.FC = () => {
+interface SearchBarProps {
+  placeholder: string
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -33,7 +37,7 @@ const SearchBar: React.FC = () => {
             value={searchQuery}
             onChange={handleSearchChange}
             onKeyDown={handleSearchKeyDown}
-            placeholder='Search for a post'
+            placeholder={placeholder}
             className='w-full pl-10 pr-3 py-1 text-lg border-2 bg-white text-black border-black rounded-full focus:outline-none focus:ring-4 focus:ring-purple-300 focus:border-purple-500 transition-all duration-200'
           />
         </form>

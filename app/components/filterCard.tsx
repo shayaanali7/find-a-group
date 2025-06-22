@@ -10,17 +10,20 @@ interface Tag {
 
 interface FilterCardProps {
   tags: Tag[];
-  name: string
-  length: number
+  name: string;
+  length: number;
+  onFilterAddition?: (filters: string[]) => void;
+  onFilterDeletion?: (filters: string[]) => void;
 }
 
-const filterList = ''
+const filterListGlobal: string[] = [];
 export const filters = () => {
-
+  return filterListGlobal
 }
 
-const FilterCard = ({ tags, name, length }: FilterCardProps) => {
+const FilterCard = ({ tags, name, length, onFilterAddition, onFilterDeletion }: FilterCardProps) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    const [filterList, setFilterList] = useState<string[]>([]);
     const [isBeingFiltered, setIsBeingFiltered] = useState<Array<boolean>>(() => Array(length).fill(false));
     const contentRef = useRef<HTMLDivElement>(null);
     const [maxHeight, setMaxHeight] = useState<string>('0px')
@@ -32,24 +35,32 @@ const FilterCard = ({ tags, name, length }: FilterCardProps) => {
       else setMaxHeight('0px');
     }, [isExpanded, tags]);
 
-    const handleClick = (idx: number) => {
+    const handleClick = (idx: number, label: string) => {
       const updated = [...isBeingFiltered];
       updated[idx] = true;
       setIsBeingFiltered(updated);
+
+      const newList = [...filterList, label];
+      setFilterList(newList);
+      if (onFilterAddition) onFilterAddition(newList);
     }; 
 
-    const handleRemoveClick = (idx: number, e: React.MouseEvent) => {
+    const handleRemoveClick = (idx: number, e: React.MouseEvent, label: string) => {
       e.stopPropagation();
       const updated = [...isBeingFiltered];
       updated[idx] = false;
       setIsBeingFiltered(updated);
+
+      const newList = filterList.filter(element => element === label);
+      setFilterList(newList);
+      if (onFilterDeletion) onFilterDeletion(newList)
     };
 
     return(
         <>
           <div className='font-sans text-xl w-full h-8 mt-2 bg-purple-200'>
             <button 
-            className='w-full flex items-center justify-between px-2' 
+            className='w-full flex items-center justify-between px-2 cursor-pointer' 
             onClick={() => setIsExpanded(!isExpanded)}>
               <span className='ml-2'>{name}</span>
               <ChevronDown 
@@ -72,7 +83,7 @@ const FilterCard = ({ tags, name, length }: FilterCardProps) => {
                   <button
                     key={idx}
                     className={`${tag.color} hover:${tag.hoverColor} transition-colors duration-300 h-8 rounded-full flex flex-row items-center justify-between px-2`} 
-                    onClick={e => handleRemoveClick(idx, e)}
+                    onClick={e => handleRemoveClick(idx, e, tag.label)}
                     aria-label='Remove filter'
                   >
                     <span className='mr-2'>{tag.label}</span>
@@ -82,7 +93,7 @@ const FilterCard = ({ tags, name, length }: FilterCardProps) => {
                   <button 
                     key={idx} 
                     className={`${tag.color} hover:${tag.hoverColor} transition-colors duration-300 h-8 rounded-full flex flex-row items-center justify-center`}
-                    onClick={() => handleClick(idx)}
+                    onClick={() => handleClick(idx, tag.label)}
                   >
                     {tag.label}
                   </button>

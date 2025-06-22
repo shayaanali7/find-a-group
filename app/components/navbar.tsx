@@ -1,6 +1,8 @@
 'use client'
 import React, { useState } from 'react'
 import { Home, MessageCircle, Users, CirclePlus, CircleUserRound, X, Menu } from "lucide-react";
+import Link from 'next/link';
+import DropDownList from './DropDownList';
 
 const NavigationBar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
@@ -19,15 +21,17 @@ const NavigationBar: React.FC = () => {
 
   const NavigationContent: React.FC<NavigationContentProps> = ({ onItemClick }) => {
     return(
-      <nav className='flex flex-col h-full'>
-        <div className='flex-1'>
-          <button 
-            onClick={onItemClick}
-            className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
-              <Home className='text-3xl' />
-              <span>Home</span>
-          </button>
-
+      <nav className='flex flex-col h-full justify-between'>
+        <div>
+          <Link href='/mainPage'>
+            <button 
+              onClick={onItemClick}
+              className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
+                <Home className='text-3xl' />
+                <span>Home</span>
+            </button>
+          </Link>
+          
           <button 
             onClick={onItemClick}
             className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
@@ -49,11 +53,17 @@ const NavigationBar: React.FC = () => {
               <span>Create Group</span>
           </button>
 
-          <button className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl mt-93 mb-2'>
+          <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
+            <DropDownList name={'My Courses'} courses={['CS2214', 'CS3319']} />
+          </div>
+        </div>
+          
+        <div className='mb-2'>
+          <button className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
               <CircleUserRound className='text-3xl' />
               <span>Profile</span>
           </button>
-        </div> 
+        </div>
       </nav>
     )
   }

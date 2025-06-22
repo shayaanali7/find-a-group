@@ -1,0 +1,20 @@
+import React from 'react'
+import { Plus } from "lucide-react";
+import Link from 'next/link';
+
+const CreatePostButton = () => {
+  return (
+    <div className='flex justify-end w-full'>
+      <Link href='/createPost'>
+        <button 
+          className='flex items-center gap-1 border-black border-1 hover:bg-gray-100 rounded-full p-2 mt-2 mr-5 cursor-pointers'>
+            <Plus className='text-3xl'/>
+            <span>Create Post</span>
+        </button>
+      </Link>
+      
+    </div>
+  )
+}
+
+export default CreatePostButton
