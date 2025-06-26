@@ -32,26 +32,32 @@ const NavigationBar: React.FC = () => {
             </button>
           </Link>
           
-          <button 
+          <Link href='/messagesPage'>
+            <button 
             onClick={onItemClick}
             className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
               <MessageCircle className='text-3xl' />
               <span>Messages</span>
           </button>
-
-          <button 
+          </Link>
+          
+          <Link href='/groupsPage'>
+            <button 
             onClick={onItemClick}
             className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
               <Users className='text-3xl' />
               <span>My Groups</span>
           </button>
-
-          <button 
-            onClick={onItemClick}
-            className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
-              <CirclePlus className='text-3xl' />
-              <span>Create Group</span>
-          </button>
+          </Link>
+          
+          <Link href='/createGroupPage'>
+            <button 
+              onClick={onItemClick}
+              className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
+                <CirclePlus className='text-3xl' />
+                <span>Create Group</span>
+            </button>
+          </Link>
 
           <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
             <DropDownList name={'My Courses'} courses={['CS2214', 'CS3319']} />
