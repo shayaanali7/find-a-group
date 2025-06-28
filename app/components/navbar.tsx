@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { Home, MessageCircle, Users, CirclePlus, CircleUserRound, X, Menu } from "lucide-react";
+import { Home, MessageCircle, CircleUserRound, X, Menu } from "lucide-react";
 import Link from 'next/link';
 import DropDownList from './DropDownList';
 import AddGroupModal from './AddGroupModal';
@@ -45,11 +45,11 @@ const NavigationBar: React.FC = () => {
           <AddGroupModal />
 
           <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
-            <DropDownList name={'My Groups'} children={['CS2214', 'CS3319']} />
+            <DropDownList name={'My Groups'} elements={['CS2214', 'CS3319']} />
           </div>
 
           <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
-            <DropDownList name={'My Courses'} children={['CS2214', 'CS3319']} />
+            <DropDownList name={'My Courses'} elements={['CS2214', 'CS3319']} />
           </div>
         </div>
           
