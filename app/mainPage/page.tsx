@@ -2,7 +2,7 @@ import React from 'react'
 import { CircleUserRound } from "lucide-react";
 import NavigationBar from '../components/navbar';
 import SearchBar from '../components/searchbar';
-import FilterList from './filterList';
+import FilterList from '../components/filterList';
 import CreatePostButton from '../components/CreatePostButton';
 
 const mainPage = () => {
@@ -43,7 +43,7 @@ const mainPage = () => {
               <div className='text-xl text-center border-b border-purple-500 mr-2 ml-2'>
                 <span>Filters</span>
               </div>
-              <FilterList />
+              <FilterList saveButtonOn={true} addButtonOn={false}/>
             </div>
         </div>
         

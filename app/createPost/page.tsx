@@ -3,7 +3,7 @@ import { CircleUserRound } from 'lucide-react'
 import SearchBar from '../components/searchbar'
 import NavigationBar from '../components/navbar'
 import CoursePickerButton from '../components/CoursePickerButton'
-import FilterPopUp from '../components/FilterPopUp'
+import TagModal from '../components/TagModal'
 
 const CreatePostPage = () => {
   const buttonClass = 'border-black border-1 hover:bg-gray-100';
@@ -45,7 +45,7 @@ const CreatePostPage = () => {
                     </input>
 
                     <div className='flex justify-start mt-10 ml-2'>
-                      <FilterPopUp text='Add Tags'/>
+                      <TagModal text='Add Tags'/>
                     </div>
                     <textarea
                       placeholder='Body Text' 

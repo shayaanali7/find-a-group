@@ -5,10 +5,10 @@ import { ChevronDown } from 'lucide-react'
 
 interface DropDownListProps { 
 	name: string
-	courses: Array<string>
+	children: Array<string>
 }
 
-const DropDownList = ( {name, courses}: DropDownListProps ) => {
+const DropDownList = ( {name, children}: DropDownListProps ) => {
 	const [isExpanded, setIsExpanded] = useState<boolean>(false);
 	const contentRef = useRef<HTMLDivElement>(null);
 	const [maxHeight, setMaxHeight] = useState<string>('0px')
@@ -18,7 +18,7 @@ const DropDownList = ( {name, courses}: DropDownListProps ) => {
 					setMaxHeight(`${contentRef.current.scrollHeight}px`)
 				}
 				else setMaxHeight('0px');
-			}, [isExpanded, courses]);
+			}, [isExpanded, children]);
 
   return (
 		<>
@@ -43,11 +43,11 @@ const DropDownList = ( {name, courses}: DropDownListProps ) => {
 				}}
 			>
 				<div>
-					{courses.map((course, index) => (
+					{children.map((child, index) => (
 						<button
 							key={index}
 							className='w-full p-2 hover:bg-gray-100'
-						>{course}</button>
+						>{child}</button>
 					))}
 				</div>
 
