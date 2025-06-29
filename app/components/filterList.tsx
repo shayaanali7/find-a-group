@@ -3,16 +3,14 @@ import React, { useState } from 'react'
 import FilterCard from './filterCard'
 import SaveButton from './saveButton'
 import {courses, groupSizes, roles, groupStatus, locations} from '../data/tags.js'
-import AddedTags from './AddedTags'
 
 interface FilterListProps {
 	saveButtonOn: boolean;
-	addButtonOn: boolean;
 	selectedFilters?: string[];
 	onFiltersChange?: (filters: string[]) => void;
 }
 
-const FilterList = ({ saveButtonOn, addButtonOn, selectedFilters = [], onFiltersChange }: FilterListProps) => {
+const FilterList = ({ saveButtonOn, selectedFilters = [], onFiltersChange }: FilterListProps) => {
 	const [allFilters, setAllFilters] = useState<string[]>(selectedFilters);
 
 	const handleFilterAddition = (filters: string[]) => {
@@ -25,7 +23,6 @@ const FilterList = ({ saveButtonOn, addButtonOn, selectedFilters = [], onFilters
 		if (onFiltersChange) onFiltersChange(filters);
 	}
 
-	// Use the passed selectedFilters if available, otherwise use local state
 	const currentFilters = selectedFilters.length > 0 ? selectedFilters : allFilters;
 
   return (
@@ -71,7 +68,6 @@ const FilterList = ({ saveButtonOn, addButtonOn, selectedFilters = [], onFilters
 			onFilterDeletion={handleFilterDeletion} 
 		/>
 		{saveButtonOn && <SaveButton filters={currentFilters} /> }
-		{addButtonOn && <AddedTags filters={currentFilters} /> }
 	</>
   )
 }

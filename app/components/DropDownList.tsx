@@ -1,7 +1,7 @@
 'use client'
-
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
+import Link from 'next/link'
 
 interface DropDownListProps { 
 	name: string
@@ -44,10 +44,13 @@ const DropDownList = ( {name, elements}: DropDownListProps ) => {
 			>
 				<div>
 					{elements.map((element, index) => (
-						<button
-							key={index}
-							className='w-full p-2 hover:bg-gray-100'
-						>{element}</button>
+						<Link href={`/courses/${element}`} key={index}>
+							<button
+								key={index}
+								className='w-full p-2 hover:bg-gray-100'
+							>{element}</button>
+						</Link>
+						
 					))}
 				</div>
 

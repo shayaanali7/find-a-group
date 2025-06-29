@@ -45,19 +45,21 @@ const NavigationBar: React.FC = () => {
           <AddGroupModal />
 
           <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
-            <DropDownList name={'My Groups'} elements={['CS2214', 'CS3319']} />
+            <DropDownList name={'My Groups'} elements={['CS2212', 'CS3319']} />
           </div>
 
           <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
-            <DropDownList name={'My Courses'} elements={['CS2214', 'CS3319']} />
+            <DropDownList name={'My Courses'} elements={['CS2212', 'CS3319']} />
           </div>
         </div>
           
         <div className='mb-2'>
-          <button className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
+          <Link href='/profilePage'>
+            <button className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
               <CircleUserRound className='text-3xl' />
               <span>Profile</span>
-          </button>
+            </button>
+          </Link>
         </div>
       </nav>
     )

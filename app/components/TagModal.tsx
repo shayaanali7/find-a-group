@@ -68,7 +68,6 @@ const TagModal = ({ text, onTagsAdded }: TagModalProps) => {
               <div className='max-h-[400px] overflow-y-auto'>
                 <FilterList 
                   saveButtonOn={false} 
-                  addButtonOn={false}
                   selectedFilters={selectedTags}
                   onFiltersChange={handleFiltersChange}
                 />
