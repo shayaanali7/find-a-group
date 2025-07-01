@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Filter } from 'lucide-react';
 import ModalScreen from './ModalScreen';
-import FilterList from './filterList';
 
 const FilterButton = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false); 

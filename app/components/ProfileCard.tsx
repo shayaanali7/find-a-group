@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, Mail, Calendar, MapPin, BookOpen, Trophy, Users, MessageCircle, Link } from 'lucide-react'
+import { Mail, Calendar, BookOpen, Trophy, Users, MessageCircle, Link } from 'lucide-react'
 
 interface ProfileCardProps {
   username: string;

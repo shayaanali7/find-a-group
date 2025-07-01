@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link";
 
 export default function HomePage() {
+
   return (
     <>
       <main className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700 flex items-center justify-center">
@@ -25,22 +26,22 @@ export default function HomePage() {
               Your place to discover and join study groups, teams, and clubs — faster than ever.
             </p>
 
-            <div className="space-y-4 mx-1.5 mb-4 w-64">
+            <div className="space-y-4 mx-auto md:mx-0 mb-4 w-64">
               <div>
-                <Link href="/signup">
+                <Link href="/signupPage">
                   <button className="w-full bg-slate-200 text-black  font-semibold py-2 px-15 rounded-4xl transition transform hover:scale-105">Sign Up</button>
-                </Link>
-              </div>
-
-              <div>
-                <Link href="/mainPage">
-                  <button className="w-full bg-slate-200 text-black font-semibold py-2 px-15 rounded-4xl transition transform hover:scale-105">Guest Login</button>
                 </Link>
               </div>
 
               <div>
                 <Link href="/loginPage">
                   <button className="w-full bg-slate-200 text-black  font-semibold py-2 px-15 rounded-4xl transition transform hover:scale-105">Login</button>
+                </Link>
+              </div>
+
+              <div>
+                <Link href="/mainPage">
+                  <button className="w-full bg-slate-200 text-black font-semibold py-2 px-15 rounded-4xl transition transform hover:scale-105">Guest Login</button>
                 </Link>
               </div>
             </div>
