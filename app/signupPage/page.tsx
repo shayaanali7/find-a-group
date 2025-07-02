@@ -1,7 +1,8 @@
 'use client'
-import React, { useState} from 'react'
+import React, { useState } from 'react'
 import ModalScreen from '../components/ModalScreen'
 import Link from 'next/link';
+import { supabase } from '../../lib/supabase'
 type ReactChangeEvent = React.ChangeEvent<HTMLInputElement>;
 
 interface ValidationError {
@@ -11,12 +12,13 @@ interface ValidationError {
   username?: string;
 }
 
-const signUpPage = () => {
+const SignUpPage = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [errors, setErrors] = useState<ValidationError>({});
+  const [submitMessage, setSubmitMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const validateEmail = (email: string): string | undefined => {
@@ -66,39 +68,36 @@ const signUpPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsLoading(true);
-    
+
     try {
-      // TODO: Add your Supabase signup logic here
-      console.log('Valid form data:', { email, password, name, username });
-      
-      // Example Supabase call:
-      // const { data: authData, error: authError } = await supabase.auth.signUp({
-      //   email,
-      //   password
-      // });
-      
-      // if (authError) throw authError;
-      
-      // const { error: profileError } = await supabase
-      //   .from('profiles')
-      //   .insert([{
-      //     id: authData.user?.id,
-      //     full_name: name,
-      //     username,
-      //   }]);
-      
-      // if (profileError) throw profileError;
-      
-    } catch (error) {
-      console.error('Signup error:', error);
-      // Handle signup errors here
-    } finally {
+      const { data: authData, error: authError} = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username: username,
+            name: name,
+          }
+        }
+      });
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('User creation failed');
+
+      setSubmitMessage('Account created successfully! Please check your email to verify your account.');
+      setEmail('');
+      setPassword('');
+      setName('');
+      setUsername('');
+    }
+    catch (error: any) {
+      if (error.code === '23505' && error.message.includes('Users_username_key')) {
+        setSubmitMessage('Username already exists. Please try a different one.');
+      }
+      else setSubmitMessage(error.message || 'An error occurred during signup. Please try again.');
+    }
+    finally {
       setIsLoading(false);
     }
   };
@@ -131,7 +130,6 @@ const signUpPage = () => {
     }
   }
 
-
   return (
     <ModalScreen isOpen={true} opacity={1} backgroundColor='#7e22ce'>
       <div className='flex flex-col h-full text-black'>
@@ -144,7 +142,6 @@ const signUpPage = () => {
                 <form onSubmit={handleSubmit} className='space-y-4'>
                   <div className='mb-4'>
                     <input 
-                    type='email'
                     placeholder='Email Address'
                     value={email}
                     className={`w-full p-2 border rounded-lg ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
@@ -186,6 +183,16 @@ const signUpPage = () => {
                     {errors.username && <p className='text-red-500 text-sm mt-1'>{errors.username}</p>}
                   </div>
 
+                  {submitMessage && (
+                    <div className={`p-3 rounded-lg text-sm ${
+                      submitMessage.includes('successfully') 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {submitMessage}
+                    </div>
+                  )}
+
                   <button 
                     type='submit'
                     disabled={isLoading}
@@ -201,7 +208,7 @@ const signUpPage = () => {
               </div>
             </div>
 
-            <div>
+            <div className='mb-4'>
               <p className='text-center text-sm text-gray-500 mt-4'>
                 Already have an account? 
                 <Link href="/loginPage" className='text-purple-600 hover:underline ml-1'>
@@ -214,4 +221,4 @@ const signUpPage = () => {
   )
 }
 
-export default signUpPage
+export default SignUpPage
