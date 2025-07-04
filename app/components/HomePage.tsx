@@ -5,12 +5,19 @@ import SearchBar from '../components/searchbar';
 import FilterList from '../components/filterList';
 import CreatePostButton from '../components/CreatePostButton';
 import FilterButton from '../components/FilterButton';
+import getUser from '../utils/supabaseComponets/getUser';
+import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
 
 interface MainPageProps {
   pageTitle: string;
 }
 
-const HomePage = ( {pageTitle}: MainPageProps ) => {
+const HomePage = async ( {pageTitle}: MainPageProps ) => {
+  const user = await getUser();
+  const courses = user.id ? await getUserCourses(user.id) : [];
+  console.log(user);
+  console.log(courses);
+
   return (
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
         <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>

@@ -1,7 +1,14 @@
 import Image from "next/image"
 import Link from "next/link";
+import { createClient } from "./utils/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user }, error} = await supabase.auth.getUser();
+  if (user) {
+    redirect('/mainPage'); 
+  }
 
   return (
     <>

@@ -1,8 +1,7 @@
 import React from 'react'
 import HomePage from '../components/HomePage'
 
-const mainPage = () => {
-
+const mainPage = async () => {
   return (
     <>
       <HomePage pageTitle='Main Page' />

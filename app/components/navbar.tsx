@@ -4,10 +4,11 @@ import { Home, MessageCircle, CircleUserRound, X, Menu } from "lucide-react";
 import Link from 'next/link';
 import DropDownList from './DropDownList';
 import AddGroupModal from './AddGroupModal';
+import getUser from '../utils/supabaseComponets/getUser';
 
 const NavigationBar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-
+   
   const toggleMenu = (): void => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   }
@@ -19,7 +20,7 @@ const NavigationBar: React.FC = () => {
   interface NavigationContentProps {
     onItemClick?: () => void;
   }
-
+  
   const NavigationContent: React.FC<NavigationContentProps> = ({ onItemClick }) => {
     return(
       <nav className='flex flex-col h-full justify-between'>
