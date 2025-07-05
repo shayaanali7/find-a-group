@@ -4,9 +4,12 @@ import { Home, MessageCircle, CircleUserRound, X, Menu } from "lucide-react";
 import Link from 'next/link';
 import DropDownList from './DropDownList';
 import AddGroupModal from './AddGroupModal';
-import getUser from '../utils/supabaseComponets/getUser';
 
-const NavigationBar: React.FC = () => {
+interface NavigationBarProps {
+  courses: string[];
+}
+
+const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
    
   const toggleMenu = (): void => {
@@ -50,7 +53,7 @@ const NavigationBar: React.FC = () => {
           </div>
 
           <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
-            <DropDownList name={'My Courses'} elements={['CS2212', 'CS3319']} />
+            <DropDownList name={'My Courses'} elements={courses} />
           </div>
         </div>
           
