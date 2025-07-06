@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '../utils/supabase/server'
@@ -7,7 +6,7 @@ import Link from 'next/link'
 
 async function loginAction(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const data = {
     email: formData.get('email') as string,

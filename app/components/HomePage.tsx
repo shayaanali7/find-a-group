@@ -5,6 +5,7 @@ import FilterList from '../components/filterList';
 import getUser from '../utils/supabaseComponets/getUser';
 import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
 import MainContentLayout from './MainContentLayout';
+import ProfileButton from './ProfileButton';
 
 interface MainPageProps {
   pageTitle: string;
@@ -24,9 +25,7 @@ const HomePage = async ( {pageTitle}: MainPageProps ) => {
           </div>
 
           <div className='md:w-12 w-16 flex justify-end'>
-            <button className='hidden md:flex items-center justify-center p-1 mr-5 hover:bg-purple-200 rounded-full transition-colors duration-200'>
-              <CircleUserRound className='w-8 h-8 text-gray-700' />
-            </button>
+            <ProfileButton />
           </div>
         </div>
 

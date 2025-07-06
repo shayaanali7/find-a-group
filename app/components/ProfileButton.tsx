@@ -1,0 +1,57 @@
+'use client'
+import React, { useState } from 'react'
+import { CircleUserRound, LogOut, Pencil, Settings } from 'lucide-react'
+import Link from 'next/link'
+import LogoutButton from './LogoutButton'
+
+const ProfileButton = () => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  return (
+    <div className='relative'>
+      <button 
+        className='hidden md:flex items-center justify-center p-1 mr-5 hover:bg-purple-200 rounded-full transition-colors duration-200'
+        onClick={() => setIsOpen(!isOpen)}
+        >
+          <CircleUserRound className='w-8 h-8 text-gray-700' />
+      </button>
+    
+      <div className={`absolute right-0 border-purple-500 top-full h-100 mt-2 w-60 bg-white border rounded-lg shadow-2xl z-50 duration-300 transition-all ease-in-out transform origin-top ${
+      isOpen ? 'opacity-100 scale-y-100 transition-y-0' : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none'
+      }`}>
+        <div className='p-4'>
+          <div className='mb-2'>
+            <Link href='/profilePage'>
+              <button className='flex items-center w-full gap-2 m-1 hover:bg-purple-200 p-2 rounded-lg text-xl'>
+                <CircleUserRound className='text-4xl' />
+                <span>Profile</span>
+              </button>
+            </Link>
+          </div>
+          <div className='mb-2'>
+            <Link href='/profilePage'>
+              <button className='flex items-center w-full gap-2 m-1 hover:bg-purple-200 p-2 rounded-lg text-xl'>
+                <Pencil className='text-4xl' />
+                <span>Edit Profile</span>
+              </button>
+            </Link>
+          </div>
+          <div className='border-t-1 border-purple-500 mt-5 mb-2'>
+            <Link href='/profilePage'>
+              <button className='flex items-center w-full gap-2 m-1 hover:bg-purple-200 p-2 rounded-lg text-xl'>
+                <Settings className='text-4xl' />
+                <span>Settings</span>
+              </button>
+            </Link>
+          </div>
+          <div className='border-t-1 border-purple-500 mt-5 mb-2'>
+            <LogoutButton />
+          </div>
+        </div>
+      </div>
+    </div>
+      
+  )
+}
+
+export default ProfileButton
