@@ -13,6 +13,7 @@ interface MainPageProps {
 
 const HomePage = async ( {pageTitle}: MainPageProps ) => {
   const user = await getUser();
+  console.log(user);
   const courses = user.id ? await getUserCourses(user.id) : [];
 
   return (

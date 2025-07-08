@@ -91,8 +91,10 @@ export async function signUpUser(prevState: SignUpResult, formData: FormData): P
         data: {
           username: username,
           name: name,
-        }
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/signupInformation`
       }
+      
     });
 
     if (authError) throw authError;

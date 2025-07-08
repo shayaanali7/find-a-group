@@ -12,7 +12,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700 flex items-center justify-center">
+      <main className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 flex items-center justify-center">
         <div className="flex gap-8 items-center justify-center w-full max-w-6xl h-full"> 
           <div className="hidden md:block flex-shrink-0">
             <Image 
