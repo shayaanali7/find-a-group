@@ -1,7 +1,7 @@
 import React from 'react'
 import getUser from '../utils/supabaseComponets/getUser'
 import { redirect } from 'next/navigation';
-import AddCoursesButtons from '../components/AddCoursesButtons';
+import AddCoursesButtons from './AddCoursesButtons';
 import MultiStageSignup from './MultiStageSignup';
 
 const signupInformation = async () => {

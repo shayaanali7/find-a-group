@@ -7,11 +7,16 @@ export const steps = [
     {
       title: "Complete Your Profile",
       subtitle: "Add some final details to help others find you.",
-      content: "Profile Details"
+      content: ""
     },
     {
-      title: "Complete Your Profile",
-      subtitle: "Add some final details to help others find you.",
-      content: "Profile Details"
+      title: "Add A Profile Picture!",
+      subtitle: "Help others recognize you with a profile photo",
+      content: ""
+    },
+    {
+      title: "Write Your Bio",
+      subtitle: "This bio will appear on your profile. Share your interests, skills, and what you're looking for in a group.",
+      content: ""
     }
 ];

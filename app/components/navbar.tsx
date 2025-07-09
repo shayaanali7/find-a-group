@@ -6,7 +6,7 @@ import DropDownList from './DropDownList';
 import AddGroupModal from './AddGroupModal';
 
 interface NavigationBarProps {
-  courses: string[];
+  courses?: string[];
 }
 
 const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
@@ -53,7 +53,9 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
           </div>
 
           <div className='mt-5 border-t-1 border-purple-500 mr-3 ml-3'>
-            <DropDownList name={'My Courses'} elements={courses} />
+            {courses && (
+              <DropDownList name={'My Courses'} elements={courses} />
+            )}   
           </div>
         </div>
           

@@ -1,17 +1,20 @@
 'use client'
 import React, { use, useState } from 'react'
-import AddCoursesButtons from '../components/AddCoursesButtons';
+import AddCoursesButtons from './AddCoursesButtons';
 import { createClient } from '../utils/supabase/client';
 import { steps } from '../data/signupContent'
 import ProfileInformation from './ProfileInformation';
+import AddProfilePicture from './AddProfilePicture';
+import AddBio from './AddBio';
+import { updateDatabase } from '../utils/supabaseComponets/updateDatabase';
 
 const MultiStepSignup = ({ user }: {user: any}) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [courseHasBeenAdded, setCourseHasBeenAdded] = useState<boolean[]>([false, false, false, false, false]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
-  const [showSkipButton, setShowSkipButton] = useState<boolean>(false);
   const [selectedYear, setSelectedYear] = useState<string>('');
+  const [major, setMajor] = useState<string>('');
   const courses = ['CS2212', 'CS3319', 'CS2214', 'CS1027', 'CS1026'];
 
   const changeStatus = (index: number) => {
@@ -22,33 +25,32 @@ const MultiStepSignup = ({ user }: {user: any}) => {
 
   const handleContinue = async () => {
     setIsLoading(true);
-    setShowSkipButton(true);
     const coursesToAdd: string[] = courses.filter((_, index) => courseHasBeenAdded[index]);
-    if (currentStep === 0 && coursesToAdd.length !== 0) {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from('users_courses')
-        .update({ courses: coursesToAdd })
-        .eq('id', user.id);
-      
-      if (error) {
-        console.error('Error saving courses:', error);
+    try {
+      if (currentStep === 0 && coursesToAdd.length !== 0) {
+        await updateDatabase('users_courses', { courses: coursesToAdd }, user);
       }
-    }
-    else {
-      setShowError(true);
-      setIsLoading(false);
+      else if (currentStep === 1 && selectedYear !== '' && major !==  '') {
+        await updateDatabase('profile', { year: selectedYear, major: major}, user);
+      }
+      else {
+        setShowError(true);
+        setIsLoading(false);
       return;
-    }
-    
-    setTimeout(() => {
-      setIsLoading(false);
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        console.log('Signup complete!');
       }
-    }, 1000);
+
+      setTimeout(() => {
+        setIsLoading(false);
+        if (currentStep < steps.length - 1) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          console.log('Signup complete!');
+        }
+      }, 1000);
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
+    } 
   }
 
   const handleSkip = () => {
@@ -73,12 +75,24 @@ const MultiStepSignup = ({ user }: {user: any}) => {
         );
       case 1:
         return (
-          <ProfileInformation setSelectedYear={setSelectedYear} selectedYear={selectedYear} />
+          <ProfileInformation 
+            setSelectedYear={setSelectedYear} 
+            selectedYear={selectedYear} 
+            major={major}
+            setMajor={setMajor}
+            showError={showError}
+          />
         );
       case 2:
         return (
-          <div></div>
+          <AddProfilePicture />
         );
+      
+      case 3:
+        return (
+          <AddBio />
+        )
+
       default:
         return null;
     }
@@ -98,10 +112,11 @@ const MultiStepSignup = ({ user }: {user: any}) => {
       </div>
 
       <div className='flex-1 p-8 flex flex-col'>
-        <h2 className='text-2xl font-semibold text-gray-800 mb-6'>
-          {steps[currentStep].content}
-        </h2>
-        
+        {currentStep != 1 && (
+          <h2 className='text-2xl font-semibold text-gray-800 mb-4'>
+            {steps[currentStep].content}
+          </h2> 
+        )}
         <div className='flex-1 flex flex-col'>
           {renderStepContent()}
         </div>
@@ -125,7 +140,7 @@ const MultiStepSignup = ({ user }: {user: any}) => {
           </div>
 
           <div className='flex flex-row gap-4'>
-            {showSkipButton && (
+            {(currentStep !== 0 && currentStep !== 1) && (
               <button
                 className='bg-black font-semibold transition-all duration-300 transform hover:scale-105 px-10 p-4 rounded-2xl'
                 onClick={handleSkip}>Skip
