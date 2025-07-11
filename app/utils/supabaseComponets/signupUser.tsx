@@ -82,7 +82,6 @@ export async function signUpUser(prevState: SignUpResult, formData: FormData): P
     };
   }
 
-  console.log('test');
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -92,7 +91,7 @@ export async function signUpUser(prevState: SignUpResult, formData: FormData): P
           username: username,
           name: name,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/signupInformation`
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=signupInformation`,
       }
       
     });

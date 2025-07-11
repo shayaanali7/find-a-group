@@ -1,0 +1,37 @@
+import React from "react"
+import { createClient } from "../supabase/server"
+import getUserServer from "./getUserServer";
+
+export const GetProfilePicture = async (): Promise<string | null> => {
+    try {
+        const supabase = await createClient();
+        const user = await getUserServer();
+        
+        if (!user) {
+            console.log("Error retrieving User");
+            return null;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+            .from('profile')
+            .select('profile_picture_url')
+            .eq('id', user.id)
+            .single()
+        
+        if (profileError) {
+            console.log('Error Getting Profile Data:', profileError);
+            return null;
+        }
+
+        if (!profile?.profile_picture_url) return null;
+        const { data: urlData } = supabase.storage
+            .from('profile-pictures')
+            .getPublicUrl(profile.profile_picture_url)
+
+        return urlData.publicUrl;
+
+    } catch (error) {
+        console.error('Unexpected error in GetProfilePicture:', error);
+        return null;
+    }
+}

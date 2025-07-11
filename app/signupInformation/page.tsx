@@ -1,12 +1,21 @@
 import React from 'react'
-import getUser from '../utils/supabaseComponets/getUser'
 import { redirect } from 'next/navigation';
-import AddCoursesButtons from './AddCoursesButtons';
 import MultiStageSignup from './MultiStageSignup';
+import getUserServer from '../utils/supabaseComponets/getUserServer';
+import { createClient } from '../utils/supabase/server';
 
-const signupInformation = async () => {
-  const user = await getUser();
+export default async function SignupInformation() {
+  const user = await getUserServer();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('profile')
+    .select('done_signup')
+    .eq('id', user.id)
+    .single()
+  
+  console.log(data);
   if (!user) redirect('/loginPage');
+  else if (data?.done_signup === true) redirect('/mainPage')
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 flex justify-center items-center p-4'>
@@ -16,5 +25,3 @@ const signupInformation = async () => {
     </div>
   )
 }
-
-export default signupInformation

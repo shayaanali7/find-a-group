@@ -1,11 +1,11 @@
 import React from 'react'
-import { CircleUserRound } from "lucide-react";
 import SearchBar from '../components/searchbar';
 import FilterList from '../components/filterList';
-import getUser from '../utils/supabaseComponets/getUser';
+import getUser from '../utils/supabaseComponets/getUserServer';
 import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
 import MainContentLayout from './MainContentLayout';
 import ProfileButton from './ProfileButton';
+import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
 
 interface MainPageProps {
   pageTitle: string;
@@ -13,8 +13,8 @@ interface MainPageProps {
 
 const HomePage = async ( {pageTitle}: MainPageProps ) => {
   const user = await getUser();
-  console.log(user);
   const courses = user.id ? await getUserCourses(user.id) : [];
+  const imageURL = await GetProfilePicture();
 
   return (
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
@@ -26,7 +26,7 @@ const HomePage = async ( {pageTitle}: MainPageProps ) => {
           </div>
 
           <div className='md:w-12 w-16 flex justify-end'>
-            <ProfileButton />
+            <ProfileButton  imageURL={imageURL}/>
           </div>
         </div>
 

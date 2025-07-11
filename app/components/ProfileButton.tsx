@@ -1,11 +1,12 @@
 'use client'
 import React, { useState } from 'react'
-import { CircleUserRound, LogOut, Pencil, Settings } from 'lucide-react'
+import { CircleUserRound, Pencil, Settings } from 'lucide-react'
 import Link from 'next/link'
 import LogoutButton from './LogoutButton'
 
-const ProfileButton = () => {
+const ProfileButton = ({ imageURL }: { imageURL: string | null }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  console.log(imageURL);
 
   return (
     <div className='relative'>
@@ -13,7 +14,8 @@ const ProfileButton = () => {
         className='hidden md:flex items-center justify-center p-1 mr-5 hover:bg-purple-200 rounded-full transition-colors duration-200'
         onClick={() => setIsOpen(!isOpen)}
         >
-          <CircleUserRound className='w-8 h-8 text-gray-700' />
+           {imageURL ? <img src={imageURL} alt='Profile' className="w-12 h-12 rounded-full object-cover"/> 
+            : <CircleUserRound className='w-8 h-8 text-gray-700' /> }
       </button>
     
       <div className={`absolute right-0 border-purple-500 top-full h-100 mt-2 w-60 bg-white border rounded-lg shadow-2xl z-50 duration-300 transition-all ease-in-out transform origin-top ${

@@ -3,10 +3,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '../utils/supabase/server'
 import ModalScreen from '../components/ModalScreen'
 import Link from 'next/link'
+import getUserServer from '../utils/supabaseComponets/getUserServer'
+import { firstTimeLogin } from '../utils/supabaseComponets/firstTimeLogin'
 
 async function loginAction(formData: FormData) {
   'use server'
   const supabase = await createClient();
+  console.log('hello');
 
   const data = {
     email: formData.get('email') as string,
@@ -17,23 +20,44 @@ async function loginAction(formData: FormData) {
     redirect('/login?error=Please fill in all fields')
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
-
+  const { error } = await supabase.auth.signInWithPassword(data);
   if (error) {
     console.error('Login error:', error)
     redirect('/login?error=Invalid credentials')
   }
+  console.log('hello');
 
   revalidatePath('/', 'layout')
-  redirect('/mainPage')
+  const user = await getUserServer();
+  console.log('hello');
+  try {
+    const hasLoggedInBefore = await firstTimeLogin(user);
+    if (user && (hasLoggedInBefore).done_signup) redirect('/mainPage')
+    else redirect('/signupInformation');
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export default async function LoginPage({ searchParams, }: { searchParams: { message?: string; error?: string }}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   let returnMessage = '';
+
+  if (user) {
+    try { 
+      const hasLoggedInBefore = await firstTimeLogin(user);
+      if (hasLoggedInBefore.done_signup) {
+        redirect('/mainPage')
+      } else {
+        redirect('/signupInformation')
+      }
+    } catch (error) {
+      console.log(error);
+      redirect('/signupInformation');
+    }
+  }
   
-  if (user) redirect('/mainPage')
   return (
     <ModalScreen isOpen={true} opacity={1} backgroundColor='#7e22ce'>
       <div className='flex flex-col h-full text-black'>

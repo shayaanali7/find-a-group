@@ -1,20 +1,23 @@
 'use client'
-import React, { use, useState } from 'react'
+import React, { useState } from 'react'
 import AddCoursesButtons from './AddCoursesButtons';
-import { createClient } from '../utils/supabase/client';
 import { steps } from '../data/signupContent'
 import ProfileInformation from './ProfileInformation';
 import AddProfilePicture from './AddProfilePicture';
 import AddBio from './AddBio';
 import { updateDatabase } from '../utils/supabaseComponets/updateDatabase';
+import { useRouter } from 'next/navigation';
 
 const MultiStepSignup = ({ user }: {user: any}) => {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [courseHasBeenAdded, setCourseHasBeenAdded] = useState<boolean[]>([false, false, false, false, false]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [major, setMajor] = useState<string>('');
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
+  const [bio, setBio] = useState<string>('');
   const courses = ['CS2212', 'CS3319', 'CS2214', 'CS1027', 'CS1026'];
 
   const changeStatus = (index: number) => {
@@ -28,10 +31,17 @@ const MultiStepSignup = ({ user }: {user: any}) => {
     const coursesToAdd: string[] = courses.filter((_, index) => courseHasBeenAdded[index]);
     try {
       if (currentStep === 0 && coursesToAdd.length !== 0) {
-        await updateDatabase('users_courses', { courses: coursesToAdd }, user);
+        await updateDatabase('user_courses', { courses: coursesToAdd }, user);
       }
       else if (currentStep === 1 && selectedYear !== '' && major !==  '') {
         await updateDatabase('profile', { year: selectedYear, major: major}, user);
+      }
+      else if (currentStep === 2 && profilePictureUrl) {
+        // Database already updated, continuing to next step
+      }
+      else if (currentStep === 3) {
+        await updateDatabase('profile', { bio: bio }, user);
+        await updateDatabase('profile', { done_signup: true }, user);
       }
       else {
         setShowError(true);
@@ -44,7 +54,7 @@ const MultiStepSignup = ({ user }: {user: any}) => {
         if (currentStep < steps.length - 1) {
           setCurrentStep(currentStep + 1);
         } else {
-          console.log('Signup complete!');
+          router.push('/mainPage');
         }
       }, 1000);
     } catch (error) {
@@ -85,12 +95,14 @@ const MultiStepSignup = ({ user }: {user: any}) => {
         );
       case 2:
         return (
-          <AddProfilePicture />
+          <AddProfilePicture user={user} onImageUpload={(imageUrl) => {
+            setProfilePictureUrl(imageUrl);
+          }} />
         );
       
       case 3:
         return (
-          <AddBio />
+          <AddBio setBio={setBio} />
         )
 
       default:
