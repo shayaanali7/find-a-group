@@ -1,11 +1,11 @@
 import React from "react"
-import { createClient } from "../supabase/server"
-import getUserServer from "./getUserServer";
+import { createClient } from "../supabase/client"
+import getUserClient from "./getUserClient";
 
-export const GetProfilePicture = async (): Promise<string | null> => {
+export const getClientPicture = async (): Promise<string | null> => {
     try {
         const supabase = await createClient();
-        const user = await getUserServer();
+        const user = await getUserClient();
         
         if (!user) {
             console.log("Error retrieving User");

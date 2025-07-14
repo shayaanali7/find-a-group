@@ -3,18 +3,22 @@ import React, { useState } from 'react'
 import { CircleUserRound, Pencil, Settings } from 'lucide-react'
 import Link from 'next/link'
 import LogoutButton from './LogoutButton'
+import Image from 'next/image'
 
-const ProfileButton = ({ imageURL }: { imageURL: string | null }) => {
+const ProfileButton = ({ imageURL, username }: { imageURL: (string | null), username: string}) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  console.log(imageURL);
 
   return (
     <div className='relative'>
       <button 
-        className='hidden md:flex items-center justify-center p-1 mr-5 hover:bg-purple-200 rounded-full transition-colors duration-200'
+        className='md:flex items-center justify-center p-1 mr-5 hover:bg-purple-200 rounded-full transition-colors duration-200'
         onClick={() => setIsOpen(!isOpen)}
         >
-           {imageURL ? <img src={imageURL} alt='Profile' className="w-12 h-12 rounded-full object-cover"/> 
+           {imageURL ? (
+            <div className='w-8 h-8 rounded-full overflow-hidden'>
+              <Image width={32} height={32} src={imageURL} alt='Profile' className="w-full h-full object-cover object-center"/>
+            </div>
+           ) 
             : <CircleUserRound className='w-8 h-8 text-gray-700' /> }
       </button>
     
@@ -23,15 +27,20 @@ const ProfileButton = ({ imageURL }: { imageURL: string | null }) => {
       }`}>
         <div className='p-4'>
           <div className='mb-2'>
-            <Link href='/profilePage'>
+            <Link href={username ? `/user/${username}` : '/profilePage'}>
               <button className='flex items-center w-full gap-2 m-1 hover:bg-purple-200 p-2 rounded-lg text-xl'>
-                <CircleUserRound className='text-4xl' />
+                {imageURL ? (
+                  <div className='w-8 h-8 rounded-full overflow-hidden'>
+                    <Image width={32} height={32} src={imageURL} alt='Profile' className="w-full h-full object-cover object-center"/>
+                  </div>
+                ) 
+                  : <CircleUserRound className='w-8 h-8 text-gray-700' /> }
                 <span>Profile</span>
               </button>
             </Link>
           </div>
           <div className='mb-2'>
-            <Link href='/profilePage'>
+            <Link href={username ? `/profile/${username}/edit` : '/profilePage'}>
               <button className='flex items-center w-full gap-2 m-1 hover:bg-purple-200 p-2 rounded-lg text-xl'>
                 <Pencil className='text-4xl' />
                 <span>Edit Profile</span>

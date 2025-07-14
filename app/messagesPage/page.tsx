@@ -1,9 +1,15 @@
 import React from 'react'
 import SearchBar from '../components/searchbar'
 import Link from 'next/link';
-import { CircleUserRound, Home, SendHorizonal } from "lucide-react";
+import {Home, SendHorizonal } from "lucide-react";
+import getUserServer from '../utils/supabaseComponets/getUserServer';
+import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
+import ProfileButton from '../components/ProfileButton';
 
-const MessagesPage = () => {
+const MessagesPage = async () => {
+  const user = await getUserServer();
+  const imageURL = await GetProfilePicture();
+
   return (
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
         <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
@@ -14,9 +20,7 @@ const MessagesPage = () => {
           </div>
 
           <div className='md:w-12 w-16 flex justify-end'>
-            <button className='hidden md:flex items-center justify-center p-1 mr-5 hover:bg-purple-200 rounded-full transition-colors duration-200'>
-              <CircleUserRound className='w-8 h-8 text-gray-700' />
-            </button>
+             <ProfileButton  imageURL={imageURL}/>
           </div>
         </div>
 

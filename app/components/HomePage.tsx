@@ -1,7 +1,7 @@
 import React from 'react'
 import SearchBar from '../components/searchbar';
 import FilterList from '../components/filterList';
-import getUser from '../utils/supabaseComponets/getUserServer';
+import getUserServer, { getUsername } from '../utils/supabaseComponets/getUserServer';
 import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
 import MainContentLayout from './MainContentLayout';
 import ProfileButton from './ProfileButton';
@@ -12,9 +12,10 @@ interface MainPageProps {
 }
 
 const HomePage = async ( {pageTitle}: MainPageProps ) => {
-  const user = await getUser();
+  const user = await getUserServer();
   const courses = user.id ? await getUserCourses(user.id) : [];
   const imageURL = await GetProfilePicture();
+  const username = await getUsername(user);
 
   return (
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
@@ -26,7 +27,7 @@ const HomePage = async ( {pageTitle}: MainPageProps ) => {
           </div>
 
           <div className='md:w-12 w-16 flex justify-end'>
-            <ProfileButton  imageURL={imageURL}/>
+            <ProfileButton imageURL={imageURL} username={username.data?.username}/>
           </div>
         </div>
 

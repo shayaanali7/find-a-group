@@ -11,3 +11,14 @@ const getUserClient = async () => {
 }
 
 export default getUserClient
+
+export async function getUsername(user: any) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('profile')
+    .select('username')
+    .eq('id', user.id)
+    .single();
+  if (error) console.log(error);
+  return { data }
+}

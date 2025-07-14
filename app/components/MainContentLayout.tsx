@@ -27,7 +27,7 @@ const MainContentLayout = ( {pageTitle, courses, id}: MainContentLayoutProps ) =
 		<div className='w-7/10  flex-1 h-full overflow-y-auto bg-white'>
 			<div className='flex justify-between items-center p-4'>
 				<h1 className='text-3xl font-bold w-1/2'>
-						{pageTitle && pageTitle.length !== 0 ? pageTitle : 'Main Page'}
+						{pageTitle && pageTitle.length !== 0 ? pageTitle : 'Feed'}
 				</h1>  
 				<div className='flex flex-row items-center gap-0.5'>
 					<div className='md:w-12 w-16 flex justify-start md:hidden mt-2 ml-10'>
@@ -35,7 +35,7 @@ const MainContentLayout = ( {pageTitle, courses, id}: MainContentLayoutProps ) =
 					</div>
 					<div className='flex justify-end w-full'>
 						<CreatePostButton />
-						<JoinCourseButton courseList={courses} courseName={pageTitle} id={id} onCourseChange={handleCourseChange} />
+						{pageTitle !== 'Feed' && <JoinCourseButton courseList={courses} courseName={pageTitle} id={id} onCourseChange={handleCourseChange} /> } 
 					</div>
 				</div>
 			</div>
