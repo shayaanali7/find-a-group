@@ -1,12 +1,10 @@
 'use client'
-import React, { use, useEffect, useState } from 'react'
-import { CircleUserRound, ImageIcon } from "lucide-react";
+import React, { useEffect, useState } from 'react'
 import NavigationBar from '../../components/navbar';
 import SearchBar from '../../components/searchbar';
 import ProfileCard from '../../components/ProfileCard';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
-import { GetProfilePicture } from '@/app/utils/supabaseComponets/getProfilePicture';
 import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture';
 import ProfileButton from '@/app/components/ProfileButton';
 import Image from 'next/image';

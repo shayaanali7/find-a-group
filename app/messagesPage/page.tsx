@@ -2,13 +2,14 @@ import React from 'react'
 import SearchBar from '../components/searchbar'
 import Link from 'next/link';
 import {Home, SendHorizonal } from "lucide-react";
-import getUserServer from '../utils/supabaseComponets/getUserServer';
+import getUserServer, { getUsername } from '../utils/supabaseComponets/getUserServer';
 import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
 import ProfileButton from '../components/ProfileButton';
 
 const MessagesPage = async () => {
   const user = await getUserServer();
   const imageURL = await GetProfilePicture();
+  const username = await getUsername(user);
 
   return (
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
@@ -20,7 +21,7 @@ const MessagesPage = async () => {
           </div>
 
           <div className='md:w-12 w-16 flex justify-end'>
-             <ProfileButton  imageURL={imageURL}/>
+             <ProfileButton  imageURL={imageURL} username={username.data?.username}/>
           </div>
         </div>
 
