@@ -1,6 +1,6 @@
 import { createClient } from "../supabase/client"
 
-const supabase = await createClient();
+const supabase = createClient();
 export interface Conversation {
   conversation_id: string;
   user1_id: string;
@@ -36,7 +36,7 @@ export const createOrGetConversation = async (user1Id: string, user2Id: string) 
       .select()
       .single()
 
-    return { data: newConversationData, error: newConversationData };
+    return { data: newConversationData, error: newConversationError };
   } catch (error) {
     return { data: null, error };
   }
@@ -45,7 +45,7 @@ export const createOrGetConversation = async (user1Id: string, user2Id: string) 
 export const getUserConversations = async (userId: string) => {
   try { 
     const { data, error } = await supabase
-      .from('conversation')
+      .from('conversations')
       .select(`
         *, 
         messages (
@@ -89,7 +89,7 @@ export const sendMessage = async (conversationId: string, senderId: string, cont
     if (!error) {
       await supabase
         .from('conversations')
-        .update({ updated_at: new Date().toISOString })
+        .update({ updated_at: new Date().toISOString() })
         .eq('conversation_id', conversationId)
     }
     return { data, error }
@@ -114,7 +114,7 @@ export const markMessageAsRead = async (conversationId: string, userId: string) 
 
 export const subscribeToMessages = async (conversationId: string, callback: (message: Message) => void) => {
   const subscription = supabase
-    .channel('messages')
+    .channel(`messages-${conversationId}`)
     .on(
       'postgres_changes',
       {
@@ -134,7 +134,7 @@ export const subscribeToMessages = async (conversationId: string, callback: (mes
 
 export const subscribeToConversations = async (userId: string, callback: (conversation: Conversation) => void)  => {
   const subscription = supabase
-    .channel('conversations')
+    .channel(`conversations-${userId}`)
     .on(
       'postgres_changes', {
         event: '*',
@@ -159,4 +159,33 @@ export const subscribeToConversations = async (userId: string, callback: (conver
     )
     .subscribe()
   return subscription;
+}
+
+export const getUnreadMessageCount = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('conversation_id', { count: 'exact' })
+      .eq('is_read', false)
+      .neq('sender_id', userId)
+    
+    return { data: data?.length || 0, error }
+  } catch (error) {
+    return { data: 0, error }
+  }
+}
+
+export const getConversationUnreadCount = async (conversationId: string, userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('messages_id', { count: 'exact' })
+      .eq('conversation_id', conversationId)
+      .eq('is_read', false)
+      .neq('sender_id', userId)
+    
+    return { data: data?.length || 0, error }
+  } catch (error) {
+    return { data: 0, error }
+  }
 }
