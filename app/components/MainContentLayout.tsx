@@ -4,7 +4,6 @@ import NavigationBar from './navbar'
 import FilterButton from './FilterButton'
 import CreatePostButton from './CreatePostButton'
 import JoinCourseButton from './JoinCourseButton'
-import { join } from 'path'
 
 interface MainContentLayoutProps {
     pageTitle: string, 

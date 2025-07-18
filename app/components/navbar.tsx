@@ -37,7 +37,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
             </button>
           </Link>
           
-          <Link href='/messagesPage'>
+          <Link href='/messages'>
             <button 
             onClick={onItemClick}
             className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>

@@ -4,7 +4,7 @@ import getUserClient from "./getUserClient";
 
 export const getClientPicture = async (): Promise<string | null> => {
     try {
-        const supabase = await createClient();
+        const supabase = createClient();
         const user = await getUserClient();
         
         if (!user) {

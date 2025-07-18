@@ -4,6 +4,7 @@ import { getConversationUnreadCount, getUserConversations, subscribeToConversati
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
+import { RealtimeChannel } from '@supabase/supabase-js'
 
 interface ConversationWithDetails extends Conversation {
   other_user: {
@@ -31,20 +32,27 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
   useEffect(() => {
     fetchConversations()
 
-    const subscription = subscribeToConversations(userId, (updatedConversation) => {
-      setConversations(prev => {
-        const index = prev.findIndex(c => c.conversation_id === updatedConversation.conversation_id)
-        if (index >= 0) {
-          const updated = [...prev]
-          updated[index] = { ...updated[index], ...updatedConversation }
-          return updated.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-        }
-        return prev
+    let subscription: RealtimeChannel | null = null
+    const setupSubscription = async () => {
+      const result = await subscribeToConversations(userId, (updatedConversation) => {
+        setConversations(prev => {
+          const index = prev.findIndex(c => c.conversation_id === updatedConversation.conversation_id)
+          if (index >= 0) {
+            const updated = [...prev]
+            updated[index] = { ...updated[index], ...updatedConversation }
+            return updated.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+          }
+          return prev
+        })
       })
-    })
-
+      subscription = result;
+    }
+    
+    setupSubscription();
     return () => {
-      subscription.unsubscribe()
+      if (subscription) {
+        subscription.unsubscribe();
+      } 
     }
   }, [userId])
 
@@ -141,7 +149,7 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
         >
           <div className='p-4 flex items-center space-x-3'>
             <div className='flex-shrink-0'>
-              <div className='w-12 h-12 rounded-full overflow-hidden bg-gray-200'>
+              <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
                 {conversation.other_user?.profile_picture_url ? (
                   <Image 
                     src={conversation.other_user.profile_picture_url} 
@@ -158,22 +166,22 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
               </div>
             </div>
             
-            <div className='flex-1 min-w-0'>
-              <div className='flex items-center justify-between'>
-                <p className='text-sm font-medium text-gray-900 truncate'>
+            <div className='flex-1 min-w-0 overflow-hidden'>
+              <div className='flex items-center justify-between gap-2'>
+                <p className='text-xs sm:text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap flex-1'>
                   {conversation.other_user?.name || 'Unknown User'}
                 </p>
-                <p className='text-xs text-gray-500'>
+                <p className='text-xs text-gray-500 flex-shrink-0'>
                   {conversation.last_message && formatTime(conversation.last_message.created_at)}
                 </p>
               </div>
               
-              <p className='text-sm text-gray-500 truncate'>
+              <p className='text-xs sm:text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap'>
                 @{conversation.other_user?.username || 'unknown'}
               </p>
               
               {conversation.last_message && (
-                <p className='text-sm text-gray-600 truncate mt-1'>
+                <p className='text-xs sm:text-sm text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap mt-1'>
                   {conversation.last_message.sender_id === userId ? 'You: ' : ''}
                   {conversation.last_message.content}
                 </p>
@@ -181,8 +189,8 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
             </div>
             
             {conversation.unread_count && conversation.unread_count > 0 && (
-              <div className='flex-shrink-0 ml-2'>
-                <span className='bg-purple-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center'>
+              <div className='flex-shrink-0 ml-1 sm:ml-2'>
+                <span className='bg-purple-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center'>
                   {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
                 </span>
               </div>
