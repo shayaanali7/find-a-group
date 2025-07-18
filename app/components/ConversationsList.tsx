@@ -95,6 +95,7 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
     } catch (error) {
       setError('An unexpected error occured');
       console.log('Error getting conversation list: ' + error);
+      console.log('test');
       return 
     } finally {
       setLoading(false);
