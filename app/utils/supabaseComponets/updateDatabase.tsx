@@ -1,9 +1,10 @@
 import { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "../supabase/client"
+import { User } from "@/app/interfaces/interfaces";
 
-export const updateDatabase = async (table: string, update: object, user: any) => {
+export const updateDatabase = async (table: string, update: object, user: User) => {
     const supabase = createClient();
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from(table)
       .update(update)
       .eq('id', user.id)

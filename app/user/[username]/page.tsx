@@ -29,7 +29,7 @@ interface UserProfile {
   reputation?: number
 }
 
-const profilePage = () => {
+const ProfilePage = () => {
   const router = useRouter();
   const params = useParams()
   const username = Array.isArray(params.username) ? params.username[0] : params.username;
@@ -191,4 +191,4 @@ const profilePage = () => {
   )
 }
 
-export default profilePage
+export default ProfilePage

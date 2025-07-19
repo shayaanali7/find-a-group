@@ -7,8 +7,9 @@ import AddProfilePicture from './AddProfilePicture';
 import AddBio from './AddBio';
 import { updateDatabase } from '../utils/supabaseComponets/updateDatabase';
 import { useRouter } from 'next/navigation';
+import { User } from '../interfaces/interfaces';
 
-const MultiStepSignup = ({ user }: {user: any}) => {
+const MultiStepSignup = ({ user }: {user: User}) => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [courseHasBeenAdded, setCourseHasBeenAdded] = useState<boolean[]>([false, false, false, false, false]);

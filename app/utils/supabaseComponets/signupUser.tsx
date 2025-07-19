@@ -103,24 +103,36 @@ export async function signUpUser(prevState: SignUpResult, formData: FormData): P
       success: true,
       message: 'Account created successfully! Please check your email to verify your account.'
     };
-  } catch (error: any) {
-    if (error.message.includes('User already registered')) {
-      return {
-        success: false,
-        message: 'Email already exists. Please try a different valuee.'
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message.includes('User already registered')) {
+        return {
+          success: false,
+          message: 'Email already exists. Please try a different value.',
+        };
       }
-    }
 
-    if (error.code === 'unexpected_failure' && error.message.includes('Database error saving new user')) {
+      if (
+        'code' in error &&
+        typeof (error as any).code === 'string' &&
+        (error as any).code === 'unexpected_failure' &&
+        error.message.includes('Database error saving new user')
+      ) {
+        return {
+          success: false,
+          message: 'Username already exists. Please try a different value.',
+        };
+      }
+
       return {
         success: false,
-        message: 'Username already exists. Please try a different value.'
+        message: error.message || 'An error occurred during signup. Please try again.',
       };
     }
-    
+
     return {
       success: false,
-      message: error.message || 'An error occurred during signup. Please try again.'
+      message: 'An unknown error occurred during signup.',
     };
-  }
+  }  
 }

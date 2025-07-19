@@ -66,7 +66,7 @@ const JoinCourseButton = ({courseList, courseName, id, onCourseChange}: JoinCour
 
             <div className='flex-grow space-y-4'>
               <p className='text-gray-600 text-lg'>
-                Are you sure you want to leave <span className='font-semibold text-purple-600'>"{courseName}"</span>?
+                Are you sure you want to leave <span className='font-semibold text-purple-600'>{`"${courseName}"`}</span>
               </p>
               
               <ul className='text-sm text-gray-600 space-y-2'>

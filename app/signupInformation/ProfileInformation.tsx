@@ -1,5 +1,4 @@
-'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import React from 'react'
 
 interface ProfileInformationProps {
   setSelectedYear: (year: string) => void;
@@ -52,7 +51,7 @@ const ProfileInformation = ({ setSelectedYear, selectedYear, major, setMajor, sh
         </div>
 
         <div>
-          <h3 className='text-lg font-semibold text-black mb-2 ml-2'>What's Your Major</h3>
+          <h3 className='text-lg font-semibold text-black mb-2 ml-2'>{`What's Your Major`}</h3>
           <div className='max-w-xs'>
             <select 
               value={major}

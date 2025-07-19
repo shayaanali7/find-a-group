@@ -1,4 +1,4 @@
-import React from "react";
+import { User } from "@/app/interfaces/interfaces";
 import { createClient } from "../supabase/client";
 
 const getUserClient = async () => {
@@ -12,7 +12,7 @@ const getUserClient = async () => {
 
 export default getUserClient
 
-export async function getUsername(user: any) {
+export async function getUsername(user: User) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('profile')
@@ -23,7 +23,7 @@ export async function getUsername(user: any) {
   return { data }
 }
 
-export async function getName(user: any) {
+export async function getName(user: User) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('profile')

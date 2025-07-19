@@ -47,7 +47,7 @@ const AddProfilePicture = ({ user, onImageUpload }: AddProfilePictureProps) => {
       const filePath = fileName
 
       const supabase = await createClient();
-      const { data, error: uploadError} = await supabase.storage
+      const { error: uploadError} = await supabase.storage
         .from('profile-pictures')
         .upload(filePath, file)
       
@@ -65,7 +65,7 @@ const AddProfilePicture = ({ user, onImageUpload }: AddProfilePictureProps) => {
       if (onImageUpload) {
         onImageUpload(publicUrl)
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
       setError(errorMessage)

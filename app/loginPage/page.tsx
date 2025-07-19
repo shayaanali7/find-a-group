@@ -39,7 +39,7 @@ async function loginAction(formData: FormData) {
   }
 }
 
-export default async function LoginPage({ searchParams, }: { searchParams: { message?: string; error?: string }}) {
+export default async function LoginPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   let returnMessage = '';

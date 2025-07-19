@@ -10,8 +10,12 @@ import { getClientPicture } from '../utils/supabaseComponets/getClientPicture';
 import { getUserConversations } from '../utils/supabaseComponets/messaging';
 import { useRouter } from 'next/navigation';
 
+interface User {
+  id: string | undefined
+}
+
 const MessagesPage = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [username, setUsername] = useState<string>('');
   const [imageURL, setImageURL] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -95,7 +99,7 @@ const MessagesPage = () => {
           </Link>
           </div>
           <div className='flex-1 overflow-y-auto'>
-            {user.id && <ConversationsList userId={user?.id} /> } 
+            {(user && user.id) && <ConversationsList userId={user?.id} /> } 
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import { createClient } from '../utils/supabase/server';
 export default async function SignupInformation() {
   const user = await getUserServer();
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('profile')
     .select('done_signup')
     .eq('id', user.id)
