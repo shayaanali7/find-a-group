@@ -14,6 +14,10 @@ export interface SignUpResult {
   errors?: ValidationError;
 }
 
+interface SupabaseAuthError extends Error {
+  code?: string
+}
+
 const validateEmail = (email: string): string | undefined => {
   if (!email.trim()) return 'Email is required';
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -112,10 +116,9 @@ export async function signUpUser(prevState: SignUpResult, formData: FormData): P
         };
       }
 
+      const supabaseError = error as SupabaseAuthError;
       if (
-        'code' in error &&
-        typeof (error as any).code === 'string' &&
-        (error as any).code === 'unexpected_failure' &&
+        supabaseError.code === 'unexpected_failure' &&
         error.message.includes('Database error saving new user')
       ) {
         return {

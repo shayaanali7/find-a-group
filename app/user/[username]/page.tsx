@@ -112,6 +112,31 @@ const ProfilePage = () => {
     }
   }
 
+  if (error) {
+    return (
+      <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
+        <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
+          <div className='md:w-12 w-16'></div>
+          <div className='flex-1 flex justify-center'>
+            <SearchBar placeholder='Search for a post'/>
+          </div>
+          <div className='md:w-12 w-16 flex justify-end'>
+            {username && <ProfileButton imageURL={imageURL} username={username}/>}
+          </div>
+        </div>
+        <div className='w-full flex flex-1 overflow-hidden'>  
+          <NavigationBar />
+          <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
+            <div className='text-center'>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
+              <p className='text-gray-600'>{`Error: ${error}`}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (loading) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>

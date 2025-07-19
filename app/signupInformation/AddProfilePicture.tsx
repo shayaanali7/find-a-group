@@ -3,9 +3,10 @@ import { Image, X } from 'lucide-react'
 import React, { useState } from 'react'
 import { createClient } from '../utils/supabase/client'
 import { updateDatabase } from '../utils/supabaseComponets/updateDatabase'
+import { User } from '../interfaces/interfaces'
 
 interface AddProfilePictureProps {
-  user: any,
+  user: User,
   onImageUpload: (imageUrl: string) => void 
 }
 
