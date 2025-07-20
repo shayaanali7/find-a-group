@@ -28,8 +28,7 @@ export async function loginAction(
   try {
     const user = await getUserServer()
     const hasLoggedInBefore = await firstTimeLogin(user)
-
-    const redirectTo = hasLoggedInBefore.done_signup ? '/mainPage' : '/signupInformation'
+    const redirectTo = hasLoggedInBefore.done_signup ?  '/mainPage' : '/signupInformation';
     
     return { 
       message: 'Login successful!', 
