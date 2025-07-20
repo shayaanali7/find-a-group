@@ -1,113 +1,36 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import SearchBar from '../components/searchbar'
-import Link from 'next/link';
-import {Home } from "lucide-react";
-import ProfileButton from '../components/ProfileButton';
-import ConversationsList from '../components/ConversationsList';
-import getUserClient, { getUsername } from '../utils/supabaseComponets/getUserClient';
-import { getClientPicture } from '../utils/supabaseComponets/getClientPicture';
-import { getUserConversations } from '../utils/supabaseComponets/messaging';
-import { useRouter } from 'next/navigation';
+import { createClient } from '../utils/supabase/server'
+import { redirect } from 'next/navigation'
 
-interface User {
-  id: string | undefined
-}
+const MessagesPage = async () => {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  if (error || !user) {
+    redirect('/login')
+  }
 
-const MessagesPage = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [username, setUsername] = useState<string>('');
-  const [imageURL, setImageURL] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true);
-  const router = useRouter();
+  const { data: conversations } = await supabase
+    .from('conversations')
+    .select('conversation_id')
+    .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+    .order('updated_at', { ascending: false })
+    .limit(1)
 
-  useEffect(() => {
-    const initializeConversation = async () => {
-      try {
-        const user = await getUserClient();
-        const imageURL = await getClientPicture();
-        const username = await getUsername(user);
-        if (imageURL && username) {
-          setUser(user);
-          setUsername(username.data?.username);
-          setImageURL(imageURL);
-        }
-
-        if (user.id) {
-          const { data, error } = await getUserConversations(user.id);
-          if (!error && data) {
-            router.push(`/messages/${data[0].conversation_id}`);
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing messages page:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    initializeConversation();
-  }, [router])
-
-  if (loading) {
-    return (
-      <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
-        <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
-          <div className='md:w-12 w-16'></div>
-          
-          <div className='flex-1 flex justify-center'>
-            <SearchBar placeholder='Search for a post'/>
-          </div>
-
-          <div className='md:w-12 w-16 flex justify-end'>
-            <ProfileButton imageURL={imageURL} username={username}/>
-          </div>
-        </div>
-
-        <div className='w-full flex flex-1 overflow-hidden items-center justify-center'>
-          <div className='text-center'>
-            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
-            <p className='text-gray-600'>Loading conversations...</p>
-          </div>
-        </div>
-      </main>
-    );
+  if (conversations && conversations.length > 0) {
+    redirect(`/messages/${conversations[0].conversation_id}`)
   }
 
   return (
-    <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
-      <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
-        <div className='md:w-12 w-16'></div>
-        
-        <div className='flex-1 flex justify-center'>
-          <SearchBar placeholder='Search for a post'/>
-        </div>
-
-        <div className='md:w-12 w-16 flex justify-end'>
-            <ProfileButton  imageURL={imageURL} username={username}/>
-        </div>
+    <div className='flex items-center justify-center h-full'>
+      <div className='text-center'>
+        <h2 className='text-2xl font-semibold text-gray-700 mb-2'>
+          No conversations yet
+        </h2>
+        <p className='text-gray-500'>
+          Start a conversation to see it here!
+        </p>
       </div>
-
-      <div className='w-full flex flex-1 overflow-hidden'> 
-        <div className='hidden md:block w-1/5 h-full bg-white'>
-          <div className='border-b-1 border-purple-500 ml-2 mr-2 '>
-            <Link href='/mainPage'>
-            <button 
-              className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
-                <Home className='text-3xl' />
-                <span>Home</span>
-            </button>
-          </Link>
-          </div>
-          <div className='flex-1 overflow-y-auto'>
-            {(user && user.id) && <ConversationsList userId={user?.id} /> } 
-          </div>
-        </div>
-
-        <div className='w-4/5 flex flex-col h-full overflow-y-auto bg-white border-l-1 border-purple-500'>
-          
-        </div>
-      </div>
-    </main>
+    </div>
   )
 }
 

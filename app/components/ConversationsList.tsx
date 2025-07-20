@@ -5,6 +5,7 @@ import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { RealtimeChannel } from '@supabase/supabase-js'
+import { decryptMessage } from '../utils/encryption/encryption'
 
 interface ConversationWithDetails extends Conversation {
   other_user: {
@@ -22,9 +23,10 @@ interface ConversationWithDetails extends Conversation {
 
 interface ConversationsListProps {
   userId: string
+  encryptionKey?: CryptoKey | null
 }
 
-const ConversationsList = ({ userId }: ConversationsListProps) => {
+const ConversationsList = ({ userId, encryptionKey }: ConversationsListProps) => {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -78,9 +80,29 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
             .eq('id', otherUserId)
             .single()
           
-          const lastMessage = conv.messages && conv.messages.length > 0
+          let lastMessage = conv.messages && conv.messages.length > 0
             ? conv.messages[conv.messages.length - 1]
             : null
+
+          if (lastMessage && lastMessage.is_encrypted && encryptionKey && lastMessage.iv) {
+            try {
+              const decryptedContent = await decryptMessage(
+                lastMessage.content,
+                lastMessage.iv,
+                encryptionKey
+              );
+              lastMessage = {
+                ...lastMessage,
+                content: decryptedContent
+              };
+            } catch (error) {
+              console.error('Failed to decrypt last message:', error);
+              lastMessage = {
+                ...lastMessage,
+                content: '[Encrypted message]'
+              };
+            }
+          }
           const { data: unreadCount } = await getConversationUnreadCount(conv.conversation_id, userId);
 
           return {

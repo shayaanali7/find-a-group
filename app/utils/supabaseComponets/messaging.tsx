@@ -14,8 +14,12 @@ export interface Message {
   conversation_id: string;
   sender_id: string;
   content: string;
-  created_at: string;
   is_read: boolean;
+  is_encrypted: boolean;
+  iv: string;
+  encrypted_aes_key?: string;
+  created_at: string;
+  updated_at: string
 }
 
 export const createOrGetConversation = async (user1Id: string, user2Id: string) => {
@@ -75,26 +79,40 @@ export const getConversationMessages = async (conversationId: string) => {
   }
 }
 
-export const sendMessage = async (conversationId: string, senderId: string, content: string) => {
+export const sendMessage = async (conversationId: string, senderId: string, content: string, isEncrypted: boolean, iv: string, encryptedAESKey: string) => {
   try { 
+    const messageData: any = {
+      conversation_id: conversationId,
+      sender_id: senderId,
+      content: content,
+      is_encrypted: isEncrypted,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    if (isEncrypted) {
+      messageData.iv = iv;
+      messageData.encrypted_aes_key = encryptedAESKey;
+    }
+
     const { data, error } = await supabase
       .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: senderId,
-        content: content,
-      })
+      .insert([messageData])
       .select()
-      .single()
-    if (!error) {
-      await supabase
-        .from('conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
+    if (error) {
+      console.error('Error sending message:', error)
+      return { data: null, error: error.message }
     }
-    return { data, error }
+
+    await supabase
+      .from('conversations')
+      .update({ 
+        last_message_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('conversation_id', conversationId)
+    return { data, error: null }
   } catch (error) { 
-    return { data: null, error }
+    return { data: null, error: 'Unexpected error occurred' }
   }
 }
 
