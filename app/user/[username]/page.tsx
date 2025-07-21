@@ -11,23 +11,7 @@ import Image from 'next/image';
 import getUserClient from '@/app/utils/supabaseComponets/getUserClient';
 import { MessageCircle } from 'lucide-react';
 import { createOrGetConversation } from '@/app/utils/supabaseComponets/messaging';
-
-interface UserProfile {
-  id: string
-  created_at: string
-  username: string
-  name: string
-  year: string
-  major: string
-  bio: string
-  email?: string
-  profile_picture_url?: string
-  github_url?: string
-  instagram_url?: string
-  posts_count?: number
-  groups_count?: number
-  reputation?: number
-}
+import { UserProfile } from '@/app/interfaces/interfaces';
 
 const ProfilePage = () => {
   const router = useRouter();

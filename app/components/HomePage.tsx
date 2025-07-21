@@ -6,7 +6,6 @@ import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
 import MainContentLayout from './MainContentLayout';
 import ProfileButton from './ProfileButton';
 import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
-import { createClient } from '../utils/supabase/server';
 
 interface MainPageProps {
   pageTitle: string;
@@ -17,7 +16,6 @@ const HomePage = async ( {pageTitle}: MainPageProps ) => {
   const courses = user.id ? await getUserCourses(user.id) : [];
   const imageURL = await GetProfilePicture();
   const username = await getUsername(user);
-  const supabase = await createClient();
 
   return (
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>

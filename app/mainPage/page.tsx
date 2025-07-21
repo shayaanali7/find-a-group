@@ -21,11 +21,7 @@ const mainPage = async () => {
     redirect('/loginPage');
   }
   else {
-    if (coursesData?.courses && coursesData.courses.length > 0) {
-      const firstCourse = coursesData.courses[0];
-      redirect(`/courses/${firstCourse}`)
-    }
-    else return <HomePage pageTitle='Feed' />
+    return <HomePage pageTitle='Feed' />
   }
 }
 

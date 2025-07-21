@@ -1,21 +1,6 @@
 import React from 'react'
 import { Mail, Calendar, BookOpen, Trophy, Users, MessageCircle, Link } from 'lucide-react'
-
-interface UserProfile {
-  id: string;
-  username: string;
-  email?: string;
-  bio?: string;
-  avatar_url?: string;
-  major?: string;
-  year?: string;
-  github_url?: string;
-  instagram_url?: string;
-  created_at: string;
-  posts_count?: number;
-  groups_count?: number;
-  reputation?: number;
-}
+import { UserProfile } from '../interfaces/interfaces';
 
 interface ProfileCardProps {
   profile: UserProfile | null;

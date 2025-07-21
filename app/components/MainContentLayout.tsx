@@ -4,6 +4,7 @@ import NavigationBar from './navbar'
 import FilterButton from './FilterButton'
 import CreatePostButton from './CreatePostButton'
 import JoinCourseButton from './JoinCourseButton'
+import { RenderPosts } from './RenderPosts'
 
 interface MainContentLayoutProps {
     pageTitle: string, 
@@ -41,12 +42,7 @@ const MainContentLayout = ( {pageTitle, courses, id}: MainContentLayoutProps ) =
 			
 
 			<div className='p-4'>
-				{Array.from({ length: 50 }, (_, i) => (
-					<div key={i} className='mb-4 p-4 border border-gray-200 rounded'>
-						<h4>Post {i + 1}</h4>
-						<p>This is post content that will scroll when there are many posts...</p>
-					</div>
-				))}
+				<RenderPosts course={pageTitle} />
 			</div>
 		</div>
     </>
