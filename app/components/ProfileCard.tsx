@@ -27,7 +27,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, loading }) => {
   if (!profile) {
     return (
       <div className='hidden md:block w-1/4 h-full mt-1 pb-5'>
-        <div className='bg-gradient-to-br from-purple-500 to-purple-700 h-full w-9/10 rounded-2xl mt-2 ml-3 shadow-lg text-white'>
+        <div className='bg-gradient-to-br from-purple-500 to-purple-700 h-full w-9/10 rounded-2xl mt-2 shadow-lg text-white'>
           <div className='p-6 text-center'>
             <p className='text-white/80'>No profile data available</p>
           </div>
@@ -45,7 +45,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, loading }) => {
 
   return (
     <div className='hidden md:block w-1/4 h-full mt-1 pb-5'>
-      <div className='bg-gradient-to-br from-purple-500 to-purple-700 h-full w-9/10 rounded-2xl mt-2 ml-3 shadow-lg text-white'>
+      <div className='bg-gradient-to-br from-purple-500 to-purple-700 h-full w-9/10 rounded-2xl mt-2 shadow-lg text-white'>
         
         <div className='p-6 text-center border-b border-purple-300/30'>
           <h2 className='text-2xl font-bold'>{profile.username}</h2>

@@ -155,7 +155,7 @@ export const RenderPosts = ({ course }: { course: string }) => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {user?.profile_picture_url ? (
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                     <Image 
                       src={user.profile_picture_url} 
                       width={40} 
@@ -165,7 +165,7 @@ export const RenderPosts = ({ course }: { course: string }) => {
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                     {user?.name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                 )}
@@ -183,7 +183,7 @@ export const RenderPosts = ({ course }: { course: string }) => {
             </div>
 
             <div className="space-y-3 mt-4">
-              <h2 className="text-xl font-bold text-gray-900 leading-tight">
+              <h2 className="text-2xl font-bold text-gray-900 leading-tight">
                 {post.header}
               </h2>
               

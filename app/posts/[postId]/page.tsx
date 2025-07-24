@@ -1,3 +1,4 @@
+import PostonCommentSection from '@/app/components/PostOnCommentSection';
 import NavigationBar from '@/app/components/navbar';
 import ProfileButton from '@/app/components/ProfileButton';
 import ProfileCard from '@/app/components/ProfileCard';
@@ -10,6 +11,7 @@ import getUserServer, { getUsername } from '@/app/utils/supabaseComponets/getUse
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react'
+import RenderCommentSection from './RenderCommentSection';
 
 interface PostPageProps {
   params: {
@@ -18,7 +20,7 @@ interface PostPageProps {
 }
 
 const PostPage = async ({ params }: PostPageProps) => {
-  const { postId } = params;
+  const { postId } = await params;
   const supabase = await createClient();
   const { data: postData, error } = await supabase
     .from('posts')
@@ -62,24 +64,24 @@ const PostPage = async ({ params }: PostPageProps) => {
           <NavigationBar courses={courses} />
 
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white'>
-            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-md mt-4 ml-5 mr-5">
               <div className="flex items-start gap-3">
                 <Link 
                   href={profile?.username ? `/user/${profile?.username}` : '/profilePage'}
                   className="flex items-start gap-3 flex-shrink-0 hover:opacity-80 transition-opacity"
                 >
                   {profile?.profile_picture_url ? (
-                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                       <Image 
                         src={profile?.profile_picture_url} 
-                        width={40} 
-                        height={40} 
+                        width={32} 
+                        height={32} 
                         alt={`${profile.name || profile.username}'s profile picture`}
                         className="w-full h-full object-cover"
                       />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                       {profile?.name.charAt(0)?.toUpperCase() || '?'}
                     </div>
                   )}
@@ -97,7 +99,7 @@ const PostPage = async ({ params }: PostPageProps) => {
               </div>
 
               <div className="space-y-3 mt-4">
-                <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                <h2 className="text-2xl font-bold text-gray-900 leading-tight">
                   {postData.header}
                 </h2>
                 
@@ -118,6 +120,11 @@ const PostPage = async ({ params }: PostPageProps) => {
                   {postData.content}
                 </div>
               </div>
+            </div>
+
+            <div>
+              {user.id && <PostonCommentSection postId={postId}  id={user.id} />}
+              <RenderCommentSection postId={postId} />
             </div>
           </div>
 
