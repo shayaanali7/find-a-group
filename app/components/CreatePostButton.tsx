@@ -2,10 +2,10 @@ import React from 'react'
 import { Plus } from "lucide-react";
 import Link from 'next/link';
 
-const CreatePostButton = () => {
+const CreatePostButton = ({ courseName }: { courseName: string }) => {
   return (
     <div>
-      <Link href='/createPost'>
+      <Link href={`/createPost?courseName=${encodeURIComponent(courseName)}`}>
         <button 
           className='flex items-center gap-1 border-black border-1 hover:bg-gray-100 rounded-full whitespace-nowrap p-2 mt-2 mr-5 cursor-pointers'>
             <Plus className='text-3xl'/>

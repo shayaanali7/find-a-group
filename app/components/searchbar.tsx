@@ -1,14 +1,33 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Search } from "lucide-react"
+import courses from '../data/courses.js'
 
 interface SearchBarProps {
   placeholder: string
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
-  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    loadData();
+    setUpSubscriptions();
+  }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    // Simulate data loading
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+  }
+
+  const setUpSubscriptions = () => {
+    // Set up any necessary subscriptions here
+    console.log('Setting up subscriptions...');
+  }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchQuery(e.target.value)

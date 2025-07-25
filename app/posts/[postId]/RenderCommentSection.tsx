@@ -13,7 +13,6 @@ interface Comment {
   context: string;
   created_at: string;
   updated_at: string;
-  number_of_likes?: number;
   parent_comment_id?: number;
 }
 
@@ -82,12 +81,14 @@ const RenderCommentSection = ({ postId }: { postId: string }) => {
       const supabase = await createClient();
       const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
-        .select('comment_id, user_id, context, created_at, updated_at, number_of_likes, parent_comment_id')
+        .select('comment_id, user_id, context, created_at, updated_at, parent_comment_id')
         .eq('post_id', postId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false });
+
       if (commentsError) {
         console.error('Error fetching comments:', commentsError.message);
       }
+      
       if (commentsData) {
         setComments(commentsData);
         setCommentsUser([]);
@@ -109,93 +110,121 @@ const RenderCommentSection = ({ postId }: { postId: string }) => {
         const validUsers = users.filter(user => user !== null) as CommentsUser[];
         setCommentsUser(validUsers);
 
+        // Get comment IDs for filtering likes
         const commentIds = commentsData.map(c => c.comment_id);
+
         const { data: likesData, error: likesError } = await supabase
           .from('comment_likes')
           .select('comment_id, user_id')
           .in('comment_id', commentIds);
+          
         if (likesError) {
           console.error('Error fetching comment likes:', likesError.message);
         }
         if (likesData) {
           setCommentLikes(likesData);
         }
-      }
 
-      const channel = supabase
-        .channel(`comments:${postId}`)
-        .on(
-          'postgres_changes',
-          {
+        // Comments subscription
+        const channel = supabase
+          .channel(`comments:${postId}`)
+          .on('postgres_changes', {
             event: 'INSERT',
             schema: 'public',
             table: 'comments',
             filter: `post_id=eq.${postId}`
-          },
-          (payload) => {
-            setComments(prev => [...prev, payload.new as Comment]);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
+          }, async (payload) => {
+            const newComment = payload.new as Comment;
+            setComments(prev => [...prev, newComment]);
+            
+            // Fetch user info for the new comment
+            const profile = await getProfileInformationClient(newComment.user_id);
+            if (profile) {
+              const newUser = {
+                userId: newComment.user_id,
+                name: profile.name || 'Unknown User',
+                username: profile.username || 'Unknown User',
+                profilePictureUrl: profile.profile_picture_url || ''
+              };
+              setCommentsUser(prev => {
+                // Avoid duplicates
+                if (!prev.find(user => user.userId === newUser.userId)) {
+                  return [...prev, newUser];
+                }
+                return prev;
+              });
+            }
+          })
+          .on('postgres_changes', {
             event: 'UPDATE',
             schema: 'public',
             table: 'comments',
             filter: `post_id=eq.${postId}`
-          },
-          (payload) => {
-            setComments(prev => prev.map(comment => comment.comment_id === (payload.new as Comment).comment_id ? payload.new as Comment : comment))
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
+          }, (payload) => {
+            setComments(prev => prev.map(comment => 
+              comment.comment_id === (payload.new as Comment).comment_id 
+                ? payload.new as Comment 
+                : comment
+            ));
+          })
+          .on('postgres_changes', {
             event: 'DELETE',
             schema: 'public',
             table: 'comments',
             filter: `post_id=eq.${postId}`
-          },
-          (payload) => {
-            setComments(prev => prev.filter(comment => comment.created_at !== payload.old.created_at))
-          }
-        )
-        .subscribe();
+          }, (payload) => {
+            setComments(prev => prev.filter(comment => 
+              comment.created_at !== payload.old.created_at
+            ));
+          })
+          .subscribe();
 
+        // Fixed comment likes subscription - filter by comment IDs from this post
         const likesChannel = supabase
-        .channel(`comment_likes:${postId}`)
-        .on(
-          'postgres_changes',
-          {
+          .channel(`comment_likes:${postId}`)
+          .on('postgres_changes', {
             event: 'INSERT',
             schema: 'public',
-            table: 'comment_likes'
-          },
-          (payload) => {
-            setCommentLikes(prev => [...prev, payload.new as CommentLike]);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
+            table: 'comment_likes',
+            filter: `comment_id=in.(${commentIds.join(',')})`  // Only listen to likes for this post's comments
+          }, (payload) => {
+            const newLike = payload.new as CommentLike;
+            // Only add if it's for a comment on this post
+            if (commentIds.includes(newLike.comment_id)) {
+              setCommentLikes(prev => {
+                // Avoid duplicates
+                const exists = prev.some(like => 
+                  like.comment_id === newLike.comment_id && 
+                  like.user_id === newLike.user_id
+                );
+                if (!exists) {
+                  return [...prev, newLike];
+                }
+                return prev;
+              });
+            }
+          })
+          .on('postgres_changes', {
             event: 'DELETE',
             schema: 'public',
-            table: 'comment_likes'
-          },
-          (payload) => {
+            table: 'comment_likes',
+            filter: `comment_id=in.(${commentIds.join(',')})`  // Only listen to unlikes for this post's comments
+          }, (payload) => {
+            const deletedLike = payload.old as CommentLike;
             setCommentLikes(prev => prev.filter(like => 
-              !(like.comment_id === (payload.old as CommentLike).comment_id && 
-                like.user_id === (payload.old as CommentLike).user_id)
+              !(like.comment_id === deletedLike.comment_id && 
+                like.user_id === deletedLike.user_id)
             ));
-          }
-        )
-        .subscribe();
-      
-      return () => {
-        supabase.removeChannel(channel);
-        supabase.removeChannel(likesChannel);
-      };
+          })
+          .subscribe();
+        
+        return () => {
+          supabase.removeChannel(channel);
+          supabase.removeChannel(likesChannel);
+        };
+      }
     };
+    
     fetchComments();
   }, [postId]);
 
@@ -225,105 +254,52 @@ const RenderCommentSection = ({ postId }: { postId: string }) => {
     );
   };
 
+  const getCommentLikeCount = (commentId: number) => {
+    return commentLikes.filter(like => like.comment_id === commentId).length;
+  };
+
   const handleLikeClick = async (commentId: number) => {
     if (!currentUser) return;
 
-    const comment = comments.find(c => c.comment_id === commentId);
-    if (!comment) return;
-
     const isLiked = isCommentLiked(commentId);
-    if (isLiked) {
-      setCommentLikes(prev => prev.filter(like => 
-        !(like.comment_id === commentId && like.user_id === currentUser)
-      ));
-      setComments(prev => prev.map(c => 
-        c.comment_id === commentId 
-          ? { ...c, number_of_likes: Math.max((c.number_of_likes || 0) - 1, 0) }
-          : c
-      ));
-
-      try {
-        const supabase = await createClient();
-        const { error: deleteError } = await supabase
+    const supabase = await createClient();
+    
+    try {
+      if (isLiked) {
+        // Optimistically update UI
+        setCommentLikes(prev => prev.filter(like => 
+          !(like.comment_id === commentId && like.user_id === currentUser)
+        ));
+        
+        const { error } = await supabase
           .from('comment_likes')
           .delete()
           .eq('comment_id', commentId)
           .eq('user_id', currentUser);
         
-        if (deleteError) {
-          console.error('Error deleting like:', deleteError.message);
+        if (error) {
+          console.error('Error deleting like:', error.message);
+          // Revert optimistic update on error
           setCommentLikes(prev => [...prev, { comment_id: commentId, user_id: currentUser }]);
-          setComments(prev => prev.map(c => 
-            c.comment_id === commentId 
-              ? { ...c, number_of_likes: (c.number_of_likes || 0) + 1 }
-              : c
-          ));
-          return;
         }
-
-        const { error: updateError } = await supabase
-          .from('comments')
-          .update({ number_of_likes: Math.max((comment.number_of_likes || 0) - 1, 0) })
-          .eq('comment_id', commentId);
-        
-        if (updateError) {
-          console.error('Error updating comment likes:', updateError.message);
-        }
-      } catch (error) {
-        console.error('Unexpected error:', error);
+      } else {
+        // Optimistically update UI
         setCommentLikes(prev => [...prev, { comment_id: commentId, user_id: currentUser }]);
-        setComments(prev => prev.map(c => 
-          c.comment_id === commentId 
-            ? { ...c, number_of_likes: (c.number_of_likes || 0) + 1 }
-            : c
-        ));
-      }
-    } else {
-      setCommentLikes(prev => [...prev, { comment_id: commentId, user_id: currentUser }]);
-      setComments(prev => prev.map(c => 
-        c.comment_id === commentId 
-          ? { ...c, number_of_likes: (c.number_of_likes || 0) + 1 }
-          : c
-      ));
-      
-      try {
-        const supabase = await createClient();
-        const { error: insertError } = await supabase
+        
+        const { error } = await supabase
           .from('comment_likes')
           .insert({ comment_id: commentId, user_id: currentUser });
         
-        if (insertError) {
-          console.error('Error inserting like:', insertError.message);
+        if (error) {
+          console.error('Error inserting like:', error.message);
+          // Revert optimistic update on error
           setCommentLikes(prev => prev.filter(like => 
             !(like.comment_id === commentId && like.user_id === currentUser)
           ));
-          setComments(prev => prev.map(c => 
-            c.comment_id === commentId 
-              ? { ...c, number_of_likes: Math.max((c.number_of_likes || 0) - 1, 0) }
-              : c
-          ));
-          return;
         }
-
-        const { error: updateError } = await supabase
-          .from('comments')
-          .update({ number_of_likes: (comment.number_of_likes || 0) + 1 })
-          .eq('comment_id', commentId);
-        
-        if (updateError) {
-          console.error('Error updating comment likes:', updateError.message);
-        }
-      } catch (error) {
-        console.error('Unexpected error:', error);
-        setCommentLikes(prev => prev.filter(like => 
-          !(like.comment_id === commentId && like.user_id === currentUser)
-        ));
-        setComments(prev => prev.map(c => 
-          c.comment_id === commentId 
-            ? { ...c, number_of_likes: Math.max((c.number_of_likes || 0) - 1, 0) }
-            : c
-        ));
       }
+    } catch (error) {
+      console.error('Unexpected error:', error);
     }
   };
 
@@ -361,7 +337,6 @@ const RenderCommentSection = ({ postId }: { postId: string }) => {
             user_id: currentUser,
             context: replyText.trim(),
             parent_comment_id: parentCommentId,
-            number_of_likes: 0
           }
         ]);
       if (error) {
@@ -394,195 +369,166 @@ const RenderCommentSection = ({ postId }: { postId: string }) => {
     });
   }, []);
 
-  const CommentItem = React.memo(({ 
-    comment, 
-    depth = 0 
-  }: { 
-    comment: ThreadedComment, 
-    depth?: number 
-  }) => {
-    const userProfile = commentsUser.find(user => user.userId === comment.user_id);
+  const getUserInfo = (userId: string) => {
+    return commentsUser.find(user => user.userId === userId) || {
+      userId,
+      name: 'Unknown User',
+      username: 'unknown',
+      profilePictureUrl: ''
+    };
+  };
+
+  const renderComment = (comment: ThreadedComment, depth: number = 0) => {
+    const userInfo = getUserInfo(comment.user_id);
     const isLiked = isCommentLiked(comment.comment_id);
-    const maxDepth = 6;
-    const currentDepth = Math.min(depth, maxDepth);
-    const hasReplies = comment.replies.length > 0;
-    const repliesCollapsed = collapsedReplies.has(comment.comment_id);
+    const likeCount = getCommentLikeCount(comment.comment_id);
+    const hasReplies = comment.replies && comment.replies.length > 0;
+    const areRepliesCollapsed = collapsedReplies.has(comment.comment_id);
 
     return (
-      <div className={`${currentDepth > 0 ? 'ml-6 border-l-2 border-gray-100 pl-4' : ''}`}>
-        <div 
-          className="border-l-2 border-transparent hover:border-gray-200 hover:bg-gray-50 p-4 transition-all duration-150"
-        >
-          <div className="flex items-start gap-3">
-            <Link
-              href={userProfile?.username ? `/user/${userProfile?.username}` : '/profilePage'}
-              className="flex items-start gap-3 flex-shrink-0 hover:opacity-80 transition-opacity"
-            >
-              {userProfile?.profilePictureUrl ? (
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                  <Image 
-                    src={userProfile?.profilePictureUrl} 
-                    width={32} 
-                    height={32} 
-                    alt={`${userProfile.name || userProfile.username}'s profile picture`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-                  {userProfile?.name?.charAt(0)?.toUpperCase() || '?'}
-                </div>
-              )}
-              
-              <div className="min-w-0">
-                <h3 className="font-semibold text-gray-900 text-sm whitespace-nowrap">
-                  {userProfile?.name || 'Unknown User'}
-                </h3>
-                <div className="flex items-center gap-2 text-gray-500 text-xs whitespace-nowrap">
-                  <span>@{userProfile?.username || 'unknown'}</span>
-                  <span>• {formatDate(comment.created_at)}</span>
-                </div>
-              </div>
-            </Link>
-          </div>
-
-          <div className='pl-12'>
-            <div className="min-w-0 flex-1">
-              <div className="mb-2 mt-2">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words text-sm w-full overflow-wrap break-word">
-                  {comment.context}
-                </p>
-              </div>
-              
-              <div className="flex items-center space-x-4 mt-3 pt-2">
-                <button 
-                  className={`flex items-center space-x-1 transition-colors duration-150 text-sm ${
-                    isLiked 
-                      ? 'text-purple-500 hover:text-purple-600' 
-                      : 'text-gray-500 hover:text-blue-600'
-                  }`} 
-                  onClick={() => handleLikeClick(comment.comment_id)}
+      <div
+        key={comment.comment_id}
+        className={`${depth > 0 ? 'ml-6 border-l border-gray-200 pl-4' : ''} mb-4`}
+      >
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3 mb-3">
+            <Link 
+                  href={userInfo?.username ? `/user/${userInfo?.username}` : '/profilePage'}
+                  className="flex items-start gap-3 flex-shrink-0 hover:opacity-80 transition-opacity"
                 >
-                  <Heart 
-                    className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} 
-                  />
-                  <span>{comment.number_of_likes || 0}</span>
-                  <span>{isLiked ? 'Likes' : 'Like'}</span>
-                </button>
-                
-                <button 
-                  className="flex items-center space-x-1 text-gray-500 hover:text-blue-600 transition-colors duration-150 text-sm" 
-                  onClick={(e) => handleReplyClick(comment.comment_id, e)}
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{replyingTo === comment.comment_id ? 'Cancel' : 'Reply'}</span>
-                </button>
-
-                {hasReplies && (
-                  <button 
-                    className="flex items-center space-x-1 text-gray-500 hover:text-gray-700 transition-colors duration-150 text-sm"
-                    onClick={(e) => toggleRepliesCollapse(comment.comment_id, e)}
-                  >
-                    {repliesCollapsed ? (
-                      <>
-                        <ChevronDown className="w-4 h-4" />
-                        <span>Show {comment.replies.length} replies</span>
-                      </>
-                    ) : (
-                      <>
-                        <ChevronUp className="w-4 h-4" />
-                        <span>Hide replies</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-              
-              {replyingTo === comment.comment_id && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <textarea
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder={`Reply to ${userProfile?.name || 'Unknown User'}...`}
-                        className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        rows={3}
-                        maxLength={500}
-                        autoFocus
+                  {userInfo?.profilePictureUrl ? (
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                      <Image 
+                        src={userInfo?.profilePictureUrl} 
+                        width={32} 
+                        height={32} 
+                        alt={`${userInfo.name || userInfo.username}'s profile picture`}
+                        className="w-full h-full object-cover"
                       />
-                      
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-gray-400">
-                          {replyText.length}/500
-                        </span>
-                        
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleReplyCancel}
-                            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => handleReplySubmit(comment.comment_id)}
-                            disabled={!replyText.trim() || isSubmittingReply}
-                            className="px-4 py-1.5 bg-purple-500 text-white rounded-md text-sm hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {isSubmittingReply ? 'Posting...' : 'Reply'}
-                          </button>
-                        </div>
-                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                      {userInfo?.name.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-gray-900 text-sm whitespace-nowrap">
+                      {userInfo?.name || 'Unknown User'}
+                    </h3>
+                    <div className="flex items-center gap-2 text-gray-500 text-xs whitespace-nowrap">
+                      <span>@{userInfo?.username || 'unknown'}</span>
+                      <span>• {formatDate(comment.created_at)}</span>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </div>  
-        </div>
-        {hasReplies && !repliesCollapsed && (
-          <div className="space-y-1">
-            {comment.replies.map((reply) => (
-              <CommentItem 
-                key={reply.comment_id}
-                comment={reply} 
-                depth={currentDepth + 1}
+                </Link>
+          </div>
+
+          <div className="mb-3">
+            <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+              {comment.context}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => handleLikeClick(comment.comment_id)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm transition-all ${
+                isLiked
+                  ? 'text-purple-600 hover:bg-gray-100'
+                  : 'text-gray-500 hover:text-purple-600 hover:bg-gray-100'
+              }`}
+            >
+              <Heart
+                size={16}
+                className={isLiked ? 'fill-current' : ''}
               />
-            ))}
+              <span>{likeCount}</span>
+            </button>
+
+            <button
+              onClick={(e) => handleReplyClick(comment.comment_id, e)}
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all"
+            >
+              <MessageCircle size={16} />
+              <span>Reply</span>
+            </button>
+
+            {hasReplies && (
+              <button
+                onClick={(e) => toggleRepliesCollapse(comment.comment_id, e)}
+                className="flex items-center gap-1 px-2 py-1 rounded-full text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all"
+              >
+                {areRepliesCollapsed ? (
+                  <>
+                    <ChevronDown size={16} />
+                    <span>Show {comment.replies.length} replies</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp size={16} />
+                    <span>Hide replies</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
+          {replyingTo === comment.comment_id && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Write a reply..."
+                className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                rows={3}
+              />
+              <div className="flex justify-end gap-2 mt-3">
+                <button
+                  onClick={handleReplyCancel}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleReplySubmit(comment.comment_id)}
+                  disabled={!replyText.trim() || isSubmittingReply}
+                  className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSubmittingReply ? 'Replying...' : 'Reply'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        {hasReplies && !areRepliesCollapsed && (
+          <div className="mt-2">
+            {comment.replies.map(reply => renderComment(reply, depth + 1))}
           </div>
         )}
       </div>
     );
-  });
-  CommentItem.displayName = 'CommentItem';
-  const organizedComments = React.useMemo(() => organizeComments(comments), [comments]);
+  };
 
+  const threadedComments = organizeComments(comments);
   return (
-    <div className="space-y-1 max-w-full">
-      {organizedComments.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-gray-400 mb-2">💬</div>
-          <p className="text-gray-500">No comments yet. Be the first to comment!</p>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between mb-4 px-4">
-            <h3 className="text-lg font-semibold text-gray-800">
-              {comments.length} Comment{comments.length !== 1 ? 's' : ''}
-            </h3>
-          </div>
-          
-          {organizedComments.map((comment) => (
-            <CommentItem 
-              key={comment.comment_id}
-              comment={comment}
-              depth={0}
-            />
-          ))}
-        </>
-      )}
-    </div>
-  )
-}
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Comments ({comments.length})
+        </h2>
+        {comments.length === 0 && (
+          <p className="text-gray-500 text-center py-8">
+            No comments yet. Be the first to comment!
+          </p>
+        )}
+      </div>
 
-export default RenderCommentSection
+      <div className="space-y-4">
+        {threadedComments.map(comment => renderComment(comment))}
+      </div>
+    </div>
+  );
+};
+
+export default RenderCommentSection;

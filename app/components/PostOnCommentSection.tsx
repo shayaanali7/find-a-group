@@ -53,7 +53,7 @@ const PostonCommentSection = ({ postId, id }: { postId: string, id: string }) =>
   return (
     <div className='mx-5'>
       <textarea 
-        className="w-full border border-gray-200 p-2 mt-5 pl-5 rounded-3xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none overflow-hidden min-h-[40px]"
+        className="w-full border border-gray-200 p-2 mt-5 pl-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none overflow-hidden min-h-[40px]"
         placeholder='Write A Comment...'
         ref={textareaRef}
         value={commentText}

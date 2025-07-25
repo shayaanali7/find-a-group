@@ -34,7 +34,7 @@ const MainContentLayout = ( {pageTitle, courses, id}: MainContentLayoutProps ) =
 						<FilterButton />
 					</div>
 					<div className='flex justify-end w-full'>
-						<CreatePostButton />
+						{pageTitle !== 'Feed' && <CreatePostButton courseName={pageTitle} />}
 						{pageTitle !== 'Feed' && <JoinCourseButton courseList={courses} courseName={pageTitle} id={id} onCourseChange={handleCourseChange} /> } 
 					</div>
 				</div>

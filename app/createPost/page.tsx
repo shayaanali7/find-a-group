@@ -9,7 +9,13 @@ import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture'
 import { getUserCourses } from '../utils/supabaseComponets/getUserCourses'
 import ShowRules from './ShowRules'
 
-const CreatePostPage = async () => {
+interface CreatePostPageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
+  const courseName = typeof searchParams.courseName === 'string' ? searchParams.courseName : '';
+  console.log('Course Name:', courseName);
   const buttonClass = 'border-black border-1 hover:bg-gray-100';
   const user = await getUserServer();
   const imageURL = await GetProfilePicture();
@@ -46,7 +52,7 @@ const CreatePostPage = async () => {
               </div>
               <div className='mt-5'>
                 <h1 className='text-xl font-semibold'>Course</h1>
-                <CoursePickerButton course='CS2212' />
+                <CoursePickerButton course={courseName} />
               </div>
               
               <div className='mt-10'>
