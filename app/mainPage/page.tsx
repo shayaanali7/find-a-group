@@ -11,7 +11,7 @@ const mainPage = async () => {
     redirect('/loginPage');
   }
 
-  const { data: coursesData, error: coursesError } = await supabase
+  const { error: coursesError } = await supabase
     .from('user_courses')
     .select('courses')
     .eq('id', userData.user.id)

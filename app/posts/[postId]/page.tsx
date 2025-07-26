@@ -8,6 +8,7 @@ import { getProfileInformation } from '@/app/utils/supabaseComponets/getProfileI
 import { GetProfilePicture } from '@/app/utils/supabaseComponets/getProfilePicture';
 import { getUserCourses } from '@/app/utils/supabaseComponets/getUserCourses';
 import getUserServer, { getUsername } from '@/app/utils/supabaseComponets/getUserServer';
+import { courses as courseTags, groupSizes, roles, groupStatus, locations } from '@/app/data/tags';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react'
@@ -36,6 +37,22 @@ const PostPage = async ({ params }: PostPageProps) => {
   const username = await getUsername(user);
 
   const profile = user.id ? await getProfileInformation(postData.user_id) : null;
+  
+  const allTags = [...courseTags, ...groupSizes, ...roles, ...groupStatus, ...locations];
+  const getTagStyle = (tag: string) => {
+    const tagConfig = allTags.find(t => t.label.toLowerCase() === tag.toLowerCase());
+    if (tagConfig) {
+      const baseColor = tagConfig.color.replace('bg-', '').replace('-400', '');
+      return {
+        backgroundColor: `bg-${baseColor}-400`,
+        textColor: `text-${baseColor}-800`
+      };
+    }
+    return {
+      backgroundColor: 'bg-gray-100',
+      textColor: 'text-gray-800'
+    };
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -105,14 +122,19 @@ const PostPage = async ({ params }: PostPageProps) => {
                 
                 {postData.tags && postData.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {postData.tags.map((tag: string, index: number) => (
-                      <span 
-                        key={index}
-                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
+                    {postData.tags.map((tag: string, index: number) => {
+                      const tagStyle = getTagStyle(tag);
+                      console.log('Tag Style:', tagStyle);
+                      console.log('Tag:', tag);
+                      return (
+                        <span 
+                          key={index}
+                          className={`inline-block ${tagStyle.backgroundColor} ${tagStyle.textColor} text-xs px-2 py-1 rounded-full font-medium`}
+                        >
+                          {tag}
+                        </span>
+                      );
+                    })}
                   </div>
                 )}
                 

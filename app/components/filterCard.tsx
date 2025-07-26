@@ -14,7 +14,7 @@ interface FilterCardProps {
   length: number;
   onFilterAddition?: (filters: string[]) => void;
   onFilterDeletion?: (filters: string[]) => void;
-  selectedFilters?: string[]; // Add this to sync with parent state
+  selectedFilters?: string[];
 }
 
 const FilterCard = ({ tags, name, length, onFilterAddition, onFilterDeletion, selectedFilters = [] }: FilterCardProps) => {
@@ -23,7 +23,6 @@ const FilterCard = ({ tags, name, length, onFilterAddition, onFilterDeletion, se
     const contentRef = useRef<HTMLDivElement>(null);
     const [maxHeight, setMaxHeight] = useState<string>('0px')
 
-    // Sync with parent's selected filters
     useEffect(() => {
       const updated = tags.map(tag => selectedFilters.includes(tag.label));
       setIsBeingFiltered(updated);
@@ -51,7 +50,6 @@ const FilterCard = ({ tags, name, length, onFilterAddition, onFilterDeletion, se
       updated[idx] = false;
       setIsBeingFiltered(updated);
 
-      // Fixed: Remove the specific label from the list
       const newList = selectedFilters.filter(element => element !== label);
       if (onFilterDeletion) onFilterDeletion(newList);
     };

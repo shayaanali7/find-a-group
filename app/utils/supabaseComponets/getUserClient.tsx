@@ -1,6 +1,5 @@
 import { User } from "@/app/interfaces/interfaces";
 import { createClient } from "../supabase/client";
-import { useParams } from "next/navigation";
 
 const getUserClient = async () => {
   const supabase = createClient();

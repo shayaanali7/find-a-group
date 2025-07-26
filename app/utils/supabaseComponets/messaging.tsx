@@ -100,7 +100,7 @@ export const sendMessage = async (conversationId: string, senderId: string, cont
 
 export const markMessageAsRead = async (conversationId: string, userId: string) => {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('messages')
       .update({ is_read: true })
       .eq('conversation_id', conversationId)

@@ -1,13 +1,13 @@
 import React from 'react'
 import SearchBar from '../components/searchbar'
 import NavigationBar from '../components/navbar'
-import CoursePickerButton from '../components/CoursePickerButton'
-import TagModal from '../components/TagModal'
 import ProfileButton from '../components/ProfileButton'
 import getUserServer, { getUsername } from '../utils/supabaseComponets/getUserServer'
 import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture'
 import { getUserCourses } from '../utils/supabaseComponets/getUserCourses'
 import ShowRules from './ShowRules'
+import PostForm from './PostForm'
+import { StorePost } from './StorePost'
 
 interface CreatePostPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -16,7 +16,6 @@ interface CreatePostPageProps {
 const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
   const courseName = typeof searchParams.courseName === 'string' ? searchParams.courseName : '';
   console.log('Course Name:', courseName);
-  const buttonClass = 'border-black border-1 hover:bg-gray-100';
   const user = await getUserServer();
   const imageURL = await GetProfilePicture();
   const username = await getUsername(user);
@@ -50,33 +49,7 @@ const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
                   </div>
                 </div>
               </div>
-              <div className='mt-5'>
-                <h1 className='text-xl font-semibold'>Course</h1>
-                <CoursePickerButton course={courseName} />
-              </div>
-              
-              <div className='mt-10'>
-                <div className='pr-8'>
-                  <input 
-                    type='text' 
-                    placeholder='Title' 
-                    className={`${buttonClass} rounded-full mt-1 p-3 w-full text-2xl text-left`}>
-                  </input>
-
-                  <div className='flex justify-start mt-10 ml-2'>
-                    <TagModal text='Add Tags'/>
-                  </div>
-                  <textarea
-                    placeholder='Body Text' 
-                    className={`${buttonClass} rounded-3xl mt-1 p-3 w-full h-40 text-left items-start resize-none`}>
-                  </textarea>
-                  
-                  <div className='flex justify-end'>
-                    <button className={`${buttonClass} rounded-full p-2 px-5`}>Post</button>
-                  </div>
-                </div>
-              </div>
-
+              <PostForm courseName={courseName} createPost={StorePost} />
             </div>
           </div>
 
