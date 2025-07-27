@@ -38,10 +38,15 @@ export const RenderPosts = ({ course }: { course: string }) => {
       try {
         setLoading(true);
         setError('');
-        const { data: postData, error: postError } = await supabase
+        let query = supabase
           .from('posts')
-          .select('*')
-          .eq('course_name', course)
+          .select('*');
+
+        if (course !== 'Feed') {
+          query = query.eq('course_name', course);
+        }
+
+        const { data: postData, error: postError } = await query
           .order('created_at', { ascending: false });
 
         if (postError) {
@@ -197,6 +202,15 @@ export const RenderPosts = ({ course }: { course: string }) => {
                   </div>
                 </div>
               </Link>
+
+              {course === 'Feed' ? (
+                <Link href={`/courses/${post.course_name}`} onClick={(e) => e.stopPropagation()}>
+                  <span className="text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded-full flex-shrink-0">
+                    {post.course_name}
+                  </span>
+                </Link>
+                
+              ): (<div></div>)}
             </div>
 
             <div className="space-y-3 mt-4">

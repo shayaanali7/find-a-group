@@ -13,6 +13,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react'
 import RenderCommentSection from './RenderCommentSection';
+import DisplayMessagingButton from './DisplayMessagingButton';
 
 interface PostPageProps {
   params: {
@@ -30,12 +31,10 @@ const PostPage = async ({ params }: PostPageProps) => {
     .single()
   if (error) console.log(error.message);
 
-
   const user = await getUserServer();
   const courses = user.id ? await getUserCourses(user.id) : [];
   const imageURL = await GetProfilePicture();
   const username = await getUsername(user);
-
   const profile = user.id ? await getProfileInformation(postData.user_id) : null;
   
   const allTags = [...courseTags, ...groupSizes, ...roles, ...groupStatus, ...locations];
@@ -113,6 +112,10 @@ const PostPage = async ({ params }: PostPageProps) => {
                     </div>
                   </div>
                 </Link>
+
+                {user.id !== profile?.id ? ( 
+                  (user.id && profile?.id) && <DisplayMessagingButton viewingUserId={user.id} postUserId={profile?.id} /> 
+                ): <div></div>}
               </div>
 
               <div className="space-y-3 mt-4">
@@ -124,8 +127,6 @@ const PostPage = async ({ params }: PostPageProps) => {
                   <div className="flex flex-wrap gap-2">
                     {postData.tags.map((tag: string, index: number) => {
                       const tagStyle = getTagStyle(tag);
-                      console.log('Tag Style:', tagStyle);
-                      console.log('Tag:', tag);
                       return (
                         <span 
                           key={index}

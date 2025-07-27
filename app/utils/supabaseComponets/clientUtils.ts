@@ -15,3 +15,17 @@ export const getProfileInformationClient = async (id: string): Promise<UserProfi
   }
   return profile as UserProfile;
 }
+
+export const fetchUserPosts = async (userId: string) => {
+  const supabase = await createClient();
+  const { data: posts, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('Error fetching user posts:', error);
+    return [];
+  }
+  return posts || [];
+}

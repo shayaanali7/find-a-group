@@ -40,7 +40,7 @@ const ProfileButton = ({ imageURL, username }: { imageURL: (string | null), user
             </Link>
           </div>
           <div className='mb-2'>
-            <Link href={username ? `/profile/${username}/edit` : '/profilePage'}>
+            <Link href='/editProfilePage'>
               <button className='flex items-center w-full gap-2 m-1 hover:bg-purple-200 p-2 rounded-lg text-xl'>
                 <Pencil className='text-4xl' />
                 <span>Edit Profile</span>
@@ -48,7 +48,7 @@ const ProfileButton = ({ imageURL, username }: { imageURL: (string | null), user
             </Link>
           </div>
           <div className='border-t-1 border-purple-500 mt-5 mb-2'>
-            <Link href='/profilePage'>
+            <Link href='/updateInformation'>
               <button className='flex items-center w-full gap-2 m-1 hover:bg-purple-200 p-2 rounded-lg text-xl'>
                 <Settings className='text-4xl' />
                 <span>Settings</span>

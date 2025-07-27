@@ -12,17 +12,30 @@ import getUserClient from '@/app/utils/supabaseComponets/getUserClient';
 import { MessageCircle } from 'lucide-react';
 import { createOrGetConversation } from '@/app/utils/supabaseComponets/messaging';
 import { UserProfile } from '@/app/interfaces/interfaces';
+import { fetchUserPosts } from '@/app/utils/supabaseComponets/clientUtils';
+
+interface UserPost {
+  post_id: string;
+  header: string;
+  content: string;
+  course_name: string;
+  created_at: string;
+  tags?: string;
+}
 
 const ProfilePage = () => {
   const router = useRouter();
   const params = useParams()
   const username = Array.isArray(params.username) ? params.username[0] : params.username;
   const [viewingUser, setViewingUser] = useState<string>('');
+  const [userCourses, setUserCourses] = useState<string[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 	const [imageURL, setimageURL] = useState<string | null >('');
   const [isMessageLoading, setIsMessageLoading] = useState<boolean>(false);
+  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     getImage();
@@ -31,6 +44,16 @@ const ProfilePage = () => {
         const user = await getUserClient();
         if (user.id) { 
           setViewingUser(user.id);
+          const supabase = createClient();
+          const { data: userCourses, error } = await supabase
+            .from('user_courses')
+            .select('courses')
+            .eq('id', user.id)
+          if (error) {
+            console.error('Error getting user courses:', error);
+            return [];
+          }
+          setUserCourses(userCourses?.[0]?.courses || []); 
         }
         else throw new Error('Error getting user!');
       } catch (error) {
@@ -62,6 +85,17 @@ const ProfilePage = () => {
       if (error) setError("Could not Retrieve Profile")
       else { 
 				setProfile(data);
+        try {
+          setPostsLoading(true);
+          const posts = await fetchUserPosts(data.id);
+          setUserPosts(posts);
+        } catch (error) {
+          console.error('Error fetching user posts:', error);
+          setUserPosts([]);
+        }
+        finally {
+          setPostsLoading(false);
+        }
 			}
     } catch (error) {
       setError('An unexpected error occurred');
@@ -109,7 +143,7 @@ const ProfilePage = () => {
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar />
+          <NavigationBar courses={userCourses} />
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
             <div className='text-center'>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
@@ -134,7 +168,7 @@ const ProfilePage = () => {
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar />
+          <NavigationBar courses={userCourses} />
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
             <div className='text-center'>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
@@ -161,7 +195,7 @@ const ProfilePage = () => {
       </div>
 
       <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar />
+          <NavigationBar courses={userCourses} />
 
           <div className='w-6/10  flex-1 h-full overflow-y-auto bg-white'>
             <div className='flex flex-row justify-between p-4 gap-4'>
@@ -191,8 +225,71 @@ const ProfilePage = () => {
 
             <div>
               <h1 className='mt-5 ml-10 font-semibold text-2xl'>Activity</h1>
+              
+              <div className='mx-8 mt-4'>
+                {postsLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm animate-pulse">
+                        <div className="mt-4 space-y-2">
+                          <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+                          <div className="h-4 bg-gray-300 rounded w-full"></div>
+                          <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : userPosts.length > 0 ? (
+                  <div className='space-y-4'>
+                    {userPosts.map((post) => (
+                      <div 
+                        onClick={() => router.push(`/posts/${post.post_id}`)} 
+                        key={post.post_id} 
+                        className='bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer'
+                      >
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start">
+                            <h2 className="text-2xl font-bold text-gray-900 leading-tight flex-1">
+                              {post.header}
+                            </h2>
+                            <span className='text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded-full ml-4 flex-shrink-0'>
+                              {post.course_name}
+                            </span>
+                          </div>
+                          
+                          {post.tags && (
+                            <div className="flex flex-wrap gap-2">
+                              <span className='text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-medium'>
+                                {post.tags}
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="text-gray-700 text-sm ml-1 leading-relaxed whitespace-pre-wrap break-words">
+                            {post.content}
+                          </div>
+                          
+                          <div className="flex justify-end">
+                            <span className='text-xs text-gray-500'>
+                              {new Date(post.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-center py-8 text-gray-500'>
+                    <p>No posts yet</p>
+                  </div>
+                )}
+              </div>
             </div>
-
           </div>
           <ProfileCard profile={profile} />
       </div>     

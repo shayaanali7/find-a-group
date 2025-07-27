@@ -1,9 +1,12 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Home, MessageCircle, CircleUserRound, X, Menu } from "lucide-react";
 import Link from 'next/link';
 import DropDownList from './DropDownList';
 import AddGroupModal from './AddGroupModal';
+import getUserClient from '../utils/supabaseComponets/getUserClient';
+import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
+import Image from 'next/image';
 
 interface NavigationBarProps {
   courses?: string[];
@@ -11,7 +14,25 @@ interface NavigationBarProps {
 
 const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-   
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getProfilePicture = async () => {
+      const user = await getUserClient();
+      const profile = user.id ? await getProfileInformationClient(user.id) : null;
+      if (profile) {
+        setProfilePicture(profile.profile_picture_url || null);
+        setUsername(profile.username || null);
+      }
+      else {
+        console.error('Profile not found for user:', user.id);
+        setProfilePicture(null);
+      }
+    }
+    getProfilePicture();
+  }, []);
+  
   const toggleMenu = (): void => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   }
@@ -60,9 +81,11 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
         </div>
           
         <div className='mb-2'>
-          <Link href='/profilePage'>
+          <Link href={`/user/${username}`}>
             <button className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
-              <CircleUserRound className='text-3xl' />
+              {profilePicture ? (
+                <Image src={profilePicture} alt='Profile Picture' width={40} height={40} className='rounded-full' />
+                ) : (<CircleUserRound className='text-3xl' />)}
               <span>Profile</span>
             </button>
           </Link>

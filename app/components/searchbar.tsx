@@ -1,7 +1,8 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { BookOpen, FileText, Search, User } from "lucide-react"
+import { BookOpen, FileText, GraduationCap, MessageSquare, Search, User } from "lucide-react"
 import { createClient } from '../utils/supabase/client'
+import { useRouter } from 'next/navigation'
 
 
 interface SearchBarProps {
@@ -13,10 +14,11 @@ interface SearchResult {
   type: 'user' | 'course' | 'post',
   title: string,
   subtitle?: string,
-  imageUrl?: string,
+  profile_picture?: string,
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -136,19 +138,27 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
 
   const handleResultClick = (result: SearchResult) => {
     console.log('Result clicked:', result);
-
+    if (result.type === 'user') {
+      router.push(`/user/${result.subtitle?.slice(1)}`);
+    } else if (result.type === 'course') {
+      router.push(`/courses/${result.title}`);
+    } else if (result.type === 'post') {
+      router.push(`/posts/${result.id}`);
+    }
     setSearchQuery('');
     setShowResults(false);
   }
 
   const getResultIcon = (type: string) => {
+    const iconClass = "w-4 h-4";
+    
     switch (type) {
       case 'user':
-        return <User className="w-4 h-4" />;
+        return <User className={iconClass} />;
       case 'course':
-        return <BookOpen className="w-4 h-4" />;
+        return <GraduationCap className={`${iconClass} text-white`} />; 
       case 'post':
-        return <FileText className="w-4 h-4" />;
+        return <MessageSquare className={`${iconClass} text-white`} />;
       default:
         return null;
     }
@@ -193,29 +203,36 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
             ) : searchResults.length > 0 ? (
               <div className="py-2">
                 {searchResults.map((result) => (
+                  console.log('Rendering result:', result.profile_picture),
                   <button
                     key={`${result.type}-${result.id}`}
                     onClick={() => handleResultClick(result)}
                     className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors duration-150"
                   >
                     <div className="flex items-center space-x-3">
-                      {result.imageUrl ? (
+                      {result.profile_picture ? (
                         <img 
-                          src={result.imageUrl} 
+                          src={result.profile_picture} 
                           alt={result.title}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          result.type === 'course' 
+                            ? 'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white' 
+                            : result.type === 'post' 
+                            ? 'bg-gradient-to-br from-purple-400 to-purple-600 text-white'
+                            : 'bg-gradient-to-br from-purple-400 to-purple-600 text-white'
+                        }`}>
                           {getResultIcon(result.type)}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-sm font-semibold text-gray-900 truncate">
                             {result.title}
                           </h4>
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                          <span className="text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
                             {getResultTypeLabel(result.type)}
                           </span>
                         </div>
