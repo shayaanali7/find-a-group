@@ -222,8 +222,6 @@ export const RenderPosts = ({ course }: { course: string }) => {
                 <div className="flex flex-wrap gap-2">
                   {post.tags.map((tag: string, index: number) => {
                     const tagStyle = getTagStyle(tag);
-                    console.log('Tag Style:', tagStyle);
-                    console.log('Tag:', tag);
                     return (
                       <span 
                         key={index}

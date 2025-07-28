@@ -1,5 +1,5 @@
 'use client'
-import { UserProfile } from "@/app/interfaces/interfaces";
+import { User, UserProfile } from "@/app/interfaces/interfaces";
 import { createClient } from "../supabase/client";
 
 export const getProfileInformationClient = async (id: string): Promise<UserProfile | null> => {
@@ -28,4 +28,32 @@ export const fetchUserPosts = async (userId: string) => {
     return [];
   }
   return posts || [];
+}
+
+export async function getUserCoursesClient(userId: string) {
+  const supabase = await createClient()
+  
+  const { data: profile, error } = await supabase
+    .from('user_courses')
+    .select('courses')
+    .eq('id', userId)
+    .single()
+  
+  if (error) {
+    console.error('Error getting courses:', error)
+    return []
+  }
+  
+  return profile?.courses || []
+}
+
+export async function getUsernameClient(user: User) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('profile')
+    .select('username')
+    .eq('id', user.id)
+    .single();
+  if (error) console.log(error);
+  return { data }
 }

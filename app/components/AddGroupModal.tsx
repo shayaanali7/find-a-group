@@ -1,10 +1,103 @@
-import React, {useState} from 'react'
-import { CirclePlus } from 'lucide-react';
+'use client'
+import React, { useEffect, useState } from 'react'
+import { CirclePlus, X, User, Crown } from 'lucide-react';
 import ModalScreen from './ModalScreen';
-import SearchBar from './searchbar';
+import SearchBar, { SearchResult } from './searchbar';
+import getUserClient from '../utils/supabaseComponets/getUserClient';
+import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
+import { createClient } from '../utils/supabase/client';
 
 const AddGroupModal = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [groupMembers, setGroupMembers] = useState<SearchResult[]>([]);
+  const [groupName, setGroupName] = useState<string>('');
+  const [userInfo, setUserInfo] = useState<{ id: string } | null>(null);
+  const user = getUserClient();
+
+  
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getUserClient();
+      if (currentUser.id) setUserInfo({ id: currentUser.id });
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const addUser = async () => {
+      const currentUser = await getUserClient();
+      if (currentUser.id) {
+        const profile = await getProfileInformationClient(currentUser.id);
+        const userInfo: SearchResult = {
+          id: currentUser.id,
+          type: 'user',
+          title: profile?.name,
+          subtitle: profile?.username,
+          profile_picture: profile?.profile_picture_url
+
+        }
+        setGroupMembers(prev => 
+          prev.find(member => member.id === userInfo.id) ? prev : [...prev, userInfo]
+        );
+      }
+    }
+    addUser();
+    
+  }, [user]);
+
+  const handleAddGroupMember = async (result: SearchResult) => {
+    if (result.id === (await user).id) return
+    
+    setGroupMembers(prev => 
+      prev.find(member => member.id === result.id) ? prev : [...prev, result]
+    );
+    console.log(groupMembers);
+  }
+
+  const handleRemoveGroupMember = (memberId: string) => {
+    setGroupMembers(prev => prev.filter(member => member.id !== memberId));
+  }
+
+  const handleAddGroup = async () => {
+    try { 
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from('groups')
+        .insert({
+          owner: userInfo?.id,
+          name: groupName,
+        })
+        .select()
+      if (error) {
+        console.log('Error creating Group: ' + error.message);
+        throw new Error();
+      }
+      
+      if (data) {
+        console.log(data);
+        groupMembers.forEach(async (member) => {
+          if (member.id !== userInfo?.id) {
+            const { error: addUserError } = await supabase
+              .from('group_members')
+              .insert({
+                group_id: data[0].id,
+                user_id: member.id
+              })
+            if (addUserError) {
+              console.log('Error adding User: ' + member.title);
+              throw new Error()
+            }
+          }
+          else return;
+        })
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsOpen(false);
+    }
+  }
 
   return (
     <div>
@@ -22,36 +115,86 @@ const AddGroupModal = () => {
               <h1 className='font-semibold text-center text-2xl'>Create A Group</h1>
             </div>
 
-            <div className='flex-1 overflow-y-auto px-2 py-2 min-h-0'>
-              <div className='max-h-[400px] overflow-y-auto'>
-                <div className='mt-2'>
+            <div className='flex-1 overflow-y-auto px-4 py-2 min-h-0'>
+              <div className='space-y-6'>
+                <div>
                   <input 
                     type='text' 
-                    placeholder='Group Name' 
-                    className={`border-black border-1 hover:bg-gray-10 rounded-full mt-1 p-1 w-full text-xl text-left`}>
-                  </input>
+                    placeholder='Group Name'
+                    onChange={(e) => setGroupName(e.target.value)} 
+                    className='border border-gray-300 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-full px-4 py-3 w-full text-lg transition-all duration-200 outline-none'
+                  />
                 </div>
 
-                <div className='mt-5'>
-                  <h1 className='text-xl font-semibold mt-4'>Group Members</h1>
-                  <SearchBar placeholder='Select Group Members' />
+                <div>
+                  <h2 className='text-xl font-semibold mb-3'>Add Group Members</h2>
+                  <div className='border border-gray-200 rounded-lg p-4 bg-gray-50'>
+                    <SearchBar 
+                      placeholder='Search for members to add...' 
+                      groupModal={true} 
+                      onClickAction={handleAddGroupMember}
+                    />
+                  </div>
                 </div>
+
+                {groupMembers.length > 0 && (
+                  <div>
+                    <h2 className='text-xl font-semibold mb-3'>
+                      Selected Members ({groupMembers.length})
+                    </h2>
+                    <div className='border border-gray-200 rounded-lg p-4 bg-white max-h-60 overflow-y-auto'>
+                      <div className='space-y-2'>
+                        {groupMembers.map((member) => (
+                          <div 
+                            key={member.id}
+                            className='flex items-center justify-between p-3 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors duration-200'
+                          >
+                            <div className='flex items-center gap-3'>
+                              <img 
+                                src={member.profile_picture} 
+                                alt={member.title}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              <div>
+                                <p className='font-medium text-gray-800'>{member.title}</p>
+                                <p className='text-sm text-gray-500'>{member.subtitle}</p>
+                              </div>
+                            </div>
+                            
+                            {userInfo?.id !== member.id ? (
+                              <button
+                                onClick={() => handleRemoveGroupMember(member.id)}
+                                className='w-8 h-8 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors duration-200 group'
+                                title='Remove member'
+                              >
+                                <X className='w-4 h-4 text-red-600 group-hover:text-red-700' />
+                              </button>
+                            ): (
+                              <Crown className='w-4 h-4 text-purple-400' />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className='flex-shrink-0 flex justify-end gap-3 pt-4 pb-2'>
+            <div className='flex-shrink-0 flex justify-end gap-3 pt-4 pb-4 px-4 border-t border-gray-200'>
               <button
-                onClick={() => setIsOpen(false)}
-                className='py-2 px-8 rounded-full font-semibold text-white bg-purple-500 hover:bg-purple-600 shadow transition-colors duration-200 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300'
+                onClick={handleAddGroup}
+                className='py-3 px-8 rounded-full font-semibold text-white bg-purple-500 hover:bg-purple-600 shadow-md transition-all duration-200 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                disabled={groupMembers.length === 1}
               >
-                Create
+                Create Group
               </button>
 
               <button
                 onClick={() => setIsOpen(false)}
-                className='py-2 px-8 rounded-full font-semibold text-purple-500 bg-white hover:bg-purple-50 shadow border border-purple-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-300'
+                className='py-3 px-8 rounded-full font-semibold text-purple-500 bg-white hover:bg-purple-50 shadow-md border border-purple-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-300'
               >
-                Close
+                Cancel
               </button>
             </div>
           </div>

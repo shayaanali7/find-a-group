@@ -5,6 +5,7 @@ import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
 import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
 import ProfileButton from '../components/ProfileButton';
 import NavigationBar from '../components/navbar';
+import UpdateUserInformationForm from './UpdateInformationForm';
 
 const UpdateUserInformation = async () => {
   const user = await getUserServer();
@@ -28,7 +29,12 @@ const UpdateUserInformation = async () => {
 
         <div className='w-full flex flex-1 overflow-hidden'>  
           <NavigationBar courses={courses} />
-        </div>    
+        </div>   
+
+        <div>
+          <UpdateUserInformationForm />
+        </div>
+        
     </main>
   )
 }

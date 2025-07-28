@@ -7,17 +7,19 @@ import { useRouter } from 'next/navigation'
 
 interface SearchBarProps {
   placeholder: string
+  groupModal?: boolean
+  onClickAction?: (result: SearchResult) => void
 }
 
-interface SearchResult {
+export interface SearchResult {
   id: string, 
   type: 'user' | 'course' | 'post',
-  title: string,
+  title: string | undefined,
   subtitle?: string,
   profile_picture?: string,
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickAction }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -80,32 +82,46 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
         console.error('Error fetching search results:', usersError || postsError || coursesError);
         return;
       }
+      
+      let formattedResults = null
+      if (groupModal) {
+        formattedResults = [
+          ...(users || []).map(user => ({
+            id: user.id,
+            type: 'user' as const,
+            title: user.name || user.username,
+            subtitle: user.username !== user.name ? `@${user.username}` : undefined,
+            profile_picture: user.profile_picture_url
+          })),
+        ];
+      }
+      else {
+        formattedResults = [
+          ...(users || []).map(user => ({
+            id: user.id,
+            type: 'user' as const,
+            title: user.name || user.username,
+            subtitle: user.username !== user.name ? `@${user.username}` : undefined,
+            profile_picture: user.profile_picture_url
+          })),
+          
+          ...(courses || []).map(course => ({
+            id: course.course_id,
+            type: 'course' as const,
+            title: course.course_name,
+            subtitle: ''
+          })),
+          
+          ...(posts || []).map(post => ({
+            id: post.post_id,
+            type: 'post' as const,
+            user_id: post.user_id,
+            title: post.header,
+            subtitle: post.course_name
+          }))
+        ];
+      }
 
-      const formattedResults: SearchResult[] = [
-        ...(users || []).map(user => ({
-          id: user.id,
-          type: 'user' as const,
-          title: user.name || user.username,
-          subtitle: user.username !== user.name ? `@${user.username}` : undefined,
-          profile_picture: user.profile_picture_url
-        })),
-
-        ...(courses || []).map(course => ({
-          id: course.course_id,
-          type: 'course' as const,
-          title: course.course_name,
-          subtitle: ''
-        })),
-        
-        ...(posts || []).map(post => ({
-          id: post.post_id,
-          type: 'post' as const,
-          user_id: post.user_id,
-          title: post.header,
-          subtitle: post.course_name
-        }))
-      ];
-      console.log('Search results:', posts);
       setSearchResults(formattedResults);
       setShowResults(true);
     } catch (error) {
@@ -137,8 +153,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
   };
 
   const handleResultClick = (result: SearchResult) => {
-    console.log('Result clicked:', result);
-    if (result.type === 'user') {
+    if (result.type === 'user' && groupModal) {
+      onClickAction?.(result);
+    } else if (result.type = 'user') {
       router.push(`/user/${result.subtitle?.slice(1)}`);
     } else if (result.type === 'course') {
       router.push(`/courses/${result.title}`);
@@ -203,7 +220,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
             ) : searchResults.length > 0 ? (
               <div className="py-2">
                 {searchResults.map((result) => (
-                  console.log('Rendering result:', result.profile_picture),
                   <button
                     key={`${result.type}-${result.id}`}
                     onClick={() => handleResultClick(result)}
