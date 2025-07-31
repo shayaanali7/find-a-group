@@ -18,7 +18,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [user, setUser] = useState<string | undefined>('');
-  const [userGroups, setUserGroups] = useState<string[]>([]);
+  const [userGroups, setUserGroups] = useState<{ id: string, name: string }[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(true);
 
   useEffect(() => {
@@ -43,24 +43,24 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
       const supabase = createClient();
       try {
         const [ownedRes, memberRes] = await Promise.all([
-          supabase.from('groups').select('name').eq('owner', user),
+          supabase.from('groups').select('id, name').eq('owner', user),
           supabase.from('group_members').select('group_id').eq('user_id', user)
         ]);
 
         const ownedGroups = ownedRes.data || [];
         const memberGroupIds = memberRes.data?.map(m => m.group_id) || [];
 
-        let memberGroups: { name: string }[] = [];
+        let memberGroups: { id: string, name: string }[] = [];
         if (memberGroupIds.length > 0) {
-          const memberGroupsRes = await supabase.from('groups').select('name').in('id', memberGroupIds);
+          const memberGroupsRes = await supabase.from('groups').select('id, name').in('id', memberGroupIds);
           memberGroups = memberGroupsRes.data || [];
         }
 
-        const groupNamesSet = new Set<string>();
-        ownedGroups.forEach(g => groupNamesSet.add(g.name));
-        memberGroups.forEach(g => groupNamesSet.add(g.name));
+        const groupMap = new Map<string, { id: string, name: string }>();
+        ownedGroups.forEach(g => groupMap.set(g.id, g));
+        memberGroups.forEach(g => groupMap.set(g.id, g));
 
-        setUserGroups(Array.from(groupNamesSet));
+        setUserGroups(Array.from(groupMap.values()));
       } catch (error) {
         console.error('Error fetching groups:', error);
       } finally {
@@ -100,7 +100,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
           {groupsLoading ? (
             <div className='text-gray-500 p-2 text-sm'>Loading groups...</div>
           ) : (
-            <DropDownList name='My Groups' elements={userGroups} />
+            <DropDownList name='My Groups' elementsWithIds={userGroups} />
           )}
         </div>
 

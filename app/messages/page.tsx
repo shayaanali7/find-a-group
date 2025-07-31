@@ -79,7 +79,7 @@ const MessagesPage = () => {
         </div>
 
         <div className='md:w-12 w-16 flex justify-end'>
-            <ProfileButton  imageURL={imageURL} username={username}/>
+            <ProfileButton imageURL={imageURL} username={username}/>
         </div>
       </div>
 

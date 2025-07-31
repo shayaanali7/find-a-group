@@ -5,10 +5,11 @@ import Link from 'next/link'
 
 interface DropDownListProps { 
 	name: string
-	elements: Array<string>
+	elements?: Array<string>
+	elementsWithIds?: Array<{ id: string, name: string }>;
 }
 
-const DropDownList = ( {name, elements}: DropDownListProps ) => {
+const DropDownList = ( {name, elements, elementsWithIds}: DropDownListProps ) => {
 	const [isExpanded, setIsExpanded] = useState<boolean>(false);
 	const contentRef = useRef<HTMLDivElement>(null);
 	const [maxHeight, setMaxHeight] = useState<string>('0px')
@@ -43,7 +44,7 @@ const DropDownList = ( {name, elements}: DropDownListProps ) => {
 				}}
 			>
 				<div>
-					{elements.map((element, index) => (
+					{elements && elements.map((element, index) => (
 						<Link href={`/courses/${element}`} key={index}>
 							<button
 								key={index}
@@ -52,9 +53,15 @@ const DropDownList = ( {name, elements}: DropDownListProps ) => {
 						</Link>
 						
 					))}
+					{elementsWithIds && elementsWithIds.map((element, index) => (
+						<Link href={`/groupsPage/${element.id}`} key={index}>
+							<button
+								key={index}
+								className='w-full p-2 hover:bg-gray-100'
+							>{element.name}</button>
+						</Link>
+					))}
 				</div>
-
-
 			</div>
 		</>
     

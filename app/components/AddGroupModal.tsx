@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { CirclePlus, X, User, Crown } from 'lucide-react';
+import { CirclePlus, X, Crown } from 'lucide-react';
 import ModalScreen from './ModalScreen';
 import SearchBar, { SearchResult } from './searchbar';
 import getUserClient from '../utils/supabaseComponets/getUserClient';
@@ -47,8 +47,6 @@ const AddGroupModal = () => {
   }, [user]);
 
   const handleAddGroupMember = async (result: SearchResult) => {
-    if (result.id === (await user).id) return
-    
     setGroupMembers(prev => 
       prev.find(member => member.id === result.id) ? prev : [...prev, result]
     );
@@ -65,32 +63,27 @@ const AddGroupModal = () => {
       const { data, error } = await supabase
         .from('groups')
         .insert({
-          owner: userInfo?.id,
           name: groupName,
+
         })
         .select()
       if (error) {
         console.log('Error creating Group: ' + error.message);
+        console.log(error);
         throw new Error();
       }
       
       if (data) {
-        console.log(data);
-        groupMembers.forEach(async (member) => {
-          if (member.id !== userInfo?.id) {
-            const { error: addUserError } = await supabase
-              .from('group_members')
-              .insert({
-                group_id: data[0].id,
-                user_id: member.id
-              })
-            if (addUserError) {
-              console.log('Error adding User: ' + member.title);
-              throw new Error()
-            }
-          }
-          else return;
-        })
+        const membersInserts = groupMembers.map(member => ({
+          group_id: data[0].id,
+          user_id: member.id,
+          is_owner: member.id === userInfo?.id
+        }));
+
+        const { error: addMembersError } = await supabase
+          .from('group_members')
+          .insert(membersInserts)
+        if (addMembersError) throw addMembersError;
       }
     } catch (error) {
       console.log(error);
