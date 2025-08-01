@@ -35,7 +35,7 @@ export default async function HomePage() {
                   Welcome To 
                 </span>
                 <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 drop-shadow-lg [animation-delay:0.3s] ml-3">
-                  Find A Group!
+                  Group Finder!
                 </span>
               </h1>
             </div>
@@ -48,11 +48,11 @@ export default async function HomePage() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-indigo-400 rounded-4xl blur-lg opacity-30 animate-pulse"></div>
               <Image 
-                src="/assets/logo-2.jpg" 
+                src="/assets/groupup-logo.png" 
                 width={400} 
-                height={450} 
+                height={400} 
                 alt="logo" 
-                className="relative z-10 object-contain rounded-4xl shadow-2xl border-2 border-purple-300/30 backdrop-blur-sm transform transition-transform duration-700 hover:rotate-2"
+                className="relative w-48 h-48 md:w-96 md:h-96 z-10 object-contain rounded-4xl shadow-2xl border-2 border-purple-300/30 backdrop-blur-sm transform transition-transform duration-700 hover:rotate-2"
               />
             </div>
           </div>

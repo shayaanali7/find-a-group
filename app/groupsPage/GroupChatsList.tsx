@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
-import Image from 'next/image'
-import { RealtimeChannel } from '@supabase/supabase-js'
 import { Users } from 'lucide-react'
 
 interface GroupChat {

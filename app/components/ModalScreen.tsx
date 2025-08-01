@@ -6,13 +6,11 @@ interface ModalScreenProps {
     children: ReactNode;
     isOpen?: boolean;
     handleClose?: () => void;
-    opacity?: number;
-    backgroundColor?: string;
     height?: string;
     width?: string;
 }
 
-const ModalScreen = ( {children ,isOpen, handleClose, backgroundColor, opacity, height, width }: ModalScreenProps ) => {
+const ModalScreen = ( {children ,isOpen, handleClose, height, width }: ModalScreenProps ) => {
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (handleClose && event.key === 'Escape') {
@@ -35,7 +33,8 @@ const ModalScreen = ( {children ,isOpen, handleClose, backgroundColor, opacity, 
   if (!isOpen) return null;
 
   const modalClasses = `fixed z-50 rounded-2xl flex flex-col box-border bg-white p-2 sm:p-5 
-    top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-y-auto ${
+    top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-y-auto
+    shadow-2xl border border-gray-200/50 backdrop-blur-sm ${
     height && width 
       ? 'max-w-md' 
       : 'w-[95vw] max-w-md h-[95vh] max-h-[90vh]'
@@ -48,7 +47,7 @@ const ModalScreen = ( {children ,isOpen, handleClose, backgroundColor, opacity, 
   return (
     <ReactPortal wrapperId='react-portal-modal-container'>
       <>
-        <div className='fixed top-0 left-0 w-screen h-screen z-40 bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 relative overflow-hidden'>
+        <div className='top-0 left-0 w-screen h-screen z-40 bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 relative overflow-hidden'>
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
             <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse [animation-delay:2s]"></div>

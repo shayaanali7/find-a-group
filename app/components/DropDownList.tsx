@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
+import { useLoading } from './LoadingContext'
 
 interface DropDownListProps { 
 	name: string
@@ -13,6 +14,7 @@ const DropDownList = ( {name, elements, elementsWithIds}: DropDownListProps ) =>
 	const [isExpanded, setIsExpanded] = useState<boolean>(false);
 	const contentRef = useRef<HTMLDivElement>(null);
 	const [maxHeight, setMaxHeight] = useState<string>('0px')
+	 const { startLoading, stopLoading } = useLoading();
 
 	useEffect(() => {
 				if (isExpanded && contentRef.current) {
@@ -21,11 +23,19 @@ const DropDownList = ( {name, elements, elementsWithIds}: DropDownListProps ) =>
 				else setMaxHeight('0px');
 			}, [isExpanded, elements]);
 
+	const handleNavigationClick = () => {
+		startLoading();
+
+		setTimeout(() => {
+			stopLoading();
+		}, 1000);
+	}
+	
   return (
 		<>
 			<div>
 				<button
-					className='w-full flex hover:bg-purple-200 rounded-full m-1 p-2 text-xl items-center justify-between px-2 cursor-pointer'
+					className='group flex items-center justify-between w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
 					onClick={() => setIsExpanded(!isExpanded)}     
 				>
 					<span className='ml-2'>{name}</span>
@@ -48,6 +58,7 @@ const DropDownList = ( {name, elements, elementsWithIds}: DropDownListProps ) =>
 						<Link href={`/courses/${element}`} key={index}>
 							<button
 								key={index}
+								onClick={() => handleNavigationClick()}
 								className='w-full p-2 hover:bg-gray-100'
 							>{element}</button>
 						</Link>
@@ -58,6 +69,7 @@ const DropDownList = ( {name, elements, elementsWithIds}: DropDownListProps ) =>
 							<button
 								key={index}
 								className='w-full p-2 hover:bg-gray-100'
+								onClick={() => handleNavigationClick()}
 							>{element.name}</button>
 						</Link>
 					))}

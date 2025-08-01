@@ -84,6 +84,7 @@ const ConversationPage = () => {
     try { 
       const user = await getUserClient()
       const imageUrl = await getClientPicture()
+      console.log(imageURL);
       const username = await getUsername(user)
       const name = await getName(user)
       
@@ -95,6 +96,15 @@ const ConversationPage = () => {
           profile_picture_url: imageUrl
         })
         setImageURL(imageUrl)
+      }
+      else if (user.id) {
+        setCurrentUser({
+          id: user.id,
+          username: username.data?.username || '',
+          name: name.data?.name || '',
+          profile_picture_url: null
+        })
+        setImageURL(null)
       } else {
         console.log('Error getting user id or image');
       }
@@ -206,7 +216,7 @@ const ConversationPage = () => {
           </div>
 
           <div className='md:w-12 w-16 flex justify-end'>
-            <ProfileButton imageURL={imageURL} username={currentUser?.username || ''}/>
+            {currentUser?.name && <ProfileButton imageURL={imageURL} username={currentUser?.username || ''} name={currentUser?.name}/>}
           </div>
         </div>
 
@@ -237,7 +247,7 @@ const ConversationPage = () => {
         </div>
 
         <div className='md:w-12 w-16 flex justify-end'>
-          {currentUser && <ProfileButton imageURL={imageURL} username={currentUser?.username}/>}
+          {currentUser && <ProfileButton imageURL={imageURL} username={currentUser?.username} name={currentUser.name}/>}
         </div>
       </div>
 

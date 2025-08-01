@@ -4,7 +4,7 @@ import { createClient } from '../utils/supabase/client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { courses as courseTags, groupSizes, roles, groupStatus, locations } from '@/app/data/tags';
+import { useLoading } from './LoadingContext';
 
 interface Post {
   post_id: string,
@@ -30,6 +30,7 @@ export const RenderPosts = ({ course }: { course: string }) => {
   const [postsWithUsers, setPostsWithUsers] = useState<PostWithUser[]>([]); 
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const { startLoading, stopLoading } = useLoading();
   const supabase = createClient();
   const router = useRouter();
 
@@ -97,22 +98,6 @@ export const RenderPosts = ({ course }: { course: string }) => {
     getPostsWithUsers();
   }, [course, supabase]);
 
-  const allTags = [...courseTags, ...groupSizes, ...roles, ...groupStatus, ...locations];
-  const getTagStyle = (tag: string) => {
-    const tagConfig = allTags.find(t => t.label.toLowerCase() === tag.toLowerCase());
-    if (tagConfig) {
-      const baseColor = tagConfig.color.replace('bg-', '').replace('-400', '');
-      return {
-        backgroundColor: `bg-${baseColor}-400`,
-        textColor: `text-${baseColor}-800`
-      };
-    }
-    return {
-      backgroundColor: 'bg-gray-100',
-      textColor: 'text-gray-800'
-    };
-  }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -121,6 +106,24 @@ export const RenderPosts = ({ course }: { course: string }) => {
       minute: '2-digit'
     });
   };
+
+  const handleClick = ( postId: string ) => {
+    startLoading();
+
+    router.push(`/posts/${postId}`)
+    setTimeout(() =>{
+      stopLoading();
+    }, 1000)
+  }
+
+  const handleClickProfile = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    startLoading();
+    e.stopPropagation();
+
+    setTimeout(() => {
+      stopLoading();
+    }, 1000)
+  }
 
   if (loading) {
     return (
@@ -168,13 +171,13 @@ export const RenderPosts = ({ course }: { course: string }) => {
           <div 
             key={post.post_id} 
             className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => {router.push(`/posts/${post.post_id}`)}}
+            onClick={() => handleClick(post.post_id)}
           >
             <div className="flex items-start gap-3">
               <Link 
                 href={user?.username ? `/user/${user.username}` : '/profilePage'}
                 className="flex items-start gap-3 flex-shrink-0 hover:opacity-80 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => handleClickProfile(e)}
               >
                 {user?.profile_picture_url ? (
                   <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
@@ -204,8 +207,8 @@ export const RenderPosts = ({ course }: { course: string }) => {
               </Link>
 
               {course === 'Feed' ? (
-                <Link href={`/courses/${post.course_name}`} onClick={(e) => e.stopPropagation()}>
-                  <span className="text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded-full flex-shrink-0">
+                <Link href={`/courses/${post.course_name}`} onClick={(e) => handleClickProfile(e)}>
+                  <span className="text-xs text-purple-700  transform transition-all duration-300 bg-purple-100 hover:bg-purple-200 px-2 py-1 rounded-full flex-shrink-0">
                     {post.course_name}
                   </span>
                 </Link>
@@ -221,11 +224,10 @@ export const RenderPosts = ({ course }: { course: string }) => {
               {post.tags && post.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {post.tags.map((tag: string, index: number) => {
-                    const tagStyle = getTagStyle(tag);
                     return (
                       <span 
                         key={index}
-                        className={`inline-block ${tagStyle.backgroundColor} ${tagStyle.textColor} text-xs px-2 py-1 rounded-full font-medium`}
+                        className={`inline-block bg-gradient-to-r from-purple-500 to-indigo-500 transform transition-colors duration-300 hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white min-w-[40px] text-cente text-xs px-2 py-1 rounded-full font-medium`}
                       >
                         {tag}
                       </span>

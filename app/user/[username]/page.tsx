@@ -8,7 +8,7 @@ import { createClient } from '../../utils/supabase/client';
 import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture';
 import ProfileButton from '@/app/components/ProfileButton';
 import Image from 'next/image';
-import getUserClient from '@/app/utils/supabaseComponets/getUserClient';
+import getUserClient, { getName } from '@/app/utils/supabaseComponets/getUserClient';
 import { MessageCircle } from 'lucide-react';
 import { createOrGetConversation } from '@/app/utils/supabaseComponets/messaging';
 import { UserProfile } from '@/app/interfaces/interfaces';
@@ -28,6 +28,7 @@ const ProfilePage = () => {
   const params = useParams()
   const username = Array.isArray(params.username) ? params.username[0] : params.username;
   const [viewingUser, setViewingUser] = useState<string>('');
+  const [viewingUserName, setViewingUserName] = useState<string>('');
   const [userCourses, setUserCourses] = useState<string[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -44,6 +45,8 @@ const ProfilePage = () => {
         const user = await getUserClient();
         if (user.id) { 
           setViewingUser(user.id);
+          const name = await getName(user);
+          setViewingUserName(name.data?.name);
           const supabase = createClient();
           const { data: userCourses, error } = await supabase
             .from('user_courses')
@@ -105,13 +108,6 @@ const ProfilePage = () => {
     }  
   }
 
-  useEffect(() => {
-    console.log('State updated - viewingUser:', viewingUser);
-    console.log('State updated - imageURL:', imageURL);
-    console.log(profile?.id)
-  }, [viewingUser, imageURL, profile])
-
-
   const handleMessageButton = async () => {
     if (profile) {
       setIsMessageLoading(true);
@@ -130,6 +126,10 @@ const ProfilePage = () => {
     }
   }
 
+  const getInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : '?';
+  };
+
   if (error) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
@@ -139,7 +139,7 @@ const ProfilePage = () => {
             <SearchBar placeholder='Search for a post'/>
           </div>
           <div className='md:w-12 w-16 flex justify-end'>
-            {username && <ProfileButton imageURL={imageURL} username={username}/>}
+            {username && <ProfileButton imageURL={imageURL} username={username} name={viewingUserName}/>}
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
@@ -164,7 +164,7 @@ const ProfilePage = () => {
             <SearchBar placeholder='Search for a post'/>
           </div>
           <div className='md:w-12 w-16 flex justify-end'>
-            {username && <ProfileButton imageURL={imageURL} username={username}/>}
+            {username && <ProfileButton imageURL={imageURL} username={username} name={viewingUserName}/>}
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
@@ -190,7 +190,7 @@ const ProfilePage = () => {
         </div>
 
         <div className='md:w-12 w-16 flex justify-end'>
-          {username && <ProfileButton imageURL={imageURL} username={username}/>}
+          {username && <ProfileButton imageURL={imageURL} username={username} name={viewingUserName}/>}
         </div>
       </div>
 
@@ -201,7 +201,13 @@ const ProfilePage = () => {
             <div className='flex flex-row justify-between p-4 gap-4'>
               <div className='flex flex-row gap-4 ml-4'>
                 <div className='w-10 h-10 rounded-full overflow-hidden'>
-                  {profile?.profile_picture_url && <Image width={64} height={64} src={profile.profile_picture_url} alt='Profile' className="w-full h-full object-cover object-center"/>}
+                  {profile?.profile_picture_url 
+                  ? <Image width={64} height={64} src={profile.profile_picture_url} alt='Profile' className="w-full h-full object-cover object-center"/> 
+                  : 
+                    <div className='w-full h-full bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 flex items-center justify-center'>
+                      <span className='text-white font-semibold text-sm leading-none'>{getInitial(profile?.name || '')}</span>
+                    </div>
+                  }
                 </div>                
                 <div className='flex flex-col'>
                   <h1 className='font-semibold text-3xl'>{profile?.username}</h1>

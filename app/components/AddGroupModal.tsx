@@ -92,13 +92,20 @@ const AddGroupModal = () => {
     }
   }
 
+  const getInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : '?';
+  };
+
   return (
     <div>
       <button
         onClick={() => setIsOpen(true)}
-        className='flex items-center w-9/10 gap-2 m-1 ml-2 hover:bg-purple-200 p-2 rounded-full text-xl'>
-        <CirclePlus className='text-3xl' />
-        <span>Create Group</span>
+        className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'>
+        <div className='w-10 h-10 flex items-center justify-center rounded-lg bg-white group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm'>
+          <CirclePlus className='w-5 h-5' />
+        </div>
+        <span className='font-medium'>Create Group</span>
+        <div className='ml-auto w-2 h-2 rounded-full bg-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
       </button>
     
       {isOpen && (
@@ -143,11 +150,18 @@ const AddGroupModal = () => {
                             className='flex items-center justify-between p-3 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors duration-200'
                           >
                             <div className='flex items-center gap-3'>
+                              { member.profile_picture 
+                              ? 
                               <img 
                                 src={member.profile_picture} 
                                 alt={member.title}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
+                              : <div className='w-8 h-8 rounded-full bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 flex items-center justify-center'>
+                                  <span className='text-white font-semibold text-sm'>{member.title ? getInitial(member.title) : getInitial('?')}</span>
+                                </div>
+                              }
+                              
                               <div>
                                 <p className='font-medium text-gray-800'>{member.title}</p>
                                 <p className='text-sm text-gray-500'>{member.subtitle}</p>

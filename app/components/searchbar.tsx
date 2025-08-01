@@ -1,8 +1,9 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { BookOpen, FileText, GraduationCap, MessageSquare, Search, User } from "lucide-react"
+import { GraduationCap, MessageSquare, Search, User } from "lucide-react"
 import { createClient } from '../utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useLoading } from './LoadingContext'
 
 
 interface SearchBarProps {
@@ -27,6 +28,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickA
   const [showResults, setShowResults] = useState<boolean>(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const searchBarRef = useRef<HTMLDivElement>(null);
+  const { startLoading, stopLoading } = useLoading();
   const supabase = createClient();
 
   useEffect(() => {
@@ -153,6 +155,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickA
   };
 
   const handleResultClick = (result: SearchResult) => {
+    startLoading();
+
     if (result.type === 'user' && groupModal) {
       onClickAction?.(result);
     } else if (result.type = 'user') {
@@ -164,6 +168,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickA
     }
     setSearchQuery('');
     setShowResults(false);
+    setTimeout(() => {
+      stopLoading();
+    }, 1000)
   }
 
   const getResultIcon = (type: string) => {
@@ -198,7 +205,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickA
     <>
       <div className='md:hidden w-10' />
 
-      <div ref={searchBarRef} className='relative flex-1 max-w-md mx-auto md:mx-0'>
+      <div ref={searchBarRef} className='relative flex-1 max-w-xl mx-auto md:mx-0'>
         <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5 pointer-events-none' />
         <form onSubmit={handleSearchSubmit}>
           <input 
@@ -264,7 +271,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickA
               </div>
             ) : (
               <div className="p-4 text-center text-gray-500">
-                No results found for "{searchQuery}"
+                No results found for &quot;{searchQuery}&quot;
               </div>
             )}
           </div>

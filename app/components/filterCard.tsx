@@ -57,11 +57,11 @@ const FilterCard = ({ tags, name, length, onFilterAddition, onFilterDeletion, se
     const needsSingleColumn = tags.some(tag => tag.label.length > 12);
     return(
         <>
-          <div className='font-sans text-xl w-full h-8 mt-2 bg-purple-400 rounded-full'>
+          <div className='font-sans font-semibold text-xl w-full h-8 mt-2 bg-gradient-to-r from-purple-500 to-indigo-500 transform hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white transition-colors duration-300 rounded-2xl shadow-lg border border-purple-300/30 overflow-hidden'>
             <button 
             className='w-full flex items-center justify-between px-2 cursor-pointer' 
             onClick={() => setIsExpanded(!isExpanded)}>
-              <span className='ml-2'>{name}</span>
+              <span className='ml-2 text-white'>{name}</span>
               <ChevronDown 
                 className={`transition-transform duration-400 ${isExpanded ? 'rotate-180' : ''}`} 
               />
@@ -81,7 +81,7 @@ const FilterCard = ({ tags, name, length, onFilterAddition, onFilterDeletion, se
                 isBeingFiltered[idx] ? (
                   <button
                     key={idx}
-                    className={`${tag.color} hover:${tag.hoverColor} transition-colors duration-300 h-8 rounded-full flex flex-row items-center justify-between px-2`} 
+                    className={`bg-gradient-to-r from-purple-500 to-indigo-500 transform hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white transition-colors duration-300 h-8 rounded-full flex flex-row items-center justify-between px-2`} 
                     onClick={e => handleRemoveClick(idx, e, tag.label)}
                     aria-label='Remove filter'
                   >
@@ -91,7 +91,7 @@ const FilterCard = ({ tags, name, length, onFilterAddition, onFilterDeletion, se
                 ) : (
                   <button 
                     key={idx} 
-                    className={`${tag.color} hover:${tag.hoverColor} transition-colors duration-300 h-8 rounded-full flex flex-row items-center justify-center`}
+                    className={`bg-gradient-to-r from-purple-500 to-indigo-500 transform transition-colors duration-300 hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white h-8 rounded-full flex flex-row items-center justify-center`}
                     onClick={() => handleClick(idx, tag.label)}
                   >
                     <span className='truncate'>{tag.label}</span>

@@ -7,8 +7,7 @@ import { createClient } from '@/app/utils/supabase/server';
 import { getProfileInformation } from '@/app/utils/supabaseComponets/getProfileInformation';
 import { GetProfilePicture } from '@/app/utils/supabaseComponets/getProfilePicture';
 import { getUserCourses } from '@/app/utils/supabaseComponets/getUserCourses';
-import getUserServer, { getUsername } from '@/app/utils/supabaseComponets/getUserServer';
-import { courses as courseTags, groupSizes, roles, groupStatus, locations } from '@/app/data/tags';
+import getUserServer, { getName, getUsername } from '@/app/utils/supabaseComponets/getUserServer';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react'
@@ -35,23 +34,8 @@ const PostPage = async ({ params }: PostPageProps) => {
   const courses = user.id ? await getUserCourses(user.id) : [];
   const imageURL = await GetProfilePicture();
   const username = await getUsername(user);
+  const name = await getName(user);
   const profile = user.id ? await getProfileInformation(postData.user_id) : null;
-  
-  const allTags = [...courseTags, ...groupSizes, ...roles, ...groupStatus, ...locations];
-  const getTagStyle = (tag: string) => {
-    const tagConfig = allTags.find(t => t.label.toLowerCase() === tag.toLowerCase());
-    if (tagConfig) {
-      const baseColor = tagConfig.color.replace('bg-', '').replace('-400', '');
-      return {
-        backgroundColor: `bg-${baseColor}-400`,
-        textColor: `text-${baseColor}-800`
-      };
-    }
-    return {
-      backgroundColor: 'bg-gray-100',
-      textColor: 'text-gray-800'
-    };
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -72,7 +56,7 @@ const PostPage = async ({ params }: PostPageProps) => {
         </div>
 
         <div className='md:w-12 w-16 flex justify-end'>
-          <ProfileButton imageURL={imageURL} username={username.data?.username}/>
+          <ProfileButton imageURL={imageURL} username={username.data?.username} name={name.data?.name}/>
         </div>
       </div>
 
@@ -126,11 +110,10 @@ const PostPage = async ({ params }: PostPageProps) => {
                 {postData.tags && postData.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {postData.tags.map((tag: string, index: number) => {
-                      const tagStyle = getTagStyle(tag);
                       return (
                         <span 
                           key={index}
-                          className={`inline-block ${tagStyle.backgroundColor} ${tagStyle.textColor} text-xs px-2 py-1 rounded-full font-medium`}
+                          className={`inline-block min-w-[40px] text-center bg-gradient-to-r from-purple-500 to-indigo-500 transform transition-colors duration-300 hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white text-xs px-2 py-1 rounded-full font-medium`}
                         >
                           {tag}
                         </span>

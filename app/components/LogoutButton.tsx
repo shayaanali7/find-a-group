@@ -3,11 +3,15 @@ import { LogOut } from 'lucide-react'
 import React from 'react'
 import { createClient } from '../utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useLoading } from './LoadingContext'
 
 const LogoutButton = () => {
   const router = useRouter();
+  const { startLoading, stopLoading } = useLoading();
   
   const handleClick = async () => {
+    startLoading();
+
     const supabase = await createClient();
     const { error } = await supabase.auth.signOut();
     if (error) console.log(error);
@@ -15,6 +19,9 @@ const LogoutButton = () => {
       router.push('/');
       router.refresh();
     }
+    setTimeout(() => {
+      stopLoading();
+    }, 1000)
   }
 
   return (

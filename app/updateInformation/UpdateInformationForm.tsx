@@ -57,8 +57,7 @@ const UpdateUserInformationForm: React.FC = () => {
       ...prev,
       [name]: value
     }));
-    
-    // Clear error when user starts typing
+
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -72,8 +71,7 @@ const UpdateUserInformationForm: React.FC = () => {
       ...prev,
       [field]: !prev[field]
     }));
-    
-    // Clear related form data when unchecking
+
     if (updateFields[field]) {
       if (field === 'username') {
         setFormData(prev => ({ ...prev, username: '' }));
@@ -125,8 +123,6 @@ const UpdateUserInformationForm: React.FC = () => {
         newErrors.confirmPassword = 'Passwords do not match';
       }
     }
-
-    // Check if at least one field is selected
     if (!updateFields.username && !updateFields.email && !updateFields.password) {
       newErrors.general = 'Please select at least one field to update';
     }
@@ -137,18 +133,13 @@ const UpdateUserInformationForm: React.FC = () => {
 
   const handleSubmit = async (): Promise<void> => {
     setSuccessMessage('');
-    
     if (!validateForm()) {
       return;
     }
-
     setIsLoading(true);
 
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Here you would make actual API calls to update the user information
       console.log('Updating user information:', {
         username: updateFields.username ? formData.username : null,
         email: updateFields.email ? formData.email : null,
@@ -159,8 +150,6 @@ const UpdateUserInformationForm: React.FC = () => {
       });
 
       setSuccessMessage('User information updated successfully!');
-      
-      // Reset form
       setFormData({
         username: '',
         email: '',
@@ -176,6 +165,7 @@ const UpdateUserInformationForm: React.FC = () => {
 
     } catch (error) {
       setErrors({ general: 'Failed to update user information. Please try again.' });
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -203,7 +193,7 @@ const UpdateUserInformationForm: React.FC = () => {
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl border border-gray-200 p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Update Your Profile</h1>
-          <p className="text-gray-600">Choose which information you'd like to update</p>
+          <p className="text-gray-600">Choose which information you&apos;d like to update</p>
         </div>
         
         {errors.general && (
@@ -219,7 +209,6 @@ const UpdateUserInformationForm: React.FC = () => {
         )}
 
         <div className="space-y-6">
-          {/* Username Section */}
           <div className="bg-gray-50 rounded-lg p-6 space-y-4">
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
@@ -252,7 +241,6 @@ const UpdateUserInformationForm: React.FC = () => {
             )}
           </div>
 
-          {/* Email Section */}
           <div className="bg-gray-50 rounded-lg p-6 space-y-4">
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
@@ -285,7 +273,6 @@ const UpdateUserInformationForm: React.FC = () => {
             )}
           </div>
 
-          {/* Password Section */}
           <div className="bg-gray-50 rounded-lg p-6 space-y-4">
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
@@ -303,7 +290,6 @@ const UpdateUserInformationForm: React.FC = () => {
             
             {updateFields.password && (
               <div className="mt-4 space-y-4">
-                {/* Current Password */}
                 <div className="relative">
                   <input
                     type={showPasswords.current ? "text" : "password"}
@@ -325,7 +311,6 @@ const UpdateUserInformationForm: React.FC = () => {
                   )}
                 </div>
 
-                {/* New Password */}
                 <div className="relative">
                   <input
                     type={showPasswords.new ? "text" : "password"}
@@ -347,7 +332,6 @@ const UpdateUserInformationForm: React.FC = () => {
                   )}
                 </div>
 
-                {/* Confirm Password */}
                 <div className="relative">
                   <input
                     type={showPasswords.confirm ? "text" : "password"}
@@ -372,7 +356,6 @@ const UpdateUserInformationForm: React.FC = () => {
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="flex space-x-4 pt-6">
             <button
               onClick={handleSubmit}

@@ -71,7 +71,7 @@ const SignUpPage = () => {
   };
 
   return (
-    <ModalScreen isOpen={true} opacity={1} backgroundColor='#7e22ce'>
+    <ModalScreen isOpen={true}>
       <div className='flex flex-col h-full text-black'>
             <div className='flex-shrink-0 pt-4 pb-2'>
               <h1 className='font-semibold text-center text-2xl'>Sign Up</h1>

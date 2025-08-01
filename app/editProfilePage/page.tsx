@@ -89,7 +89,7 @@ const editProfilePage = async () => {
                       </li>
                       <li className='flex items-start gap-3'>
                         <span className='text-green-500 font-bold'>•</span>
-                        <span>Only share information you're comfortable with others seeing</span>
+                        <span>Only share information you&apos;re comfortable with others seeing</span>
                       </li>
                     </ul>
                   </div>

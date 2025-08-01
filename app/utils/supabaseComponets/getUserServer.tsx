@@ -21,3 +21,14 @@ export async function getUsername(user: User) {
   if (error) console.log(error);
   return { data }
 }
+
+export async function getName(user: User) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('profile')
+    .select('name')
+    .eq('id', user.id)
+    .single();
+  if (error) console.log(error);
+  return { data }
+}
