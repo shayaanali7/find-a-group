@@ -155,11 +155,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickA
   };
 
   const handleResultClick = (result: SearchResult) => {
-    startLoading();
-
     if (result.type === 'user' && groupModal) {
       onClickAction?.(result);
-    } else if (result.type = 'user') {
+      setSearchQuery('');
+      setShowResults(false);
+      return;
+    }
+    else {
+      startLoading();
+    }  
+    
+    if (result.type = 'user') {
       router.push(`/user/${result.subtitle?.slice(1)}`);
     } else if (result.type === 'course') {
       router.push(`/courses/${result.title}`);

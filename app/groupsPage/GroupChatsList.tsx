@@ -1,8 +1,9 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import { Users } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface GroupChat {
   id: string
@@ -23,15 +24,121 @@ interface GroupChatsListProps {
   userId: string
 }
 
-const GroupChatsList = ({ userId }: GroupChatsListProps) => {
-  const [groupChats, setGroupChats] = useState<GroupChat[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string>('')
+const supabase = createClient()
 
-  const supabase = createClient()
+const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
+  try {
+    const { data: memberGroups, error: memberError } = await supabase
+      .from('group_members')
+      .select(`
+        group_id,
+        is_owner,
+        joined_at,
+        groups:group_id (
+          id,
+          name,
+          created_at
+        )
+      `)
+      .eq('user_id', userId)
+
+    if (memberError) {
+      throw new Error(`Failed to fetch member groups: ${memberError.message}`)
+    }
+
+    const allGroups: any[] = []
+    
+    if (memberGroups) {
+      memberGroups.forEach(member => {
+        const group = member.groups
+        const groupObj = Array.isArray(group) ? group[0] : group
+        if (groupObj) {
+          allGroups.push({
+            ...groupObj,
+            is_owner: member.is_owner,
+            joined_at: member.joined_at
+          })
+        }
+      })
+    }
+
+    const groupChatsWithDetails = await Promise.all(
+      allGroups.map(async (group) => {
+        const { data: lastMessageData } = await supabase
+          .from('group_messages')
+          .select('content, created_at, user_id')
+          .eq('group_id', group.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+
+        let senderName = 'Unknown'
+        if (lastMessageData) {
+          const { data: senderData } = await supabase
+            .from('profile')
+            .select('name')
+            .eq('id', lastMessageData.user_id)
+            .single()
+          
+          senderName = senderData?.name || 'Unknown'
+        }
+
+        const { count: memberCount } = await supabase
+          .from('group_members')
+          .select('*', { count: 'exact' })
+          .eq('group_id', group.id)
+
+        return {
+          id: group.id,
+          name: group.name,
+          created_at: group.created_at,
+          is_owner: group.is_owner,
+          last_message: lastMessageData ? {
+            content: lastMessageData.content,
+            created_at: lastMessageData.created_at,
+            sender_id: lastMessageData.user_id,
+            sender_name: senderName
+          } : undefined,
+          member_count: memberCount || 0,
+        }
+      })
+    )
+
+    groupChatsWithDetails.sort((a, b) => {
+      const aTime = a.last_message?.created_at || a.created_at
+      const bTime = b.last_message?.created_at || b.created_at
+      return new Date(bTime).getTime() - new Date(aTime).getTime()
+    })
+
+    return groupChatsWithDetails
+  } catch (error) {
+    console.error('Error fetching group chats:', error)
+    throw error
+  }
+}
+
+const GroupChatsList = ({ userId }: GroupChatsListProps) => {
+  const queryClient = useQueryClient()
+
+  const {
+    data: groupChats = [],
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['groupChats', userId],
+    queryFn: () => fetchGroupChats(userId),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000, 
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 2,
+  })
 
   useEffect(() => {
-    fetchGroupChats()
+    if (!userId) return
+
     const subscription = supabase
       .channel('group_messages_updates')
       .on(
@@ -43,136 +150,49 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
         },
         async (payload) => {
           const newMessage = payload.new as any
+          
           const { data: senderData } = await supabase
             .from('profile')
             .select('name')
             .eq('id', newMessage.user_id)
             .single()
-          setGroupChats(prev => prev.map(group => {
-            if (group.id === newMessage.group_id) {
-              return {
-                ...group,
-                last_message: {
-                  content: newMessage.content,
-                  created_at: newMessage.created_at,
-                  sender_id: newMessage.user_id,
-                  sender_name: senderData?.name || 'Unknown'
+
+          queryClient.setQueryData(['groupChats', userId], (oldData: GroupChat[] | undefined) => {
+            if (!oldData) return oldData
+
+            return oldData.map(group => {
+              if (group.id === newMessage.group_id) {
+                return {
+                  ...group,
+                  last_message: {
+                    content: newMessage.content,
+                    created_at: newMessage.created_at,
+                    sender_id: newMessage.user_id,
+                    sender_name: senderData?.name || 'Unknown'
+                  }
                 }
               }
-            }
-            return group
-          }).sort((a, b) => {
-            const aTime = a.last_message?.created_at || a.created_at
-            const bTime = b.last_message?.created_at || b.created_at
-            return new Date(bTime).getTime() - new Date(aTime).getTime()
-          }))
+              return group
+            }).sort((a, b) => {
+              const aTime = a.last_message?.created_at || a.created_at
+              const bTime = b.last_message?.created_at || b.created_at
+              return new Date(bTime).getTime() - new Date(aTime).getTime()
+            })
+          })
         }
       )
       .subscribe()
+
     return () => {
       subscription.unsubscribe()
     }
-  }, [userId])
-
-  const fetchGroupChats = async () => {
-    try {
-      const { data: memberGroups, error: memberError } = await supabase
-        .from('group_members')
-        .select(`
-          group_id,
-          is_owner,
-          joined_at,
-          groups:group_id (
-            id,
-            name,
-            created_at
-          )
-        `)
-        .eq('user_id', userId)
-
-      if (memberError) {
-        console.error('Error fetching member groups:', memberError)
-        setError('Failed to fetch group chats')
-        setLoading(false)
-        return
-      }
-      const allGroups: any[] = []
-      
-      if (memberGroups) {
-        memberGroups.forEach(member => {
-          const group = member.groups
-          const groupObj = Array.isArray(group) ? group[0] : group
-          if (groupObj) {
-            allGroups.push({
-              ...groupObj,
-              is_owner: member.is_owner,
-              joined_at: member.joined_at
-            })
-          }
-        })
-      }
-
-      const groupChatsWithDetails = await Promise.all(
-        allGroups.map(async (group) => {
-          const { data: lastMessageData } = await supabase
-            .from('group_messages')
-            .select('content, created_at, user_id')
-            .eq('group_id', group.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single()
-
-          let senderName = 'Unknown'
-          if (lastMessageData) {
-            const { data: senderData } = await supabase
-              .from('profile')
-              .select('name')
-              .eq('id', lastMessageData.user_id)
-              .single()
-            
-            senderName = senderData?.name || 'Unknown'
-          }
-          const { count: memberCount } = await supabase
-            .from('group_members')
-            .select('*', { count: 'exact' })
-            .eq('group_id', group.id)
-          const unreadCount = 0
-
-          return {
-            id: group.id,
-            name: group.name,
-            created_at: group.created_at,
-            is_owner: group.is_owner,
-            last_message: lastMessageData ? {
-              content: lastMessageData.content,
-              created_at: lastMessageData.created_at,
-              sender_id: lastMessageData.user_id,
-              sender_name: senderName
-            } : undefined,
-            member_count: memberCount || 0,
-            unread_count: unreadCount
-          }
-        })
-      )
-
-      groupChatsWithDetails.sort((a, b) => {
-        const aTime = a.last_message?.created_at || a.created_at
-        const bTime = b.last_message?.created_at || b.created_at
-        return new Date(bTime).getTime() - new Date(aTime).getTime()
-      })
-      setGroupChats(groupChatsWithDetails)
-    } catch (error) {
-      setError('An unexpected error occurred')
-      console.error('Error fetching group chats:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [userId, queryClient])
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
     const now = new Date()
     const diffHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    
     if (diffHours < 1) {
       return 'Just now'
     } else if (diffHours < 24) {
@@ -182,7 +202,7 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className='flex items-center justify-center h-64'>
         <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500'></div>
@@ -192,8 +212,14 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
 
   if (error) {
     return (
-      <div className='p-4 text-center text-red-500'>
-        {error}
+      <div className='p-4 text-center'>
+        <div className='text-red-500 mb-2'>Failed to load group chats</div>
+        <button 
+          onClick={() => refetch()}
+          className='text-sm text-purple-600 hover:text-purple-800'
+        >
+          Retry
+        </button>
       </div>
     )
   }
@@ -243,7 +269,7 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
               </p>
               
               {groupChat.last_message ? (
-                <p className='text-xs sm:text-sm text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap mt-1'>
+                <p className='text-xs sm:text-sm text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap mt-1 max-w-[120px] sm:max-w-[200px]'>
                   {groupChat.last_message.sender_id === userId ? 'You: ' : `${groupChat.last_message.sender_name}: `}
                   {groupChat.last_message.content}
                 </p>
@@ -253,14 +279,6 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
                 </p>
               )}
             </div>
-            
-            {groupChat.unread_count && groupChat.unread_count > 0 && (
-              <div className='flex-shrink-0 ml-1 sm:ml-2'>
-                <span className='bg-purple-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center'>
-                  {groupChat.unread_count > 9 ? '9+' : groupChat.unread_count}
-                </span>
-              </div>
-            )}
           </div>
         </Link>
       ))}

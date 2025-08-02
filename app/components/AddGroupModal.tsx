@@ -7,7 +7,7 @@ import getUserClient from '../utils/supabaseComponets/getUserClient';
 import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
 import { createClient } from '../utils/supabase/client';
 
-const AddGroupModal = () => {
+const AddGroupModal = ({ background }: { background?: boolean }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [groupMembers, setGroupMembers] = useState<SearchResult[]>([]);
   const [groupName, setGroupName] = useState<string>('');
@@ -100,8 +100,8 @@ const AddGroupModal = () => {
     <div>
       <button
         onClick={() => setIsOpen(true)}
-        className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'>
-        <div className='w-10 h-10 flex items-center justify-center rounded-lg bg-white group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm'>
+        className={`${background ? 'bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-500' : 'bg-white'} group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]`}>
+        <div className='w-10 h-10 flex items-center justify-center rounded-lg group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm'>
           <CirclePlus className='w-5 h-5' />
         </div>
         <span className='font-medium'>Create Group</span>

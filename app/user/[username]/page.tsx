@@ -11,113 +11,127 @@ import Image from 'next/image';
 import getUserClient, { getName } from '@/app/utils/supabaseComponets/getUserClient';
 import { MessageCircle } from 'lucide-react';
 import { createOrGetConversation } from '@/app/utils/supabaseComponets/messaging';
-import { UserProfile } from '@/app/interfaces/interfaces';
+import { UserPost, UserProfile } from '@/app/interfaces/interfaces';
 import { fetchUserPosts } from '@/app/utils/supabaseComponets/clientUtils';
+import { useQuery } from '@tanstack/react-query';
 
-interface UserPost {
-  post_id: string;
-  header: string;
-  content: string;
-  course_name: string;
-  created_at: string;
-  tags?: string;
+interface ViewingUserData {
+  id: string;
+  name: string;
+  courses: string[];
+  imageURL: string | null;
 }
+
+const fetchViewingUserData = async (): Promise<ViewingUserData> => {
+  const user = await getUserClient();
+  if (!user.id) {
+    throw new Error('Error getting user!');
+  }
+
+  const name = await getName(user);
+  const imageURL = await getClientPicture();
+  
+  const supabase = createClient();
+  const { data: userCourses, error } = await supabase
+    .from('user_courses')
+    .select('courses')
+    .eq('id', user.id);
+
+  if (error) {
+    console.error('Error getting user courses:', error);
+    throw new Error('Failed to fetch user courses');
+  }
+
+  return {
+    id: user.id,
+    name: name.data?.name || '',
+    courses: userCourses?.[0]?.courses || [],
+    imageURL
+  };
+};
+
+const fetchUserProfile = async (username: string): Promise<UserProfile> => {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('username', username)
+    .single();
+
+  if (error) {
+    throw new Error("Could not Retrieve Profile");
+  }
+
+  return data;
+};
+
+const fetchUserPostsData = async (userId: string): Promise<UserPost[]> => {
+  return await fetchUserPosts(userId);
+};
+
 
 const ProfilePage = () => {
   const router = useRouter();
   const params = useParams()
   const username = Array.isArray(params.username) ? params.username[0] : params.username;
-  const [viewingUser, setViewingUser] = useState<string>('');
-  const [viewingUserName, setViewingUserName] = useState<string>('');
-  const [userCourses, setUserCourses] = useState<string[]>([]);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
-	const [imageURL, setimageURL] = useState<string | null >('');
   const [isMessageLoading, setIsMessageLoading] = useState<boolean>(false);
-  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
-  const [postsLoading, setPostsLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    getImage();
-    const getViewingUser = async () => {
-      try {
-        const user = await getUserClient();
-        if (user.id) { 
-          setViewingUser(user.id);
-          const name = await getName(user);
-          setViewingUserName(name.data?.name);
-          const supabase = createClient();
-          const { data: userCourses, error } = await supabase
-            .from('user_courses')
-            .select('courses')
-            .eq('id', user.id)
-          if (error) {
-            console.error('Error getting user courses:', error);
-            return [];
-          }
-          setUserCourses(userCourses?.[0]?.courses || []); 
-        }
-        else throw new Error('Error getting user!');
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    getViewingUser();  
-  }, [])
-	
-  useEffect(() => {
-    if (username && typeof username === 'string') {
-      fetchProfile(username);
-    }
-  }, [username])
+  const {
+    data: viewingUserData,
+    isLoading: viewingUserLoading,
+    error: viewingUserError
+  } = useQuery({
+    queryKey: ['viewingUser'],
+    queryFn: fetchViewingUserData,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 2,
+  });
 
-  const getImage = async () => {
-    setimageURL(await getClientPicture());
-  }
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError
+  } = useQuery({
+    queryKey: ['userProfile', username],
+    queryFn: () => fetchUserProfile(username!),
+    enabled: !!username && typeof username === 'string',
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 2,
+  });
 
-  const fetchProfile = async (username: string) => {
-    try { 
-      setLoading(true);
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('profile')
-        .select('*')
-        .eq('username', username)
-        .single()
-      if (error) setError("Could not Retrieve Profile")
-      else { 
-				setProfile(data);
-        try {
-          setPostsLoading(true);
-          const posts = await fetchUserPosts(data.id);
-          setUserPosts(posts);
-        } catch (error) {
-          console.error('Error fetching user posts:', error);
-          setUserPosts([]);
-        }
-        finally {
-          setPostsLoading(false);
-        }
-			}
-    } catch (error) {
-      setError('An unexpected error occurred');
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }  
-  }
+  const {
+    data: userPosts = [],
+    isLoading: postsLoading,
+    error: postsError
+  } = useQuery({
+    queryKey: ['userPosts', profile?.id],
+    queryFn: () => fetchUserPostsData(profile!.id),
+    enabled: !!profile?.id,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 2,
+  });
 
   const handleMessageButton = async () => {
     if (profile) {
       setIsMessageLoading(true);
       try {
-        const { data: conversation, error } = await createOrGetConversation(viewingUser, profile?.id);
-        if (error) throw new Error('Error getting creating new conversation: ' + error);
+        if (viewingUserData) {
+           const { data: conversation, error } = await createOrGetConversation(viewingUserData?.id, profile?.id);
+           if (error) throw new Error('Error getting creating new conversation: ' + error);
 
-        if (conversation) {
-          router.push(`/messages/${conversation.conversation_id}`)
-        }
+          if (conversation) {
+            router.push(`/messages/${conversation.conversation_id}`)
+          }
+        }       
       } catch (error) {
         console.log(error);
       } finally {
@@ -130,6 +144,9 @@ const ProfilePage = () => {
     return name ? name.charAt(0).toUpperCase() : '?';
   };
 
+  const isLoading = viewingUserLoading || profileLoading;
+  const error = viewingUserError || profileError || postsError;
+
   if (error) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
@@ -139,11 +156,11 @@ const ProfilePage = () => {
             <SearchBar placeholder='Search for a post'/>
           </div>
           <div className='md:w-12 w-16 flex justify-end'>
-            {username && <ProfileButton imageURL={imageURL} username={username} name={viewingUserName}/>}
+            {username && viewingUserData && <ProfileButton imageURL={viewingUserData.imageURL} username={username} name={viewingUserData.name}/>}
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar courses={userCourses} />
+          <NavigationBar courses={viewingUserData?.courses} />
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
             <div className='text-center'>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
@@ -155,7 +172,7 @@ const ProfilePage = () => {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
         <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
@@ -164,11 +181,11 @@ const ProfilePage = () => {
             <SearchBar placeholder='Search for a post'/>
           </div>
           <div className='md:w-12 w-16 flex justify-end'>
-            {username && <ProfileButton imageURL={imageURL} username={username} name={viewingUserName}/>}
+            {username && viewingUserData && <ProfileButton imageURL={viewingUserData?.imageURL} username={username} name={viewingUserData.name}/>}
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar courses={userCourses} />
+          <NavigationBar courses={viewingUserData?.courses} />
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
             <div className='text-center'>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
@@ -190,12 +207,12 @@ const ProfilePage = () => {
         </div>
 
         <div className='md:w-12 w-16 flex justify-end'>
-          {username && <ProfileButton imageURL={imageURL} username={username} name={viewingUserName}/>}
+          {username &&  viewingUserData && <ProfileButton imageURL={viewingUserData.imageURL} username={username} name={viewingUserData.name}/>}
         </div>
       </div>
 
       <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar courses={userCourses} />
+          <NavigationBar courses={viewingUserData?.courses} />
 
           <div className='w-6/10  flex-1 h-full overflow-y-auto bg-white'>
             <div className='flex flex-row justify-between p-4 gap-4'>
@@ -215,7 +232,7 @@ const ProfilePage = () => {
                 </div>
               </div>
               <div>
-                {viewingUser && (profile?.id !== viewingUser) && (
+                {viewingUserData && (profile?.id !== viewingUserData.id) && (
                   <button onClick={handleMessageButton} disabled={isMessageLoading} 
                     className='flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
                       <MessageCircle className='h-4 w-4' />
@@ -297,7 +314,7 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
-          <ProfileCard profile={profile} />
+          {profile && <ProfileCard profile={profile} />}
       </div>     
     </main>
   )

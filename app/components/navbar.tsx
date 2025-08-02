@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Home, MessageCircle, X, Menu, Users, BookOpen } from "lucide-react";
 import Link from 'next/link';
 import DropDownList from './DropDownList';
@@ -9,72 +9,98 @@ import { getProfileInformationClient } from '../utils/supabaseComponets/clientUt
 import Image from 'next/image';
 import { createClient } from '../utils/supabase/client';
 import { useLoading } from './LoadingContext';
+import { BasicInformation, UserGroup } from '../interfaces/interfaces';
+import { useQuery } from '@tanstack/react-query';
 
 interface NavigationBarProps {
   courses?: string[];
 }
 
+const fetchUserProfile = async (): Promise<BasicInformation | null> => {
+  const user = await getUserClient();
+  if (!user?.id) return null;
+  
+  const profile = await getProfileInformationClient(user.id);
+  if (!profile) return null;
+  
+  return {
+    id: user.id,
+    username: profile.username || '',
+    name: profile.name || '',
+    profile_picture_url: profile.profile_picture_url || '',
+  };
+}
+
+const fetchUserGroups = async (userId: string): Promise<UserGroup[]> => {
+  const supabase = createClient();
+  try {
+    const { data: membershipData, error: membershipError } = await supabase
+      .from('group_members')
+      .select('group_id, is_owner')
+      .eq('user_id', userId);
+
+    if (membershipError) {
+      console.error('❌ Error fetching user memberships:', membershipError);
+      throw new Error(`Membership error: ${membershipError.message}`);
+    }
+
+    if (!membershipData || membershipData.length === 0) {
+      console.log('📋 No group memberships found for user');
+      return [];
+    }
+    const groupIds = [...new Set(membershipData.map(membership => membership.group_id))];
+
+    const { data: groupsData, error: groupsError } = await supabase
+      .from('groups')
+      .select('id, name')
+      .in('id', groupIds);
+
+    if (groupsError) {
+      console.error('❌ Error fetching group details:', groupsError);
+      throw new Error(`Groups error: ${groupsError.message}`);
+    }
+    const groups = groupsData || [];
+    
+    return groups;
+    
+  } catch (error) {
+    console.error('❌ Error in fetchUserGroups:', error);
+    throw error;
+  }
+};
+
 const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [user, setUser] = useState<string | undefined>('');
-  const [name, setName] = useState<string | null>('')
-  const [userGroups, setUserGroups] = useState<{ id: string, name: string }[]>([]);
-  const [groupsLoading, setGroupsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<string>('');
-  
   const { startLoading, stopLoading } = useLoading();
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      const user = await getUserClient();
-      if (user?.id) {
-        setUser(user.id);
-        const profile = await getProfileInformationClient(user.id);
-        if (profile) {
-          setProfilePicture(profile.profile_picture_url || null);
-          setUsername(profile.username || null);
-          setName(profile.name || null);
-        }
-      }
-    }
-    fetchUserProfile();
-  }, []);
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    error: profileError
+  } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: fetchUserProfile,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 2,
+  });
 
-  useEffect(() => {
-    const fetchUserGroups = async () => {
-      if (!user) return;
-      setGroupsLoading(true);
-      const supabase = createClient();
-      try {
-        const [ownedRes, memberRes] = await Promise.all([
-          supabase.from('groups').select('id, name').eq('owner', user),
-          supabase.from('group_members').select('group_id').eq('user_id', user)
-        ]);
-
-        const ownedGroups = ownedRes.data || [];
-        const memberGroupIds = memberRes.data?.map(m => m.group_id) || [];
-
-        let memberGroups: { id: string, name: string }[] = [];
-        if (memberGroupIds.length > 0) {
-          const memberGroupsRes = await supabase.from('groups').select('id, name').in('id', memberGroupIds);
-          memberGroups = memberGroupsRes.data || [];
-        }
-
-        const groupMap = new Map<string, { id: string, name: string }>();
-        ownedGroups.forEach(g => groupMap.set(g.id, g));
-        memberGroups.forEach(g => groupMap.set(g.id, g));
-
-        setUserGroups(Array.from(groupMap.values()));
-      } catch (error) {
-        console.error('Error fetching groups:', error);
-      } finally {
-        setGroupsLoading(false);
-      }
-    }
-    fetchUserGroups();
-  }, [user]);
+  const {
+    data: userGroups = [],
+    isLoading: groupsLoading,
+    error: groupsError
+  } = useQuery({
+    queryKey: ['userGroups', userProfile?.id],
+    queryFn: () => fetchUserGroups(userProfile!.id),
+    enabled: !!userProfile?.id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 2,
+  });
 
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const handleClick = () => setIsMobileMenuOpen(false);
@@ -85,7 +111,6 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
 
   const handleNavigationClick = (callback?: () => void, section?: string) => {
     startLoading();
-    if (section) setActiveSection(section);
     if (callback) callback();
     
     setTimeout(() => {
@@ -120,40 +145,35 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
                 <div className='ml-auto w-2 h-2 rounded-full bg-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
             </button>
           </Link>
+
+          <Link href='/groupsPage'>
+            <button 
+              onClick={() => handleNavigationClick(onItemClick, 'messages')}
+              className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'>
+                <div className='w-10 h-10 flex items-center justify-center rounded-lg bg-white group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm'>
+                  <Users className='w-5 h-5' />
+                </div>
+                <span className='font-medium'>My Groups</span>
+                <div className='ml-auto w-2 h-2 rounded-full bg-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+            </button>
+          </Link>
         </div>
 
         <div>
           <AddGroupModal />
         </div>
 
-        <div className='pt-4'>
-          <div className='flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-600 uppercase tracking-wide'>
-            <Users className='w-4 h-4' />
-            <span>My Groups</span>
-            <div className='flex-grow h-px bg-gradient-to-r from-purple-200 to-transparent'></div>
-          </div>
-          
-          <div className='bg-white/50 rounded-xl p-3 border border-purple-100/50 backdrop-blur-sm'>
-            {groupsLoading ? (
-              <div className='flex items-center gap-2 text-gray-500 p-3 text-sm'>
-                <div className='w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin'></div>
-                <span>Loading groups...</span>
-              </div>
-            ) : (
-              <DropDownList name='My Groups' elementsWithIds={userGroups} />
-            )}
-          </div>
-        </div>
+      
 
         {courses && (
           <div className='pt-4'>
             <div className='flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-600 uppercase tracking-wide'>
               <BookOpen className='w-4 h-4' />
-              <span>My Courses</span>
+              <span className='font-medium '>My Courses</span>
               <div className='flex-grow h-px bg-gradient-to-r from-purple-200 to-transparent'></div>
             </div>
             
-            <div className='bg-white/50 rounded-xl p-3 border border-purple-100/50 backdrop-blur-sm'>
+            <div className='bg-white/50 rounded-xl p-3 border border-purple-100/50 backdrop-blur-sm text-gray-700 font-medium'>
               <DropDownList name='My Courses' elements={courses} />
             </div>
           </div>
@@ -161,14 +181,14 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
       </nav>
 
       <div className='p-4 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-indigo-50/50'>
-        <Link href={`/user/${username}`}> 
+        <Link href={`/user/${userProfile?.username}`}> 
           <button 
             onClick={() => handleNavigationClick(onItemClick, 'profile')}
             className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] bg-white/70 border border-purple-100/50'>
             <div className='relative'>
-              {profilePicture ? (
+              {userProfile?.profile_picture_url ? (
                 <Image 
-                  src={profilePicture} 
+                  src={userProfile.profile_picture_url} 
                   alt='Profile Picture' 
                   width={40} 
                   height={40} 
@@ -177,14 +197,14 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
               ) : (
                 <div className='w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 text-white shadow-lg'>
                   <div className='w-8 h-8 rounded-full bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 flex items-center justify-center'>
-                    <span className='text-white font-semibold text-sm'>{name ? getInitial(name) : getInitial('?')}</span>
+                    <span className='text-white font-semibold text-sm'>{userProfile?.name ? getInitial(userProfile.name) : getInitial('?')}</span>
                   </div>
                 </div>
               )}
               <div className='absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white'></div>
             </div>
             <div className='flex-grow text-left'>
-              <div className='font-medium text-sm'>{username || 'Profile'}</div>
+              <div className='font-medium text-sm'>{userProfile?.username || 'Profile'}</div>
               <div className='text-xs text-gray-500'>View profile</div>
             </div>
           </button>
