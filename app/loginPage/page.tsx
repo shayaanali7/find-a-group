@@ -51,7 +51,11 @@ export default function LoginPage() {
               <button
                 type='submit'
                 disabled={isPending}
-                className="w-full p-3 rounded-lg font-semibold bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white"
+                className={`w-full p-3 rounded-lg font-semibold ${
+                  isPending 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                }`}
               >
                 {isPending ? 'Logging in...' : 'Login'}
               </button>

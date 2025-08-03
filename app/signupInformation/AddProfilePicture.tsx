@@ -114,7 +114,7 @@ const AddProfilePicture = ({ user, onImageUpload }: AddProfilePictureProps) => {
           </div>
         ) : (
           <button 
-            className='p-16 rounded-full bg-gray-300 transition-all duration-300 transform hover:bg-gray-400 disabled:opacity-50' 
+            className='p-12 rounded-full bg-gray-300 transition-all duration-300 transform hover:bg-gray-400 disabled:opacity-50' 
             onClick={addPhoto}
             disabled={isUploading}
           >

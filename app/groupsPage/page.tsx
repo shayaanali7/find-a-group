@@ -1,19 +1,9 @@
 'use client'
 import React from 'react'
-import { Users, MessageCircle, Plus } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Users } from 'lucide-react'
 import AddGroupModal from '../components/AddGroupModal'
 
-interface UserProfile {
-  id: string
-  username: string
-  name: string
-  profile_picture_url?: string | null
-}
-
 const GroupsMainPage = () => {
-  const currentUser = useQuery({ queryKey: ['userProfile'] }).data as UserProfile | undefined
-
   return (
     <div className='w-full flex flex-col h-full overflow-y-auto bg-white border-l-1 md:border-l-1 border-purple-500'>
       <div className='p-6 border-b border-purple-500 bg-gradient-to-r from-purple-50 to-indigo-50'>

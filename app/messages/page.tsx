@@ -3,7 +3,7 @@ import React from 'react'
 
 const MessagesPage = () => {
   return (
-    <div className='flex-1 flex items-center justify-center bg-white border-l border-purple-500'>
+    <div className='flex-1 flex items-center justify-center bg-white border-l-1 border-purple-500'>
       <div className='text-center text-gray-500'>
         <div className='mb-4'>
           <svg className='w-16 h-16 mx-auto text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

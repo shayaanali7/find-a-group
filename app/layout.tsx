@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./styles/globals.css";
 import { LoadingProvider } from "./components/LoadingContext";
 import TopLoadingBar from "./components/TopLoadingBar";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import QueryProvider from "./queryProvider";
 
 const geistSans = Geist({

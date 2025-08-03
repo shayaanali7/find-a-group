@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLoading } from './LoadingContext';
 import { useQuery } from '@tanstack/react-query';
 import { PostCard } from './PostCard'; 
+import {groupSizes, roles, groupStatus, locations} from '../data/tags.js'
 
 type ProfileData = {
   id: string;
@@ -29,6 +30,17 @@ export interface UserInfo {
   profile_picture_url: string,
 }
 
+interface SupabasePostRow {
+  post_id: string;
+  user_id: string;
+  course_name: string;
+  created_at: string;
+  header: string;
+  content: string;
+  tags: string[];
+  profile: ProfileData | ProfileData[] | null;
+}
+
 interface PostWithUser extends Post {
   user?: UserInfo;
 }
@@ -51,7 +63,13 @@ const extractUserInfo = (profile: ProfileData | ProfileData[] | null): UserInfo 
   };
 };
 
-const fetchPostsWithUsers = async (course: string, page: number = 0, pageSize: number = 20): Promise<PostWithUser[]> => {
+const fetchPostsWithUsers = async (
+  course: string, 
+  page: number = 0, 
+  pageSize: number = 20, 
+  filters: string[] = [],
+  courseFilters: string[] = []
+): Promise<PostWithUser[]> => {
   const supabase = createClient();
   const offset = page * pageSize;
   
@@ -74,9 +92,14 @@ const fetchPostsWithUsers = async (course: string, page: number = 0, pageSize: n
     `)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1)
-    
-  if (course !== 'Feed') {
+
+  if (courseFilters.length > 0) {
+    query = query.in('course_name', courseFilters);
+  } else if (course !== 'Feed') {
     query = query.eq('course_name', course);
+  }
+  if (filters.length > 0) {
+    query = query.overlaps('tags', filters);
   }
 
   const { data: postData, error } = await query;
@@ -84,7 +107,8 @@ const fetchPostsWithUsers = async (course: string, page: number = 0, pageSize: n
     throw new Error(error.message);
   }
 
-  return postData?.map((post: any) => ({
+  const typedPostData = postData as SupabasePostRow[] | null;
+  return typedPostData?.map((post: SupabasePostRow) => ({
     post_id: post.post_id,
     course_name: post.course_name,
     user_id: post.user_id,
@@ -96,7 +120,7 @@ const fetchPostsWithUsers = async (course: string, page: number = 0, pageSize: n
   })) || [];
 };
 
-export const RenderPosts = React.memo(({ course }: { course: string }) => {
+export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course: string, activeFilters?: string[] }) => {
   const { startLoading, stopLoading } = useLoading();
   const router = useRouter();
   const [page, setPage] = useState(0);
@@ -104,12 +128,28 @@ export const RenderPosts = React.memo(({ course }: { course: string }) => {
   const [hasMore, setHasMore] = useState(true);
   const processedDataRef = useRef<string>('');
 
+  const { courseFilters, tagFilters } = useMemo(() => {
+    const allKnownTagLabels = [
+      ...groupSizes.map(tag => tag.label),
+      ...roles.map(tag => tag.label),
+      ...groupStatus.map(tag => tag.label),
+      ...locations.map(tag => tag.label)
+    ];
+    const courses = activeFilters.filter(filter => !allKnownTagLabels.includes(filter));
+    const tags = activeFilters.filter(filter => allKnownTagLabels.includes(filter));
+    
+    return {
+      courseFilters: courses,
+      tagFilters: tags
+    };
+  }, [activeFilters]);
+
   useEffect(() => {
     setPage(0);
     setAllPosts([]);
     setHasMore(true);
     processedDataRef.current = '';
-  }, [course]);
+  }, [course, activeFilters]);
 
   const {
     data: newPosts = [],
@@ -118,8 +158,8 @@ export const RenderPosts = React.memo(({ course }: { course: string }) => {
     refetch,
     isFetching
   } = useQuery({
-    queryKey: ['posts', course, page],
-    queryFn: () => fetchPostsWithUsers(course, page),
+    queryKey: ['posts', course, page, tagFilters, courseFilters],
+    queryFn: () => fetchPostsWithUsers(course, page, 20, tagFilters, courseFilters),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -230,6 +270,44 @@ export const RenderPosts = React.memo(({ course }: { course: string }) => {
 
   return (
     <div className="space-y-4">
+      {activeFilters.length > 0 && (
+        <div className="mb-4 p-3 bg-purple-50 rounded-lg">
+          <div className="text-sm text-purple-700 font-medium mb-2">Active Filters:</div>
+          <div className="flex flex-wrap gap-2">
+            {courseFilters.length > 0 && (
+              <div className="w-full mb-2">
+                <div className="text-xs text-purple-600 mb-1">Courses:</div>
+                <div className="flex flex-wrap gap-1">
+                  {courseFilters.map((filter, index) => (
+                    <span 
+                      key={index}
+                      className="px-2 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold rounded-full text-xs"
+                    >
+                      {filter}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {tagFilters.length > 0 && (
+              <div className="w-full">
+                <div className="text-xs text-purple-600 mb-1">Tags:</div>
+                <div className="flex flex-wrap gap-1">
+                  {tagFilters.map((filter, index) => (
+                    <span 
+                      key={index}
+                      className="px-2 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold rounded-full text-xs"
+                    >
+                      {filter}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {allPosts.map((post) => (
         <PostCard
           key={post.post_id}
@@ -256,9 +334,14 @@ export const RenderPosts = React.memo(({ course }: { course: string }) => {
       
       {allPosts.length === 0 && !isLoading && !isFetching && (
         <div className="text-center py-8 text-gray-500">
-          No posts found for this page.
+          {activeFilters.length > 0 
+            ? "No posts found matching the selected filters." 
+            : "No posts found for this page."
+          }
         </div>
       )}
     </div>
   );
 });
+
+RenderPosts.displayName = "RenderPosts";

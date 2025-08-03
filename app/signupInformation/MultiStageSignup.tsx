@@ -5,6 +5,7 @@ import { steps } from '../data/signupContent'
 import ProfileInformation from './ProfileInformation';
 import AddProfilePicture from './AddProfilePicture';
 import AddBio from './AddBio';
+import AddLinks from './AddLinks';
 import { updateDatabase } from '../utils/supabaseComponets/updateDatabase';
 import { useRouter } from 'next/navigation';
 import { User } from '../interfaces/interfaces';
@@ -19,6 +20,9 @@ const MultiStepSignup = ({ user }: {user: User}) => {
   const [major, setMajor] = useState<string>('');
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
   const [bio, setBio] = useState<string>('');
+  const [githubLink, setGithubLink] = useState<string>('');
+  const [instagramLink, setInstagramLink] = useState<string>('');
+  const [linkedinLink, setLinkedinLink] = useState<string>('');
   const courses = ['CS2212', 'CS3319', 'CS2214', 'CS1027', 'CS1026'];
 
   const changeStatus = (index: number) => {
@@ -29,25 +33,35 @@ const MultiStepSignup = ({ user }: {user: User}) => {
 
   const handleContinue = async () => {
     setIsLoading(true);
+    setShowError(false);
     const coursesToAdd: string[] = courses.filter((_, index) => courseHasBeenAdded[index]);
+    
     try {
-      if (currentStep === 0 && coursesToAdd.length !== 0) {
-        await updateDatabase('user_courses', { courses: coursesToAdd }, user);
-      }
-      else if (currentStep === 1 && selectedYear !== '' && major !==  '') {
+      if (currentStep === 0 && selectedYear !== '' && major !== '') {
         await updateDatabase('profile', { year: selectedYear, major: major}, user);
       }
-      else if (currentStep === 2 && profilePictureUrl) {
-        // Database already updated, continuing to next step
+      else if (currentStep === 1 && coursesToAdd.length !== 0) {
+        await updateDatabase('user_courses', { courses: coursesToAdd }, user);
+      }
+      else if (currentStep === 2) {
+        // Profile picture step - can be skipped
       }
       else if (currentStep === 3) {
+        // Social links step - update database with links (empty strings are fine)
+        await updateDatabase('profile', { 
+          github_link: githubLink,
+          instagram_link: instagramLink,
+          linkedin_link: linkedinLink
+        }, user);
+      }
+      else if (currentStep === 4) {
         await updateDatabase('profile', { bio: bio }, user);
         await updateDatabase('profile', { done_signup: true }, user);
       }
       else {
         setShowError(true);
         setIsLoading(false);
-      return;
+        return;
       }
 
       setTimeout(() => {
@@ -61,30 +75,39 @@ const MultiStepSignup = ({ user }: {user: User}) => {
     } catch (error) {
       console.log(error);
       setIsLoading(false);
+      setShowError(true);
     } 
   }
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setCurrentStep(currentStep + 1);
-    }, 1000);
     
+    try {
+      if (currentStep === 3) {
+        await updateDatabase('profile', { 
+          github_link: '',
+          instagram_link: '',
+          linkedin_link: ''
+        }, user);
+      }
+      
+      setTimeout(() => {
+        setIsLoading(false);
+        if (currentStep < steps.length - 1) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          router.push('/mainPage');
+        }
+      }, 1000);
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
+    }
   }
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return (
-          <AddCoursesButtons 
-            courses={courses}
-            courseHasBeenAdded={courseHasBeenAdded}
-            changeStatus={changeStatus}
-            showError={showError}
-          />
-        );
-      case 1:
         return (
           <ProfileInformation 
             setSelectedYear={setSelectedYear} 
@@ -94,18 +117,36 @@ const MultiStepSignup = ({ user }: {user: User}) => {
             showError={showError}
           />
         );
+      case 1:
+        return (
+          <AddCoursesButtons 
+            courses={courses}
+            courseHasBeenAdded={courseHasBeenAdded}
+            changeStatus={changeStatus}
+            showError={showError}
+          />
+        );
       case 2:
         return (
           <AddProfilePicture user={user} onImageUpload={(imageUrl) => {
             setProfilePictureUrl(imageUrl);
           }} />
         );
-      
       case 3:
+        return (
+          <AddLinks 
+            setGithubLink={setGithubLink}
+            setInstagramLink={setInstagramLink}
+            setLinkedinLink={setLinkedinLink}
+            githubLink={githubLink}
+            instagramLink={instagramLink}
+            linkedinLink={linkedinLink}
+          />
+        );
+      case 4:
         return (
           <AddBio setBio={setBio} />
         )
-
       default:
         return null;
     }
@@ -124,13 +165,13 @@ const MultiStepSignup = ({ user }: {user: User}) => {
         </div>
       </div>
 
-      <div className='flex-1 p-8 flex flex-col'>
+      <div className={`flex-1 p-8 flex flex-col ${currentStep === 3 ? 'overflow-hidden' : ''}`}>
         {currentStep != 1 && (
           <h2 className='text-2xl font-semibold text-gray-800 mb-4'>
             {steps[currentStep].content}
           </h2> 
         )}
-        <div className='flex-1 flex flex-col'>
+        <div className={`flex-1 flex flex-col ${currentStep === 3 ? 'overflow-y-auto pr-2' : ''}`}>
           {renderStepContent()}
         </div>
       </div>
@@ -155,8 +196,11 @@ const MultiStepSignup = ({ user }: {user: User}) => {
           <div className='flex flex-row gap-4'>
             {(currentStep !== 0 && currentStep !== 1) && (
               <button
-                className='bg-black font-semibold transition-all duration-300 transform hover:scale-105 px-10 p-4 rounded-2xl'
-                onClick={handleSkip}>Skip
+                className='bg-gray-600 text-white font-semibold transition-all duration-300 transform hover:scale-105 hover:bg-gray-700 px-10 p-4 rounded-2xl'
+                onClick={handleSkip}
+                disabled={isLoading}
+              >
+                Skip
               </button>
             )}
             <button 
@@ -185,7 +229,6 @@ const MultiStepSignup = ({ user }: {user: User}) => {
               )}
             </button>
           </div>
-          
         </div>
       </div>
     </div>

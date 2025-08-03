@@ -15,6 +15,11 @@ export const steps = [
       content: ""
     },
     {
+      title: "Add Your Social Links!",
+      subtitle: "Add your social media and professional links to help others connect with you.",
+      content: ""
+    },
+    {
       title: "Write Your Bio",
       subtitle: "This bio will appear on your profile. Share your interests, skills, and what you're looking for in a group.",
       content: ""

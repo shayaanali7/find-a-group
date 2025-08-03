@@ -61,7 +61,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, loading }) => {
           <div className='absolute bottom-0 left-0 w-16 h-16 bg-indigo-400/20 rounded-full blur-lg'></div>
           
           <div className='relative z-10'>
-            <div className='mb-4'>
+            <div className='mb-2'>
               {profile.profile_picture_url ? (
                 <img 
                   src={profile.profile_picture_url} 
@@ -105,7 +105,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, loading }) => {
           </div>
         </div>
 
-        <div className='mx-4 mb-4 bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-white/10'>
+        <div className='mx-4 mb-4 pt-5 pb-5 bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-white/10'>
           <h3 className='text-base font-semibold mb-3 flex items-center text-white'>
             <Link className='w-4 h-4 mr-2 text-purple-200' />
             Social Links
@@ -114,15 +114,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, loading }) => {
             <div className='flex justify-between items-center'>
               <span className='text-purple-100'>Github:</span>
               <span className='font-medium flex-1 ml-2 text-right'>
-                {profile.github_url ? (
+                {profile.github_link ? (
                   <a 
-                    href={profile.github_url} 
+                    href={profile.github_link} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className='text-purple-200 hover:text-white underline underline-offset-2 transition-colors duration-200 truncate inline-block max-w-full'
-                    title={profile.github_url}
+                    title={profile.github_link}
                   >
-                    View Profile
+                    View Github
                   </a>
                 ) : (
                   <span className='text-white/70'>Not provided</span>
@@ -132,15 +132,33 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, loading }) => {
             <div className='flex justify-between items-center'>
               <span className='text-purple-100'>Instagram:</span>
               <span className='font-medium flex-1 ml-2 text-right'>
-                {profile.instagram_url ? (
+                {profile.instagram_link ? (
                   <a 
-                    href={profile.instagram_url} 
+                    href={profile.instagram_link} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className='text-purple-200 hover:text-white underline underline-offset-2 transition-colors duration-200 truncate inline-block max-w-full'
-                    title={profile.instagram_url}
+                    title={profile.instagram_link}
                   >
-                    View Profile
+                    View Instagram
+                  </a>
+                ) : (
+                  <span className='text-white/70'>Not provided</span>
+                )}
+              </span>
+            </div>
+            <div className='flex justify-between items-center'>
+              <span className='text-purple-100'>Instagram:</span>
+              <span className='font-medium flex-1 ml-2 text-right'>
+                {profile.linkedin_link ? (
+                  <a 
+                    href={profile.linkedin_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className='text-purple-200 hover:text-white underline underline-offset-2 transition-colors duration-200 truncate inline-block max-w-full'
+                    title={profile.linkedin_link}
+                  >
+                    View Linkedin
                   </a>
                 ) : (
                   <span className='text-white/70'>Not provided</span>
@@ -150,19 +168,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, loading }) => {
           </div>
         </div>
 
-        <div className='mx-4 mb-4 bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-white/10'>
-          <h3 className='text-base font-semibold mb-3 flex items-center text-white'>
-            <Mail className='w-4 h-4 mr-2 text-purple-200' />
-            Contact
-          </h3>
+        <div className='mx-4 mb-4 bg-white/5 rounded-2xl p-4 pt-6 pb-6 backdrop-blur-sm border border-white/10'>
           <div className='space-y-3 text-sm'>
-            <div className='flex items-start'>
-              <Mail className='w-4 h-4 mr-2 text-purple-200 flex-shrink-0 mt-0.5' />
-              <span className='text-white/90 break-all'>{profile.email || 'Not provided'}</span>
-            </div>
             <div className='flex items-center'>
               <Calendar className='w-4 h-4 mr-2 text-purple-200 flex-shrink-0' />
-              <span className='text-white/90'>Joined {formatDate(profile.created_at)}</span>
+              <span className='text-white/90 font-semibold'>Joined {formatDate(profile.created_at)}</span>
             </div>
           </div>
         </div>

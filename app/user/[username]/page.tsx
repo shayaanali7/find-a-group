@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import NavigationBar from '../../components/navbar';
 import SearchBar from '../../components/searchbar';
 import ProfileCard from '../../components/ProfileCard';
@@ -69,6 +69,24 @@ const fetchUserPostsData = async (userId: string): Promise<UserPost[]> => {
   return await fetchUserPosts(userId);
 };
 
+const parseTagsToArray = (tags: string) => {
+  if (!tags) return [];
+  
+  if (Array.isArray(tags)) {
+    return tags;
+  }
+  
+  if (typeof tags === 'string') {
+    try {
+      const parsed = JSON.parse(tags);
+      return Array.isArray(parsed) ? parsed : [tags];
+    } catch {
+      return tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    }
+  }
+  
+  return [];
+};
 
 const ProfilePage = () => {
   const router = useRouter();
@@ -150,13 +168,32 @@ const ProfilePage = () => {
   if (error) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
-        <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
-          <div className='md:w-12 w-16'></div>
-          <div className='flex-1 flex justify-center'>
+        <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
+          <div className='flex-shrink-0 w-10 lg:w-[180px]'>
+            <div className='md:w-12 w-16 flex justify-start'>
+            </div>
+            <div className='hidden lg:flex items-center h-[36px]'>
+              <Image 
+                src="/assets/groupup-logo-cut.PNG" 
+                alt='logo' 
+                height={36} 
+                width={180} 
+                className='w-full h-full object-contain' 
+              />
+            </div>
+          </div>
+        
+          <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
             <SearchBar placeholder='Search for a post'/>
           </div>
-          <div className='md:w-12 w-16 flex justify-end'>
-            {username && viewingUserData && <ProfileButton imageURL={viewingUserData.imageURL} username={username} name={viewingUserData.name}/>}
+
+          <div className='flex-shrink-0 w-10 lg:w-auto'>
+            {username && viewingUserData && <ProfileButton 
+              imageURL={viewingUserData?.imageURL} 
+              username={username} 
+              name={viewingUserData?.name}
+            />
+            }
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
@@ -168,20 +205,39 @@ const ProfilePage = () => {
             </div>
           </div>
         </div>
-      </main>
+    </main>
     );
   }
 
   if (isLoading) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
-        <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
-          <div className='md:w-12 w-16'></div>
-          <div className='flex-1 flex justify-center'>
+        <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
+          <div className='flex-shrink-0 w-10 lg:w-[180px]'>
+            <div className='md:w-12 w-16 flex justify-start'>
+            </div>
+            <div className='hidden lg:flex items-center h-[36px]'>
+              <Image 
+                src="/assets/groupup-logo-cut.PNG" 
+                alt='logo' 
+                height={36} 
+                width={180} 
+                className='w-full h-full object-contain' 
+              />
+            </div>
+          </div>
+        
+          <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
             <SearchBar placeholder='Search for a post'/>
           </div>
-          <div className='md:w-12 w-16 flex justify-end'>
-            {username && viewingUserData && <ProfileButton imageURL={viewingUserData?.imageURL} username={username} name={viewingUserData.name}/>}
+
+          <div className='flex-shrink-0 w-10 lg:w-auto'>
+            {username && viewingUserData && <ProfileButton 
+              imageURL={viewingUserData?.imageURL} 
+              username={username} 
+              name={viewingUserData?.name}
+            />
+            }
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
@@ -189,25 +245,42 @@ const ProfilePage = () => {
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
             <div className='text-center'>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
-              <p className='text-gray-600'>Loading profile...</p>
+              <p className='text-gray-600'>{`Loading...`}</p>
             </div>
           </div>
         </div>
-      </main>
+    </main>
     );
   }
 
   return (
     <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
-      <div className='w-full flex justify-center border-b border-purple-500 pb-2 flex-shrink-0'>
-        <div className='md:w-12 w-16'></div>
-        
-        <div className='flex-1 flex justify-center'>
+      <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
+        <div className='flex-shrink-0 w-10 lg:w-[180px]'>
+          <div className='md:w-12 w-16 flex justify-start'>
+          </div>
+          <div className='hidden lg:flex items-center h-[36px]'>
+            <Image 
+              src="/assets/groupup-logo-cut.PNG" 
+              alt='logo' 
+              height={36} 
+              width={180} 
+              className='w-full h-full object-contain' 
+            />
+          </div>
+        </div>
+      
+        <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
           <SearchBar placeholder='Search for a post'/>
         </div>
 
-        <div className='md:w-12 w-16 flex justify-end'>
-          {username &&  viewingUserData && <ProfileButton imageURL={viewingUserData.imageURL} username={username} name={viewingUserData.name}/>}
+        <div className='flex-shrink-0 w-10 lg:w-auto'>
+          {username && viewingUserData && <ProfileButton 
+            imageURL={viewingUserData?.imageURL} 
+            username={username} 
+            name={viewingUserData?.name}
+          />
+          }
         </div>
       </div>
 
@@ -242,13 +315,12 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            <div className='ml-8 mr-2 rounded-2xl bg-gray-100 h-20'>
-              <p className='text-lg m-2'>{profile?.bio}</p>
+            <div className='ml-8 mr-2 rounded-2xl bg-gray-100 p-4'>
+              <p className='text-lg'>{profile?.bio}</p>
             </div>
 
             <div>
               <h1 className='mt-5 ml-10 font-semibold text-2xl'>Activity</h1>
-              
               <div className='mx-8 mt-4'>
                 {postsLoading ? (
                   <div className="space-y-4">
@@ -280,13 +352,23 @@ const ProfilePage = () => {
                             </span>
                           </div>
                           
-                          {post.tags && (
-                            <div className="flex flex-wrap gap-2">
-                              <span className='text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-medium'>
-                                {post.tags}
-                              </span>
-                            </div>
-                          )}
+                          {(() => {
+                            if (post.tags) {
+                              const tagsArray = parseTagsToArray(post.tags);
+                              return tagsArray.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                  {tagsArray.map((tag, index) => (
+                                    <span 
+                                      key={index}
+                                      className='inline-block min-w-[40px] text-center text-xs bg-gradient-to-r from-purple-500 to-indigo-500 transform transition-colors duration-300 hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white px-2 py-1 rounded-full font-medium'
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              );
+                            }
+                          })()}
                           
                           <div className="text-gray-700 text-sm ml-1 leading-relaxed whitespace-pre-wrap break-words">
                             {post.content}

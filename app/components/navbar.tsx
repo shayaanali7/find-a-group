@@ -7,7 +7,6 @@ import AddGroupModal from './AddGroupModal';
 import getUserClient from '../utils/supabaseComponets/getUserClient';
 import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
 import Image from 'next/image';
-import { createClient } from '../utils/supabase/client';
 import { useLoading } from './LoadingContext';
 import { BasicInformation, UserGroup } from '../interfaces/interfaces';
 import { useQuery } from '@tanstack/react-query';
@@ -31,72 +30,17 @@ const fetchUserProfile = async (): Promise<BasicInformation | null> => {
   };
 }
 
-const fetchUserGroups = async (userId: string): Promise<UserGroup[]> => {
-  const supabase = createClient();
-  try {
-    const { data: membershipData, error: membershipError } = await supabase
-      .from('group_members')
-      .select('group_id, is_owner')
-      .eq('user_id', userId);
-
-    if (membershipError) {
-      console.error('❌ Error fetching user memberships:', membershipError);
-      throw new Error(`Membership error: ${membershipError.message}`);
-    }
-
-    if (!membershipData || membershipData.length === 0) {
-      console.log('📋 No group memberships found for user');
-      return [];
-    }
-    const groupIds = [...new Set(membershipData.map(membership => membership.group_id))];
-
-    const { data: groupsData, error: groupsError } = await supabase
-      .from('groups')
-      .select('id, name')
-      .in('id', groupIds);
-
-    if (groupsError) {
-      console.error('❌ Error fetching group details:', groupsError);
-      throw new Error(`Groups error: ${groupsError.message}`);
-    }
-    const groups = groupsData || [];
-    
-    return groups;
-    
-  } catch (error) {
-    console.error('❌ Error in fetchUserGroups:', error);
-    throw error;
-  }
-};
-
 const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { startLoading, stopLoading } = useLoading();
 
   const {
     data: userProfile,
-    isLoading: profileLoading,
-    error: profileError
   } = useQuery({
     queryKey: ['userProfile'],
     queryFn: fetchUserProfile,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    retry: 2,
-  });
-
-  const {
-    data: userGroups = [],
-    isLoading: groupsLoading,
-    error: groupsError
-  } = useQuery({
-    queryKey: ['userGroups', userProfile?.id],
-    queryFn: () => fetchUserGroups(userProfile!.id),
-    enabled: !!userProfile?.id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 2,
@@ -109,7 +53,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
     return name ? name.charAt(0).toUpperCase() : '?';
   };
 
-  const handleNavigationClick = (callback?: () => void, section?: string) => {
+  const handleNavigationClick = (callback?: () => void) => {
     startLoading();
     if (callback) callback();
     
@@ -124,7 +68,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
         <div className='space-y-1'>
           <Link href='/mainPage'>
             <button 
-              onClick={() => handleNavigationClick(onItemClick, 'home')}
+              onClick={() => handleNavigationClick(onItemClick)}
               className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'>
                 <div className='w-10 h-10 flex items-center justify-center rounded-lg bg-white group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm'>
                   <Home className='w-5 h-5' />
@@ -136,7 +80,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
 
           <Link href='/messages'>
             <button 
-              onClick={() => handleNavigationClick(onItemClick, 'messages')}
+              onClick={() => handleNavigationClick(onItemClick)}
               className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'>
                 <div className='w-10 h-10 flex items-center justify-center rounded-lg bg-white group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm'>
                   <MessageCircle className='w-5 h-5' />
@@ -148,7 +92,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
 
           <Link href='/groupsPage'>
             <button 
-              onClick={() => handleNavigationClick(onItemClick, 'messages')}
+              onClick={() => handleNavigationClick(onItemClick)}
               className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'>
                 <div className='w-10 h-10 flex items-center justify-center rounded-lg bg-white group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm'>
                   <Users className='w-5 h-5' />
@@ -183,7 +127,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
       <div className='p-4 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-indigo-50/50'>
         <Link href={`/user/${userProfile?.username}`}> 
           <button 
-            onClick={() => handleNavigationClick(onItemClick, 'profile')}
+            onClick={() => handleNavigationClick(onItemClick)}
             className='group flex items-center w-full gap-3 p-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 hover:text-purple-700 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] bg-white/70 border border-purple-100/50'>
             <div className='relative'>
               {userProfile?.profile_picture_url ? (
@@ -217,7 +161,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
     <>
       <button
         onClick={toggleMenu}
-        className='md:hidden fixed top-3 left-3 z-50 p-2.5 bg-white/90 backdrop-blur-sm hover:bg-purple-100 rounded-lg shadow-lg border border-purple-100 transition-all duration-300 hover:scale-105 active:scale-95'
+        className='md:hidden fixed top-2 left-3 z-50 p-2.5 bg-white/90 backdrop-blur-sm hover:bg-purple-100 rounded-lg shadow-lg border border-purple-100 transition-all duration-300 hover:scale-105 active:scale-95'
       >
         <Menu className='w-4 h-4 text-gray-700' />
       </button>
@@ -240,11 +184,19 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
           }`}>
   
         <div className='p-4 border-b border-purple-100 bg-gradient-to-r from-purple-50 to-indigo-50 flex justify-end items-center'>
+          <Image 
+            src="/assets/groupup-logo-cut.PNG" 
+            alt='logo' 
+            height={36} 
+            width={180} 
+            className='w-full h-full object-contain rounded-2xl mr-2' 
+          />
           <button 
             onClick={toggleMenu}
             className='p-2 hover:bg-purple-100 rounded-lg transition-colors duration-200 text-gray-600 hover:text-purple-700'
           >
             <X className='w-5 h-5' />
+            
           </button>
         </div>
         

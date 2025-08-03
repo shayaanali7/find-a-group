@@ -5,10 +5,12 @@ import SearchBar from './searchbar';
 
 interface CoursePickerButtonProps {
   course: string
+  onCourseChange: (course: string) => void
 }
 
-const CoursePickerButton = ( {course}: CoursePickerButtonProps ) => {
+const CoursePickerButton = ( {course, onCourseChange}: CoursePickerButtonProps ) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [courseForPost, setCourseForPost] = useState<string>(course);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,16 +28,22 @@ const CoursePickerButton = ( {course}: CoursePickerButtonProps ) => {
     }
   }, [isSearching]);
 
+  const changeCourse = (course: string) => {
+    setCourseForPost(course);
+    onCourseChange(course);
+    setIsSearching(false);
+  }
+
   return (
     <div ref={searchRef}>
       {isSearching ? ( 
-        <SearchBar placeholder='Search for a course' />
+        <SearchBar placeholder='Search for a course' coursePickerButton={true} changeCourse={changeCourse} />
       ) : (
         <button 
         className='border-black border-1 rounded-full hover:bg-gray-100 p-2 w-1/3 flex items-center justify-between cursor-pointer'
         onClick={() => setIsSearching(true)}
         >
-          <span>{course}</span>
+          <span>{courseForPost}</span>
           <ChevronDown />
         </button>
       )}

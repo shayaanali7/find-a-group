@@ -12,8 +12,9 @@ export interface UserProfile {
   bio: string
   email?: string
   profile_picture_url?: string
-  github_url?: string
-  instagram_url?: string
+  github_link?: string
+  instagram_link?: string
+  linkedin_link?: string
   posts_count?: number
   groups_count?: number
   reputation?: number

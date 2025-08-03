@@ -1,10 +1,10 @@
 'use client'
-import React, { useState } from 'react';
-import { Eye, EyeOff, User, Mail, Lock, Save, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, User, Lock, Save, X, Loader2 } from 'lucide-react';
+import { createClient } from '../utils/supabase/client';
 
 interface FormData {
   username: string;
-  email: string;
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
@@ -18,7 +18,6 @@ interface ShowPasswords {
 
 interface UpdateFields {
   username: boolean;
-  email: boolean;
   password: boolean;
 }
 
@@ -29,7 +28,6 @@ interface Errors {
 const UpdateUserInformationForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     username: '',
-    email: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
@@ -43,13 +41,25 @@ const UpdateUserInformationForm: React.FC = () => {
 
   const [updateFields, setUpdateFields] = useState<UpdateFields>({
     username: false,
-    email: false,
     password: false
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Errors>({});
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [userId, setUserId] = useState<string>('');
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    getUser();
+  }, [supabase]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -75,8 +85,6 @@ const UpdateUserInformationForm: React.FC = () => {
     if (updateFields[field]) {
       if (field === 'username') {
         setFormData(prev => ({ ...prev, username: '' }));
-      } else if (field === 'email') {
-        setFormData(prev => ({ ...prev, email: '' }));
       } else if (field === 'password') {
         setFormData(prev => ({ 
           ...prev, 
@@ -104,12 +112,6 @@ const UpdateUserInformationForm: React.FC = () => {
       newErrors.username = 'Username must be at least 3 characters';
     }
 
-    if (updateFields.email && !formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (updateFields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
     if (updateFields.password) {
       if (!formData.currentPassword) {
         newErrors.currentPassword = 'Current password is required';
@@ -123,7 +125,7 @@ const UpdateUserInformationForm: React.FC = () => {
         newErrors.confirmPassword = 'Passwords do not match';
       }
     }
-    if (!updateFields.username && !updateFields.email && !updateFields.password) {
+    if (!updateFields.username && !updateFields.password) {
       newErrors.general = 'Please select at least one field to update';
     }
 
@@ -139,49 +141,95 @@ const UpdateUserInformationForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Updating user information:', {
-        username: updateFields.username ? formData.username : null,
-        email: updateFields.email ? formData.email : null,
-        password: updateFields.password ? { 
-          current: formData.currentPassword, 
-          new: formData.newPassword 
-        } : null
-      });
+      let hasUpdates = false;
+      if (updateFields.username) {
+        const { data: existingUser, error: checkError } = await supabase
+          .from('profile')
+          .select('id')
+          .eq('username', formData.username)
+          .neq('id', userId)
+          .single();
 
-      setSuccessMessage('User information updated successfully!');
-      setFormData({
-        username: '',
-        email: '',
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      setUpdateFields({
-        username: false,
-        email: false,
-        password: false
-      });
+        if (checkError && checkError.code !== 'PGRST116') {
+          throw new Error(`Error checking username availability: ${checkError.message}`);
+        }
+        if (existingUser) {
+          throw new Error('This username is already taken. Please choose a different one.');
+        }
 
-    } catch (error) {
-      setErrors({ general: 'Failed to update user information. Please try again.' });
-      console.log(error);
+        const { error: profileError } = await supabase
+          .from('profile')
+          .update({ username: formData.username })
+          .eq('id', userId);
+
+        if (profileError) {
+          throw new Error(`Failed to update username: ${profileError.message}`);
+        }
+        hasUpdates = true;
+      }
+
+      if (updateFields.password) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user?.email) {
+          throw new Error('Unable to verify current user');
+        }
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: formData.currentPassword
+        });
+        if (signInError) {
+          throw new Error('Current password is incorrect');
+        }
+
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: formData.newPassword
+        });
+        if (passwordError) {
+          throw new Error(`Failed to update password: ${passwordError.message}`);
+        }
+        hasUpdates = true;
+      }
+
+      if (hasUpdates) {
+        setSuccessMessage('User information updated successfully!');
+        setFormData({
+          username: '',
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setUpdateFields({
+          username: false,
+          password: false
+        });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }
+
+    } catch (error: any) {
+      console.error('Error updating user information:', error);
+      setErrors({ 
+        general: error.message || 'Failed to update user information. Please try again.' 
+      });
     } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1500)
     }
   };
 
   const handleCancel = (): void => {
     setFormData({
       username: '',
-      email: '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     });
     setUpdateFields({
       username: false,
-      email: false,
       password: false
     });
     setErrors({});
@@ -220,7 +268,7 @@ const UpdateUserInformationForm: React.FC = () => {
               <User className="w-6 h-6 text-purple-600" />
               <div>
                 <span className="text-lg font-medium text-gray-800">Update Username</span>
-                <p className="text-sm text-gray-600">Change your display name</p>
+                <p className="text-sm text-gray-600">Change your username</p>
               </div>
             </label>
             
@@ -236,38 +284,6 @@ const UpdateUserInformationForm: React.FC = () => {
                 />
                 {errors.username && (
                   <p className="mt-2 text-sm text-red-600">{errors.username}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={updateFields.email}
-                onChange={() => handleFieldToggle('email')}
-                className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-              />
-              <Mail className="w-6 h-6 text-purple-600" />
-              <div>
-                <span className="text-lg font-medium text-gray-800">Update Email</span>
-                <p className="text-sm text-gray-600">Change your email address</p>
-              </div>
-            </label>
-            
-            {updateFields.email && (
-              <div className="mt-4">
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Enter new email address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-                />
-                {errors.email && (
-                  <p className="mt-2 text-sm text-red-600">{errors.email}</p>
                 )}
               </div>
             )}
@@ -364,7 +380,7 @@ const UpdateUserInformationForm: React.FC = () => {
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   <span>Updating...</span>
                 </>
               ) : (

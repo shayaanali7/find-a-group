@@ -5,7 +5,6 @@ interface filterType {
   filters: string[];
 }
 
-
 const SaveButton = ({ filters }: filterType ) => {
   const handleClick = () => {
 		console.log(filters);

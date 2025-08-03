@@ -2,13 +2,16 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '../utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Github, Instagram, Linkedin, AlertCircle, ExternalLink } from 'lucide-react';
 
 interface ProfileData {
   name: string;
   bio: string;
   major: string;
   year: string;
+  github_link: string;
+  instagram_link: string;
+  linkedin_link: string;
 }
 
 const EditProfileForm = ({ userId }: { userId: string }) => {
@@ -16,12 +19,16 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
     name: '',
     bio: '',
     major: '',
-    year: ''
+    year: '',
+    github_link: '',
+    instagram_link: '',
+    linkedin_link: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [linkErrors, setLinkErrors] = useState<{[key: string]: string}>({});
   
   const supabase = createClient();
   const router = useRouter();
@@ -31,7 +38,7 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
       try {
         const { data, error } = await supabase
           .from('profile')
-          .select('name, bio, major, year')
+          .select('name, bio, major, year, github_link, instagram_link, linkedin_link')
           .eq('id', userId)
           .single();
 
@@ -42,7 +49,10 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
             name: data.name || '',
             bio: data.bio || '',
             major: data.major || '',
-            year: data?.year.toString() || ''
+            year: data?.year.toString() || '',
+            github_link: data.github_link || '',
+            instagram_link: data.instagram_link || '',
+            linkedin_link: data.linkedin_link || ''
           });
         }
       } catch (err) {
@@ -58,6 +68,35 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
     }
   }, [userId, supabase]);
 
+  const validateUrl = (url: string, platform: string): string => {
+    if (!url.trim()) return '';
+    
+    try {
+      const urlObj = new URL(url);
+      
+      switch (platform) {
+        case 'github_link':
+          if (!urlObj.hostname.includes('github.com')) {
+            return 'Please enter a valid GitHub URL (e.g., https://github.com/username)';
+          }
+          break;
+        case 'instagram_link':
+          if (!urlObj.hostname.includes('instagram.com')) {
+            return 'Please enter a valid Instagram URL (e.g., https://instagram.com/username)';
+          }
+          break;
+        case 'linkedin_link':
+          if (!urlObj.hostname.includes('linkedin.com')) {
+            return 'Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username)';
+          }
+          break;
+      }
+      return '';
+    } catch {
+      return 'Please enter a valid URL starting with https://';
+    }
+  };
+
   const handleInputChange = (field: keyof ProfileData, value: string) => {
     setProfileData(prev => ({
       ...prev,
@@ -65,9 +104,25 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
     }));
     setError('');
     setSuccess(false);
+
+    // Validate social links
+    if (field.includes('_link')) {
+      const linkError = validateUrl(value, field);
+      setLinkErrors(prev => ({
+        ...prev,
+        [field]: linkError
+      }));
+    }
   };
 
   const handleSave = async () => {
+    // Check for validation errors
+    const hasLinkErrors = Object.values(linkErrors).some(error => error !== '');
+    if (hasLinkErrors) {
+      setError('Please fix the URL errors before saving.');
+      return;
+    }
+
     try {
       setSaving(true);
       setError('');
@@ -79,19 +134,26 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
           name: profileData.name,
           bio: profileData.bio,
           major: profileData.major,
-          year: profileData.year
+          year: profileData.year,
+          github_link: profileData.github_link,
+          instagram_link: profileData.instagram_link,
+          linkedin_link: profileData.linkedin_link
         })
         .eq('id', userId);
 
       if (error) throw error;
 
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (err) {
       console.error('Error updating profile:', err);
       setError('Failed to update profile. Please try again.');
     } finally {
-      setSaving(false);
+      setTimeout(() => {
+        setSaving(false);
+      }, 1500)
     }
   };
 
@@ -102,6 +164,30 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
       </div>
     );
   }
+
+  const socialLinks = [
+    {
+      field: 'github_link' as keyof ProfileData,
+      label: 'GitHub',
+      icon: <Github className="w-5 h-5 text-gray-600" />,
+      placeholder: 'https://github.com/yourusername',
+      color: 'border-gray-300 focus:ring-gray-500 focus:border-gray-500'
+    },
+    {
+      field: 'instagram_link' as keyof ProfileData,
+      label: 'Instagram',
+      icon: <Instagram className="w-5 h-5 text-pink-500" />,
+      placeholder: 'https://instagram.com/yourusername',
+      color: 'border-pink-300 focus:ring-pink-500 focus:border-pink-500'
+    },
+    {
+      field: 'linkedin_link' as keyof ProfileData,
+      label: 'LinkedIn',
+      icon: <Linkedin className="w-5 h-5 text-blue-600" />,
+      placeholder: 'https://linkedin.com/in/yourusername',
+      color: 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -165,6 +251,57 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
         />
         <div className="text-right text-sm text-gray-500 mt-1">
           {profileData.bio.length}/500 characters
+        </div>
+      </div>
+
+      {/* Social Links Section */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Social Links</h3>
+        <div className="space-y-4">
+          {socialLinks.map((link) => (
+            <div key={link.field} className="space-y-2">
+              <label htmlFor={link.field} className="block text-sm font-medium text-gray-700">
+                {link.label}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  {link.icon}
+                </div>
+                <input
+                  type="url"
+                  id={link.field}
+                  value={profileData[link.field]}
+                  onChange={(e) => handleInputChange(link.field, e.target.value)}
+                  placeholder={link.placeholder}
+                  className={`
+                    w-full pl-12 pr-10 py-3 border rounded-lg transition-colors
+                    ${linkErrors[link.field] 
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                      : link.color
+                    }
+                  `}
+                />
+                {profileData[link.field] && !linkErrors[link.field] && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <ExternalLink className="w-4 h-4 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              
+              {linkErrors[link.field] && (
+                <div className="flex items-center space-x-2 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{linkErrors[link.field]}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+          <p className="text-sm text-blue-700">
+            💡 <strong>Tip:</strong> Make sure your profiles are public if you want others to see them. You can leave any field empty if you don't want to share that social media.
+          </p>
         </div>
       </div>
 

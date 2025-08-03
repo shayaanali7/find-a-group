@@ -2,7 +2,7 @@ import React from 'react'
 import SearchBar from '../components/searchbar'
 import NavigationBar from '../components/navbar'
 import ProfileButton from '../components/ProfileButton'
-import getUserServer, { getUsername } from '../utils/supabaseComponets/getUserServer'
+import getUserServer, { getName, getUsername } from '../utils/supabaseComponets/getUserServer'
 import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture'
 import { getUserCourses } from '../utils/supabaseComponets/getUserCourses'
 import ShowRules from './ShowRules'
@@ -15,10 +15,10 @@ interface CreatePostPageProps {
 
 const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
   const courseName = typeof searchParams.courseName === 'string' ? searchParams.courseName : '';
-  console.log('Course Name:', courseName);
   const user = await getUserServer();
   const imageURL = await GetProfilePicture();
   const username = await getUsername(user);
+  const name = await getName(user);
   const courses = user.id ? await getUserCourses(user.id) : [];
   
   return (
@@ -31,7 +31,7 @@ const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
         </div>
 
         <div className='md:w-12 w-16 flex justify-end'>
-          <ProfileButton imageURL={imageURL} username={username.data?.username}/>
+          <ProfileButton imageURL={imageURL} username={username.data?.username} name={name.data?.name}/>
         </div>
       </div>
 

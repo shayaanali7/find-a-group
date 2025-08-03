@@ -46,6 +46,7 @@ const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
       throw new Error(`Failed to fetch member groups: ${memberError.message}`)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allGroups: any[] = []
     
     if (memberGroups) {
@@ -149,6 +150,7 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
           table: 'group_messages'
         },
         async (payload) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const newMessage = payload.new as any
           
           const { data: senderData } = await supabase
@@ -233,51 +235,60 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
   }
 
   return (
-    <div className='divide-y divide-gray-200'>
+    <div className='divide-y divide-gray-200 w-full'>
       {groupChats.map((groupChat) => (
         <Link 
           key={groupChat.id} 
           href={`/groupsPage/${groupChat.id}`}
-          className='block hover:bg-gray-50 transition-colors'
+          className='block hover:bg-gray-50 transition-colors w-full'
         >
-          <div className='p-4 flex items-center space-x-3'>
+          <div className='p-4 flex items-center space-x-3 w-full min-w-0'>
             <div className='flex-shrink-0'>
               <div className='w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
                 <Users className='w-6 h-6' />
               </div>
             </div>
             
-            <div className='flex-1 min-w-0 overflow-hidden'>
-              <div className='flex items-center justify-between gap-2'>
+            <div className='flex-1 min-w-0 overflow-hidden w-full'>
+              <div className='flex items-center justify-between gap-2 w-full'>
                 <div className='flex items-center gap-2 flex-1 min-w-0'>
-                  <p className='text-xs sm:text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap'>
+                  <p className='text-xs sm:text-sm font-medium text-gray-900 truncate'>
                     {groupChat.name}
                   </p>
                   {groupChat.is_owner && (
-                    <span className='text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full flex-shrink-0'>
+                    <span className='text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap'>
                       Owner
                     </span>
                   )}
                 </div>
-                <p className='text-xs text-gray-500 flex-shrink-0'>
-                  {groupChat.last_message && formatTime(groupChat.last_message.created_at)}
-                </p>
+                {groupChat.last_message && (
+                  <p className='text-xs text-gray-500 flex-shrink-0 whitespace-nowrap'>
+                    {formatTime(groupChat.last_message.created_at)}
+                  </p>
+                )}
               </div>
               
-              <p className='text-xs sm:text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap'>
+              <p className='text-xs sm:text-sm text-gray-500 truncate w-full'>
                 {groupChat.member_count} {groupChat.member_count === 1 ? 'member' : 'members'}
               </p>
               
-              {groupChat.last_message ? (
-                <p className='text-xs sm:text-sm text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap mt-1 max-w-[120px] sm:max-w-[200px]'>
-                  {groupChat.last_message.sender_id === userId ? 'You: ' : `${groupChat.last_message.sender_name}: `}
-                  {groupChat.last_message.content}
-                </p>
-              ) : (
-                <p className='text-xs sm:text-sm text-gray-400 italic mt-1'>
-                  No messages yet
-                </p>
-              )}
+              <div className='flex items-center mt-1 w-full min-w-0'>
+                {groupChat.last_message ? (
+                  <p className='text-xs sm:text-sm text-gray-600 truncate flex-1 min-w-0'>
+                    {groupChat.last_message.sender_id === userId ? 'You: ' : `${groupChat.last_message.sender_name}: `}
+                    {groupChat.last_message.content}
+                  </p>
+                ) : (
+                  <p className='text-xs sm:text-sm text-gray-400 italic flex-1 min-w-0'>
+                    No messages yet
+                  </p>
+                )}
+                {groupChat.unread_count && groupChat.unread_count > 0 && (
+                  <span className='ml-2 bg-purple-500 text-white text-xs rounded-full px-2 py-1 flex-shrink-0 min-w-0'>
+                    {groupChat.unread_count > 99 ? '99+' : groupChat.unread_count}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </Link>

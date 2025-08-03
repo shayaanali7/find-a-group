@@ -15,6 +15,7 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [course, setCourse] = useState<string>(courseName);
   const buttonClass = 'border-black border-1 hover:bg-gray-100';
 
   const handleTagsAdded = (newTags: string[]) => {
@@ -29,7 +30,7 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('body', body);
-      formData.append('courseName', courseName);
+      formData.append('courseName', course);
       formData.append('tags', JSON.stringify(tags));
     
       const result = await createPost(formData);
@@ -44,15 +45,21 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
     } catch (error) {
       console.error('Error submitting post:', error);
     } finally {
-      setIsSubmitting(false);
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 1000)
     }
   };
+
+  const onCourseChange = (newCourse: string) => {
+    setCourse(newCourse);
+  }
 
   return (
     <form onSubmit={handleSubmit}>
       <div className='mt-5'>
         <h1 className='text-xl font-semibold'>Course</h1>
-        <CoursePickerButton course={courseName} />
+        <CoursePickerButton course={courseName} onCourseChange={onCourseChange} />
         <input type="hidden" name="courseName" value={courseName} />
       </div>
       

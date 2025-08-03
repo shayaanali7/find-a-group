@@ -2,7 +2,7 @@
 import { createClient } from '@/app/utils/supabase/client'
 import getUserClient, { getName, getUsername } from '@/app/utils/supabaseComponets/getUserClient'
 import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture'
-import { getConversationMessages, markMessageAsRead, Message, sendMessage, subscribeToMessages } from '@/app/utils/supabaseComponets/messaging'
+import { markMessageAsRead, Message, sendMessage, subscribeToMessages } from '@/app/utils/supabaseComponets/messaging'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { SendHorizonal, Loader2 } from 'lucide-react'
 import Image from 'next/image'
@@ -207,6 +207,7 @@ const ConversationPage = () => {
     let subscription: RealtimeChannel | null = null
     const setupSubscription = async () => {
       const result = await subscribeToMessages(conversationId, (newMessage) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
           if (!oldData) return oldData
           
@@ -298,6 +299,7 @@ const ConversationPage = () => {
         }
 
         if (sentMessage) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
             if (!oldData || !oldData.pages || oldData.pages.length === 0) {
               return {
@@ -351,7 +353,7 @@ const ConversationPage = () => {
  
   if (isLoading) {
     return (
-      <div className='w-full flex flex-col h-full overflow-hidden items-center justify-center border-l-1 md:border-l-1 border-purple-500'>
+      <div className='w-full flex flex-col h-full overflow-hidden items-center justify-center border-l border-purple-500'>
         <div className='text-center'>
           <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
           <p className='text-gray-600'>Loading conversation...</p>
@@ -362,7 +364,7 @@ const ConversationPage = () => {
 
   if (error) {
     return (
-      <div className='w-full flex flex-col h-full overflow-hidden items-center justify-center border-l-1 md:border-l-1 border-purple-500'>
+      <div className='w-full flex flex-col h-full overflow-hidden items-center justify-center border-l border-purple-500'>
         <div className='text-center'>
           <p className='text-red-600'>Error loading conversation: {error.message}</p>
         </div>
@@ -371,8 +373,8 @@ const ConversationPage = () => {
   }
   
   return (
-    <>
-      <div className='flex items-center p-0.5 border-b ml-2 mr-2  border-purple-500 bg-white flex-shrink-0'>
+    <div className='w-full flex flex-col h-full overflow-hidden border-l border-purple-500'>
+      <div className='flex items-center p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
         <div className='flex items-center space-x-3'>
           <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
             {otherUser?.profile_picture_url ? (
@@ -461,7 +463,7 @@ const ConversationPage = () => {
           </button>
         </div>
       </form>
-    </>
+    </div>
   )
 }
 
