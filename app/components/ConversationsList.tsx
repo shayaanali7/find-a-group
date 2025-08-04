@@ -163,12 +163,14 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
             });
 
             // Also update the messages cache if it exists
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(['messages', conversation.conversation_id], (oldData: any) => {
               if (!oldData) return oldData;
               
               const updatedPages = [...oldData.pages];
               if (updatedPages.length > 0) {
                 const messageExists = updatedPages[0].messages.some(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (msg: any) => msg.messages_id === newMessage.messages_id
                 );
                 
