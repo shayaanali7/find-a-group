@@ -181,7 +181,6 @@ const FilterButton = ({ selectedFilters = [], onFiltersChange, onFiltersApply }:
             </div>
           </div>
 
-          {/* Footer */}
           <div className="sticky bottom-0 bg-white border-t p-4 z-10">
             <div className="flex gap-2">
               <button

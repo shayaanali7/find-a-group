@@ -15,7 +15,6 @@ const TopLoadingBar: React.FC = () => {
       setVisible(true);
       setProgress(0);
       
-      // Simulate progress
       interval = setInterval(() => {
         setProgress(prev => {
           if (prev < 90) {
@@ -25,10 +24,7 @@ const TopLoadingBar: React.FC = () => {
         });
       }, 200);
     } else {
-      // Complete the progress bar
       setProgress(100);
-      
-      // Hide after animation completes
       timeout = setTimeout(() => {
         setVisible(false);
         setProgress(0);

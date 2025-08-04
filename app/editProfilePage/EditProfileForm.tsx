@@ -105,7 +105,6 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
     setError('');
     setSuccess(false);
 
-    // Validate social links
     if (field.includes('_link')) {
       const linkError = validateUrl(value, field);
       setLinkErrors(prev => ({
@@ -116,7 +115,6 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
   };
 
   const handleSave = async () => {
-    // Check for validation errors
     const hasLinkErrors = Object.values(linkErrors).some(error => error !== '');
     if (hasLinkErrors) {
       setError('Please fix the URL errors before saving.');

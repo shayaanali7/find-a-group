@@ -46,7 +46,6 @@ const MultiStepSignup = ({ user }: {user: User}) => {
         // Profile picture step - can be skipped
       }
       else if (currentStep === 3) {
-        // Social links step - update database with links (empty strings are fine)
         await updateDatabase('profile', { 
           github_link: githubLink,
           instagram_link: instagramLink,
