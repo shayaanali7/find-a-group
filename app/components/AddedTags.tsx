@@ -1,6 +1,5 @@
 import React from 'react'
 import { X } from 'lucide-react'
-import { courses, groupSizes, roles, groupStatus, locations } from '../data/tags.js'
 
 interface AddedTagsProps {
 	filters: string[];

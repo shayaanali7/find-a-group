@@ -126,7 +126,6 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
     try {
       setSaving(true);
       setError('');
-      console.log('Saving profile data:', profileData);
 
       const { error } = await supabase
         .from('profile')
@@ -140,7 +139,6 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
           linkedin_link: profileData.linkedin_link
         })
         .eq('id', userId);
-
       if (error) throw error;
 
       setSuccess(true);
@@ -254,7 +252,6 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
         </div>
       </div>
 
-      {/* Social Links Section */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Social Links</h3>
         <div className="space-y-4">
@@ -300,7 +297,7 @@ const EditProfileForm = ({ userId }: { userId: string }) => {
         
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
           <p className="text-sm text-blue-700">
-            💡 <strong>Tip:</strong> Make sure your profiles are public if you want others to see them. You can leave any field empty if you don't want to share that social media.
+            💡 <strong>Tip:</strong> Make sure your profiles are public if you want others to see them. You can leave any field empty if you don&apos;t want to share that social media.
           </p>
         </div>
       </div>

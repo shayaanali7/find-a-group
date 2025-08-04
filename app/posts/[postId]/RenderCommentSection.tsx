@@ -63,46 +63,50 @@ const organizeComments = (comments: Comment[]): ThreadedComment[] => {
   return rootComments;
 };
 
-const CommentSkeleton = memo(({ isReply = false }: { isReply?: boolean }) => (
-  <div className={`${isReply ? 'ml-6 border-l border-gray-200 pl-4' : ''} mb-4`}>
-    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 animate-pulse">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
-        <div className="min-w-0 flex-1">
-          <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
-          <div className="h-3 bg-gray-200 rounded w-32"></div>
+const CommentSkeleton = memo(function CommentSkelton({ isReply = false }: { isReply?: boolean }) {
+  return (
+    <div className={`${isReply ? 'ml-6 border-l border-gray-200 pl-4' : ''} mb-4`}>
+      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 animate-pulse">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
+          <div className="min-w-0 flex-1">
+            <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
+            <div className="h-3 bg-gray-200 rounded w-32"></div>
+          </div>
+        </div>
+        <div className="mb-3 space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="h-6 bg-gray-200 rounded-full w-12"></div>
+          <div className="h-6 bg-gray-200 rounded-full w-12"></div>
         </div>
       </div>
-      <div className="mb-3 space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-full"></div>
-        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="h-6 bg-gray-200 rounded-full w-12"></div>
-        <div className="h-6 bg-gray-200 rounded-full w-12"></div>
-      </div>
     </div>
-  </div>
-));
+  )
+});
 
-const CommentsLoadingSkeleton = memo(() => (
-  <div className="max-w-4xl mx-auto p-4">
-    <div className="mb-6">
-      <div className="h-6 bg-gray-200 rounded w-40 mb-2 animate-pulse"></div>
-    </div>
-    <div className="space-y-4">
-      <CommentSkeleton />
-      <CommentSkeleton />
-      <CommentSkeleton />
-      <div className="ml-6">
-        <CommentSkeleton isReply />
+const CommentsLoadingSkeleton = memo(function CommentsLoadingSkelton() {
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="mb-6">
+        <div className="h-6 bg-gray-200 rounded w-40 mb-2 animate-pulse"></div>
       </div>
-      <CommentSkeleton />
+      <div className="space-y-4">
+        <CommentSkeleton />
+        <CommentSkeleton />
+        <CommentSkeleton />
+        <div className="ml-6">
+          <CommentSkeleton isReply />
+        </div>
+        <CommentSkeleton />
+      </div>
     </div>
-  </div>
-));
+  )
+});
 
-const CommentItem = memo(({ 
+const CommentItem = memo(function CommentItem({ 
   comment, 
   depth, 
   userInfo, 
@@ -138,7 +142,7 @@ const CommentItem = memo(({
   onToggleReplies: (commentId: number, event?: React.MouseEvent) => void;
   onReplyTextChange: (text: string) => void;
   formatDate: (date: string) => string;
-}) => {
+}) {
   const hasReplies = comment.replies && comment.replies.length > 0;
   const areRepliesCollapsed = collapsedReplies.has(comment.comment_id);
 

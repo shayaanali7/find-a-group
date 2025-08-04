@@ -61,7 +61,6 @@ const validateForm = (email: string, password: string, name: string, username: s
 };
 
 export async function signUpUser(prevState: SignUpResult, formData: FormData): Promise<SignUpResult> {
-  console.log('hello');
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const name = formData.get('name') as string;

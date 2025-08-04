@@ -209,10 +209,11 @@ const UpdateUserInformationForm: React.FC = () => {
         }, 1500);
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating user information:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update user information. Please try again.';
       setErrors({ 
-        general: error.message || 'Failed to update user information. Please try again.' 
+        general: errorMessage
       });
     } finally {
       setTimeout(() => {

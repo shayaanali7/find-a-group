@@ -12,8 +12,6 @@ export default async function SignupInformation() {
     .select('done_signup')
     .eq('id', user.id)
     .single()
-  
-  console.log(data);
   if (!user) redirect('/loginPage');
   else if (data?.done_signup === true) redirect('/mainPage')
 

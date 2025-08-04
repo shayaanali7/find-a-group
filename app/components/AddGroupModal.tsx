@@ -50,7 +50,6 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
     setGroupMembers(prev => 
       prev.find(member => member.id === result.id) ? prev : [...prev, result]
     );
-    console.log(groupMembers);
   }
 
   const handleRemoveGroupMember = (memberId: string) => {
@@ -69,7 +68,6 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
         .select()
       if (error) {
         console.log('Error creating Group: ' + error.message);
-        console.log(error);
         throw new Error();
       }
       

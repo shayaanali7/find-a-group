@@ -7,10 +7,9 @@ import { User } from '../interfaces/interfaces'
 
 interface AddProfilePictureProps {
   user: User,
-  onImageUpload: (imageUrl: string) => void 
 }
 
-const AddProfilePicture = ({ user, onImageUpload }: AddProfilePictureProps) => {
+const AddProfilePicture = ({ user }: AddProfilePictureProps) => {
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null);
@@ -61,10 +60,6 @@ const AddProfilePicture = ({ user, onImageUpload }: AddProfilePictureProps) => {
 
       if (user?.id) {
         await updateDatabase('profile', { profile_picture_url: publicUrl}, user)
-      }
-      
-      if (onImageUpload) {
-        onImageUpload(publicUrl)
       }
     } catch (error) {
       console.log(error);

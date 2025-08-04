@@ -40,7 +40,6 @@ const FilterButton = ({ selectedFilters = [], onFiltersChange, onFiltersApply }:
   const handleCourseSelection = (result: SearchResult) => {
     if (result.type === 'course' && result.title) {
       const courseName = result.title;
-      console.log(selectedCourses);
       if (!selectedCourses.includes(courseName)) {
         const newSelectedCourses = [...selectedCourses, courseName];
         setSelectedCourses(newSelectedCourses);
@@ -70,7 +69,6 @@ const FilterButton = ({ selectedFilters = [], onFiltersChange, onFiltersApply }:
   const currentFilters = allFilters;
   
   const handleSaveClick = () => {
-    console.log('Applying filters:', currentFilters);
     if (onFiltersApply) {
       onFiltersApply(currentFilters);
     }

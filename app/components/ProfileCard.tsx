@@ -1,5 +1,5 @@
 import React from 'react'
-import { Mail, Calendar, BookOpen, Link, User } from 'lucide-react'
+import { Calendar, BookOpen, Link, User } from 'lucide-react'
 import { UserProfile } from '../interfaces/interfaces';
 
 interface ProfileCardProps {

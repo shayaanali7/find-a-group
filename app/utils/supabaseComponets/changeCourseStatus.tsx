@@ -26,7 +26,6 @@ const updateArray =  async ({ updatedArray, id }: {updatedArray: Array<string>, 
 }
 
 export const addCourse = async ({ courseName, id }: { courseName: string, id: string }) => {
-    console.log('added');
     const data = await getCourseList({ id });
     if (!data) console.log('No data was Found');
     const updatedArray = [...data, courseName];
@@ -35,8 +34,7 @@ export const addCourse = async ({ courseName, id }: { courseName: string, id: st
     
 }
 
-export const removeCourse = async ({ courseName, id }: { courseName: string, id: string }) => {
-    console.log('removed');    
+export const removeCourse = async ({ courseName, id }: { courseName: string, id: string }) => { 
     const data = await getCourseList({ id })
     if (!data) console.log('No data was Found');
     const updatedArray = [...data].filter((course: string) => course !== courseName);

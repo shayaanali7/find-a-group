@@ -9,7 +9,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Home, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useLoading } from '../components/LoadingContext'
-import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
 interface CurrentUserData {

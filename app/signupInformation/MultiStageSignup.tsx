@@ -18,7 +18,6 @@ const MultiStepSignup = ({ user }: {user: User}) => {
   const [showError, setShowError] = useState<boolean>(false);
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [major, setMajor] = useState<string>('');
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
   const [bio, setBio] = useState<string>('');
   const [githubLink, setGithubLink] = useState<string>('');
   const [instagramLink, setInstagramLink] = useState<string>('');
@@ -128,9 +127,7 @@ const MultiStepSignup = ({ user }: {user: User}) => {
         );
       case 2:
         return (
-          <AddProfilePicture user={user} onImageUpload={(imageUrl) => {
-            setProfilePictureUrl(imageUrl);
-          }} />
+          <AddProfilePicture user={user} />
         );
       case 3:
         return (

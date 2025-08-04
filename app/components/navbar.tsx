@@ -8,7 +8,7 @@ import getUserClient from '../utils/supabaseComponets/getUserClient';
 import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
 import Image from 'next/image';
 import { useLoading } from './LoadingContext';
-import { BasicInformation, UserGroup } from '../interfaces/interfaces';
+import { BasicInformation } from '../interfaces/interfaces';
 import { useQuery } from '@tanstack/react-query';
 
 interface NavigationBarProps {

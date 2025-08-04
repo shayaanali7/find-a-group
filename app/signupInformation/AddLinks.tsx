@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Github, Instagram, Linkedin, ExternalLink, AlertCircle, GithubIcon } from 'lucide-react';
+import { Github, Instagram, Linkedin, ExternalLink, AlertCircle } from 'lucide-react';
 
 interface AddLinksProps {
   setGithubLink: (link: string) => void;
@@ -63,7 +63,7 @@ const AddLinks = ({
     {
       platform: 'github',
       label: 'GitHub',
-      icon: <GithubIcon className="w-8 h-8 text-black" />,
+      icon: <Github className="w-8 h-8 text-black" />,
       placeholder: 'https://github.com/yourusername',
       value: githubLink,
       setter: setGithubLink,
@@ -149,7 +149,7 @@ const AddLinks = ({
         </h4>
         <ul className="text-sm text-blue-700 space-y-1">
           <li>• Make sure your profiles are public if you want others to see them</li>
-          <li>• Double-check your URLs to ensure they're correct</li>
+          <li>• Double-check your URLs to ensure they&apos;re correct</li>
           <li>• You can always update these links later in your profile settings</li>
         </ul>
       </div>

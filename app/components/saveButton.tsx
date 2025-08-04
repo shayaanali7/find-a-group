@@ -7,7 +7,6 @@ interface filterType {
 
 const SaveButton = ({ filters }: filterType ) => {
   const handleClick = () => {
-		console.log(filters);
 	}
 
   return (
