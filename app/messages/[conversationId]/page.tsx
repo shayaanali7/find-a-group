@@ -249,6 +249,58 @@ const ConversationPage = () => {
       markMessageAsRead(conversationId, currentUser.id)
     }
   }, [currentUser, conversationId])
+  
+  useEffect(() => {
+  if (!conversationId || !currentUser) return
+
+  let subscription: RealtimeChannel | null = null
+  const setupSubscription = async () => {
+    const result = await subscribeToMessages(conversationId, (newMessage) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+        if (!oldData) return oldData
+        
+        const updatedPages = [...oldData.pages]
+        if (updatedPages.length > 0) {
+          updatedPages[0] = {
+            ...updatedPages[0],
+            messages: [...updatedPages[0].messages, newMessage]
+          }
+        }
+        
+        return {
+          ...oldData,
+          pages: updatedPages
+        }
+      })
+
+      // Also invalidate conversations list when new message arrives
+      queryClient.invalidateQueries({ 
+        queryKey: ['conversations', currentUser.id],
+        refetchType: 'none'
+      });
+
+      if (newMessage.sender_id !== currentUser.id) {
+        markMessageAsRead(conversationId, currentUser.id)
+      }
+    })
+    subscription = result
+  }
+
+  setupSubscription()
+  
+  // Cleanup function with better error handling
+  return () => {
+    if (subscription) {
+      try {
+        subscription.unsubscribe()
+      } catch (error) {
+        console.log('Error unsubscribing from messages:', error)
+      }
+      subscription = null
+    }  
+  }
+}, [conversationId, currentUser, queryClient])
 
   const handleScroll = useCallback(async () => {
     const container = messagesContainerRef.current

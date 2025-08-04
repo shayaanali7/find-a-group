@@ -1,11 +1,12 @@
 'use client'
-import React, { useEffect, useRef } from 'react'
-import { getConversationUnreadCount, getUserConversations, subscribeToConversations, subscribeToMessages, type Conversation } from '../utils/supabaseComponets/messaging'
+import React, { useEffect } from 'react'
+import { getConversationUnreadCount, getUserConversations, subscribeToConversations, type Conversation } from '../utils/supabaseComponets/messaging'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { usePathname } from 'next/navigation'
 
 interface ConversationWithDetails extends Conversation {
   other_user: {
@@ -70,8 +71,7 @@ const fetchConversations = async (userId: string): Promise<ConversationWithDetai
 
 const ConversationsList = ({ userId }: ConversationsListProps) => {
   const queryClient = useQueryClient();
-  const messageSubscriptionsRef = useRef<Map<string, RealtimeChannel>>(new Map());
-  const conversationSubscriptionRef = useRef<RealtimeChannel | null>(null);
+  const pathname = usePathname();
 
   const {
     data: conversations = [],
@@ -89,12 +89,25 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
     retry: 2,
   });
 
-  // Set up conversation-level subscription
+  // Refetch conversations when navigating between conversation pages
+  useEffect(() => {
+    if (pathname && pathname.includes('/messages/') && userId) {
+      // Small delay to ensure the previous conversation's subscription has been cleaned up
+      const timer = setTimeout(() => {
+        refetch();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, userId, refetch]);
+
   useEffect(() => {
     if (!userId) return;
+    let subscription: RealtimeChannel | null = null;
     
-    const setupConversationSubscription = async () => {
+    const setupSubscription = async () => {
       const result = await subscribeToConversations(userId, (updatedConversation) => {
+        // Update the specific conversation in the cache
         queryClient.setQueryData(['conversations', userId], (oldData: ConversationWithDetails[] | undefined) => {
           if (!oldData) return oldData;
           
@@ -106,106 +119,56 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
           }
           return oldData;
         });
+
+        // Also invalidate the query to ensure fresh data
+        queryClient.invalidateQueries({ 
+          queryKey: ['conversations', userId],
+          refetchType: 'none' // Don't refetch immediately, just mark as stale
+        });
       });
-      conversationSubscriptionRef.current = result;
+      subscription = result;
     };
-    
-    setupConversationSubscription();
+
+    setupSubscription();
     
     return () => {
-      if (conversationSubscriptionRef.current) {
-        conversationSubscriptionRef.current.unsubscribe();
-      }
+      if (subscription) {
+        subscription.unsubscribe();
+      } 
     };
   }, [userId, queryClient]);
 
-  // Set up message subscriptions for each conversation
+  // Listen for global message updates to refresh conversations list
   useEffect(() => {
-    if (!conversations.length || !userId) return;
+    if (!userId) return;
 
-    const setupMessageSubscriptions = async () => {
-      // Clean up existing subscriptions
-      messageSubscriptionsRef.current.forEach((subscription) => {
-        subscription.unsubscribe();
-      });
-      messageSubscriptionsRef.current.clear();
-
-      // Set up new subscriptions for each conversation
-      for (const conversation of conversations) {
-        try {
-          const subscription = await subscribeToMessages(conversation.conversation_id, (newMessage) => {
-            queryClient.setQueryData(['conversations', userId], (oldData: ConversationWithDetails[] | undefined) => {
-              if (!oldData) return oldData;
-              
-              const updated = oldData.map(conv => {
-                if (conv.conversation_id === conversation.conversation_id) {
-                  return {
-                    ...conv,
-                    last_message: {
-                      content: newMessage.content,
-                      created_at: newMessage.created_at,
-                      sender_id: newMessage.sender_id
-                    },
-                    updated_at: newMessage.created_at,
-                    // Increment unread count if message is not from current user
-                    unread_count: newMessage.sender_id !== userId 
-                      ? (conv.unread_count || 0) + 1 
-                      : conv.unread_count
-                  };
-                }
-                return conv;
-              });
-              
-              // Re-sort conversations by updated_at
-              return updated.sort((a, b) => 
-                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-              );
-            });
-
-            // Also update the messages cache if it exists
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            queryClient.setQueryData(['messages', conversation.conversation_id], (oldData: any) => {
-              if (!oldData) return oldData;
-              
-              const updatedPages = [...oldData.pages];
-              if (updatedPages.length > 0) {
-                const messageExists = updatedPages[0].messages.some(
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  (msg: any) => msg.messages_id === newMessage.messages_id
-                );
-                
-                if (!messageExists) {
-                  updatedPages[0] = {
-                    ...updatedPages[0],
-                    messages: [...updatedPages[0].messages, newMessage]
-                  };
-                }
-              }
-              
-              return {
-                ...oldData,
-                pages: updatedPages
-              };
-            });
-          });
-
-          messageSubscriptionsRef.current.set(conversation.conversation_id, subscription);
-        } catch (error) {
-          console.error(`Failed to subscribe to messages for conversation ${conversation.conversation_id}:`, error);
+    const supabase = createClient();
+    
+    // Subscribe to all message updates that might affect this user's conversations
+    const messageSubscription = supabase
+      .channel('messages_for_conversations')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          // Check if this message affects any of the user's conversations
+          const conversationIds = conversations.map(c => c.conversation_id);
+          if (conversationIds.includes(payload.new.conversation_id)) {
+            // Refetch conversations to get updated last message and unread counts
+            refetch();
+          }
         }
-      }
-    };
-
-    setupMessageSubscriptions();
+      )
+      .subscribe();
 
     return () => {
-      // Clean up all message subscriptions
-      messageSubscriptionsRef.current.forEach((subscription) => {
-        subscription.unsubscribe();
-      });
-      messageSubscriptionsRef.current.clear();
+      messageSubscription.unsubscribe();
     };
-  }, [conversations.map(c => c.conversation_id).join(','), userId, queryClient]);
+  }, [userId, conversations, refetch]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
