@@ -231,9 +231,11 @@ const ConversationPage = () => {
         }
 
         // Update the conversations list to reset unread count and update last message
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         queryClient.setQueryData(['conversations', currentUser.id], (oldData: any) => {
           if (!oldData) return oldData;
           
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return oldData.map((conv: any) => {
             if (conv.conversation_id === conversationId) {
               return {
@@ -271,9 +273,11 @@ const ConversationPage = () => {
       markMessageAsRead(conversationId, currentUser.id)
       
       // Also update the conversations list to reset unread count
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryClient.setQueryData(['conversations', currentUser.id], (oldData: any) => {
         if (!oldData) return oldData;
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return oldData.map((conv: any) => {
           if (conv.conversation_id === conversationId) {
             return {
@@ -370,9 +374,11 @@ const ConversationPage = () => {
           })
 
           // Update conversations list with the sent message
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           queryClient.setQueryData(['conversations', currentUser.id], (oldData: any) => {
             if (!oldData) return oldData;
             
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return oldData.map((conv: any) => {
               if (conv.conversation_id === conversationId) {
                 return {
@@ -386,6 +392,7 @@ const ConversationPage = () => {
                 };
               }
               return conv;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
             }).sort((a: any, b: any) => 
               new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
             );
