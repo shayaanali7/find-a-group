@@ -15,9 +15,9 @@ import RenderCommentSection from './RenderCommentSection';
 import DisplayMessagingButton from './DisplayMessagingButton';
 
 interface PostPageProps {
-  params: {
+  params: Promise<{
     postId: string;
-  }
+  }>
 }
 
 const PostPage = async ({ params }: PostPageProps) => {

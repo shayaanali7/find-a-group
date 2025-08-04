@@ -1,7 +1,7 @@
 import HomePage from '@/app/components/HomePage';
 import React from 'react'
 
-const CoursePage = async ({ params }:  { params: { courseId: string }}) => {
+const CoursePage = async ({ params }:  { params: Promise<{ courseId: string }> }) => {
   const { courseId } = await params;
 
   return (
