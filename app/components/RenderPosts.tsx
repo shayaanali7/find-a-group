@@ -281,7 +281,7 @@ export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course:
                   {courseFilters.map((filter, index) => (
                     <span 
                       key={index}
-                      className="px-2 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold rounded-full text-xs"
+                      className={`inline-block min-w-[40px] text-center bg-gradient-to-r from-purple-500 to-indigo-500 transform transition-colors duration-300 hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white text-xs px-2 py-1 rounded-full font-medium`}
                     >
                       {filter}
                     </span>
@@ -296,7 +296,7 @@ export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course:
                   {tagFilters.map((filter, index) => (
                     <span 
                       key={index}
-                      className="px-2 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold rounded-full text-xs"
+                      className={`inline-block min-w-[40px] text-center bg-gradient-to-r from-purple-500 to-indigo-500 transform transition-colors duration-300 hover:from-purple-600 hover:to-indigo-600 shadow-purple-200 text-white text-xs px-2 py-1 rounded-full font-medium`}
                     >
                       {filter}
                     </span>

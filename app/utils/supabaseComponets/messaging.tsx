@@ -86,6 +86,9 @@ export const sendMessage = async (conversationId: string, senderId: string, cont
       })
       .select()
       .single()
+    if (error) {
+      console.log(error);
+    }
     if (!error) {
       await supabase
         .from('conversations')

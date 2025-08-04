@@ -9,4 +9,5 @@ const CoursePage = async ({ params }:  { params: Promise<{ courseId: string }> }
   )
 }
 
+
 export default CoursePage

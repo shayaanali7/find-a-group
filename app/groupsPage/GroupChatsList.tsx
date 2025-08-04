@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 interface GroupChat {
   id: string
   name: string
+  photo_url?: string
   created_at: string
   last_message?: {
     content: string
@@ -37,6 +38,7 @@ const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
         groups:group_id (
           id,
           name,
+          photo_url,
           created_at
         )
       `)
@@ -92,6 +94,7 @@ const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
         return {
           id: group.id,
           name: group.name,
+          photo_url: group.photo_url,
           created_at: group.created_at,
           is_owner: group.is_owner,
           last_message: lastMessageData ? {
@@ -204,6 +207,10 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
     }
   }
 
+  const getGroupInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : 'G'
+  }
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center h-64'>
@@ -244,8 +251,28 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
         >
           <div className='p-4 flex items-center space-x-3 w-full min-w-0'>
             <div className='flex-shrink-0'>
-              <div className='w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
-                <Users className='w-6 h-6' />
+              {groupChat.photo_url ? (
+                <img 
+                  src={groupChat.photo_url} 
+                  alt={groupChat.name}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-purple-200"
+                  onError={(e) => {
+                    // Fallback to default if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold ${groupChat.photo_url ? 'hidden' : 'flex'}`}
+              >
+                {groupChat.photo_url ? (
+                  <Users className='w-6 h-6' />
+                ) : (
+                  <span className='text-sm'>{getGroupInitial(groupChat.name)}</span>
+                )}
               </div>
             </div>
             

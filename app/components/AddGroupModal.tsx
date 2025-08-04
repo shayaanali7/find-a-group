@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { CirclePlus, X, Crown } from 'lucide-react';
+import { CirclePlus, X, Crown, Camera, Upload } from 'lucide-react';
 import ModalScreen from './ModalScreen';
 import SearchBar, { SearchResult } from './searchbar';
 import getUserClient from '../utils/supabaseComponets/getUserClient';
@@ -11,10 +11,10 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [groupMembers, setGroupMembers] = useState<SearchResult[]>([]);
   const [groupName, setGroupName] = useState<string>('');
+  const [groupPhoto, setGroupPhoto] = useState<File | null>(null);
+  const [groupPhotoPreview, setGroupPhotoPreview] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<{ id: string } | null>(null);
   const user = getUserClient();
-
-  
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -35,7 +35,6 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
           title: profile?.name,
           subtitle: profile?.username,
           profile_picture: profile?.profile_picture_url
-
         }
         setGroupMembers(prev => 
           prev.find(member => member.id === userInfo.id) ? prev : [...prev, userInfo]
@@ -43,7 +42,6 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
       }
     }
     addUser();
-    
   }, [user]);
 
   const handleAddGroupMember = async (result: SearchResult) => {
@@ -56,6 +54,62 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
     setGroupMembers(prev => prev.filter(member => member.id !== memberId));
   }
 
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+
+      setGroupPhoto(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setGroupPhotoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeGroupPhoto = () => {
+    setGroupPhoto(null);
+    setGroupPhotoPreview(null);
+  };
+
+  const uploadGroupPhoto = async (groupId: string): Promise<string | null> => {
+    if (!groupPhoto) return null;
+    
+    try {
+      const supabase = await createClient();
+      const fileExt = groupPhoto.name.split('.').pop();
+      const fileName = `${groupId}.${fileExt}`;
+      const filePath = `group-photos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('group-photos')
+        .upload(filePath, groupPhoto);
+
+      if (uploadError) {
+        console.error('Error uploading group photo:', uploadError);
+        return null;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('group-photos')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading group photo:', error);
+      return null;
+    }
+  };
+
   const handleAddGroup = async () => {
     try { 
       const supabase = await createClient();
@@ -63,17 +117,29 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
         .from('groups')
         .insert({
           name: groupName,
-
         })
         .select()
+        
       if (error) {
         console.log('Error creating Group: ' + error.message);
         throw new Error();
       }
       
       if (data) {
+        const groupId = data[0].id;
+        let photoUrl = null;
+        if (groupPhoto) {
+          photoUrl = await uploadGroupPhoto(groupId);
+        }
+        
+        if (photoUrl) {
+          await supabase
+            .from('groups')
+            .update({ photo_url: photoUrl })
+            .eq('id', groupId);
+        }
         const membersInserts = groupMembers.map(member => ({
-          group_id: data[0].id,
+          group_id: groupId,
           user_id: member.id,
           is_owner: member.id === userInfo?.id
         }));
@@ -81,12 +147,17 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
         const { error: addMembersError } = await supabase
           .from('group_members')
           .insert(membersInserts)
+          
         if (addMembersError) throw addMembersError;
       }
     } catch (error) {
       console.log(error);
     } finally {
       setIsOpen(false);
+      setGroupName('');
+      setGroupPhoto(null);
+      setGroupPhotoPreview(null);
+      setGroupMembers([]);
     }
   }
 
@@ -115,10 +186,51 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
 
             <div className='flex-1 overflow-y-auto px-4 py-2 min-h-0'>
               <div className='space-y-6'>
+                <div className='flex flex-col items-center space-y-4'>
+                  <div className='relative'>
+                    {groupPhotoPreview ? (
+                      <div className='relative'>
+                        <img 
+                          src={groupPhotoPreview} 
+                          alt="Group preview"
+                          className="w-24 h-24 rounded-full object-cover border-4 border-purple-200"
+                        />
+                        <button
+                          onClick={removeGroupPhoto}
+                          className='absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors duration-200'
+                          title='Remove photo'
+                        >
+                          <X className='w-3 h-3 text-white' />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className='w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 border-4 border-purple-200 flex items-center justify-center'>
+                        <Camera className='w-8 h-8 text-purple-400' />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <label className='cursor-pointer'>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                    <div className='flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-full border border-purple-200 transition-colors duration-200'>
+                      <Upload className='w-4 h-4' />
+                      <span className='text-sm font-medium'>
+                        {groupPhoto ? 'Change Photo' : 'Add Group Photo'}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
                 <div>
                   <input 
                     type='text' 
                     placeholder='Group Name'
+                    value={groupName}
                     onChange={(e) => setGroupName(e.target.value)} 
                     className='border border-gray-300 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-full px-4 py-3 w-full text-lg transition-all duration-200 outline-none'
                   />
@@ -190,7 +302,7 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
               <button
                 onClick={handleAddGroup}
                 className='py-3 px-8 rounded-full font-semibold text-white bg-purple-500 hover:bg-purple-600 shadow-md transition-all duration-200 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300 disabled:opacity-50 disabled:cursor-not-allowed'
-                disabled={groupMembers.length === 1}
+                disabled={groupMembers.length === 1 || !groupName.trim()}
               >
                 Create Group
               </button>

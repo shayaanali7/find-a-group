@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/app/utils/supabase/client'
 import { RealtimeChannel } from '@supabase/supabase-js'
-import { SendHorizonal, Users } from 'lucide-react'
+import { SendHorizonal, Users, Upload, X } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -33,6 +33,7 @@ interface UserProfile {
 interface GroupInfo {
   id: string
   name: string
+  photo_url?: string
   created_at: string
 }
 
@@ -160,9 +161,11 @@ const GroupChatPage = () => {
   const groupId = Array.isArray(params.groupchatId) ? params.groupchatId[0] : params.groupchatId
   const queryClient = useQueryClient()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [newMessage, setNewMessage] = useState<string>('')
   const [showMembers, setShowMembers] = useState<boolean>(false)
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false)
 
   const currentUser = queryClient.getQueryData<UserProfile>(['userProfile'])
   const {
@@ -178,6 +181,105 @@ const GroupChatPage = () => {
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 2,
+  })
+
+  const updateGroupPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      // Delete old photo if exists
+      if (groupData?.groupInfo.photo_url) {
+        const oldFileName = groupData.groupInfo.photo_url.split('/').pop()
+        if (oldFileName) {
+          await supabase.storage
+            .from('group-photos')
+            .remove([`${oldFileName}`])
+        }
+      }
+
+      // Upload new photo
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${groupId}.${fileExt}`
+      const filePath = `${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('group-photos')
+        .upload(filePath, file, { upsert: true })
+
+      if (uploadError) {
+        throw new Error(`Failed to upload photo: ${uploadError.message}`)
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('group-photos')
+        .getPublicUrl(filePath)
+
+      // Update group with new photo URL
+      const { error: updateError } = await supabase
+        .from('groups')
+        .update({ photo_url: publicUrl })
+        .eq('id', groupId)
+
+      if (updateError) {
+        throw new Error(`Failed to update group photo: ${updateError.message}`)
+      }
+
+      return publicUrl
+    },
+    onSuccess: (newPhotoUrl) => {
+      queryClient.setQueryData(['groupData', groupId, currentUser?.id], (oldData: GroupData | undefined) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          groupInfo: {
+            ...oldData.groupInfo,
+            photo_url: newPhotoUrl
+          }
+        }
+      })
+      setIsUploadingPhoto(false)
+    },
+    onError: (error) => {
+      console.error('Error updating group photo:', error)
+      setIsUploadingPhoto(false)
+    }
+  })
+
+  const removeGroupPhotoMutation = useMutation({
+    mutationFn: async () => {
+      // Delete photo from storage
+      if (groupData?.groupInfo.photo_url) {
+        const fileName = groupData.groupInfo.photo_url.split('/').pop()
+        if (fileName) {
+          await supabase.storage
+            .from('group-photos')
+            .remove([fileName])
+        }
+      }
+
+      // Update group to remove photo URL
+      const { error: updateError } = await supabase
+        .from('groups')
+        .update({ photo_url: null })
+        .eq('id', groupId)
+
+      if (updateError) {
+        throw new Error(`Failed to remove group photo: ${updateError.message}`)
+      }
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['groupData', groupId, currentUser?.id], (oldData: GroupData | undefined) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          groupInfo: {
+            ...oldData.groupInfo,
+            photo_url: undefined
+          }
+        }
+      })
+    },
+    onError: (error) => {
+      console.error('Error removing group photo:', error)
+    }
   })
   
   const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -257,6 +359,43 @@ const GroupChatPage = () => {
     }
   })
 
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !groupData?.isOwner) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB')
+      return
+    }
+
+    setIsUploadingPhoto(true)
+    updateGroupPhotoMutation.mutate(file)
+  }
+
+  const handlePhotoClick = () => {
+    if (groupData?.isOwner && fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleRemovePhoto = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (groupData?.isOwner) {
+      removeGroupPhotoMutation.mutate()
+    }
+  }
+
+  const getGroupInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : 'G'
+  }
+
   useEffect(() => {
     if (!groupId || !currentUser || !groupData?.isUserMember) return
 
@@ -325,7 +464,6 @@ const GroupChatPage = () => {
     })
   }
 
-
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], { 
       hour: '2-digit', 
@@ -378,8 +516,84 @@ const GroupChatPage = () => {
     <div className='w-full flex flex-col h-full overflow-y-auto bg-white border-l-1 md:border-l-1 border-purple-500'>
       <div className='flex items-center justify-between p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
         <div className='flex items-center space-x-3'>
-          <div className='w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
-            <Users className='w-6 h-6' />
+          <div className='relative group'>
+            {groupInfo?.photo_url ? (
+              <div className='relative'>
+                <img 
+                  src={groupInfo.photo_url} 
+                  alt={groupInfo.name}
+                  className={`w-10 h-10 rounded-full object-cover border-2 border-purple-200 ${
+                    isOwner ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''
+                  }`}
+                  onClick={handlePhotoClick}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  className={`w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 items-center justify-center text-white font-semibold hidden ${
+                    isOwner ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''
+                  }`}
+                  onClick={handlePhotoClick}
+                >
+                  <span className='text-sm'>{getGroupInitial(groupInfo.name)}</span>
+                </div>
+                
+                {isOwner && (
+                  <>
+                    <div className='absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer' onClick={handlePhotoClick}>
+                      <Upload className='w-4 h-4 text-white' />
+                    </div>
+                    <button
+                      onClick={handleRemovePhoto}
+                      className='absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'
+                      title='Remove photo'
+                    >
+                      <X className='w-3 h-3 text-white' />
+                    </button>
+                  </>
+                )}
+                
+                {isUploadingPhoto && (
+                  <div className='absolute inset-0 bg-white bg-opacity-75 rounded-full flex items-center justify-center'>
+                    <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500'></div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div 
+                className={`w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold relative ${
+                  isOwner ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''
+                }`}
+                onClick={handlePhotoClick}
+              >
+                <span className='text-sm'>{getGroupInitial(groupInfo.name)}</span>
+                
+                {isOwner && (
+                  <div className='absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer'>
+                    <Upload className='w-4 h-4 text-white' />
+                  </div>
+                )}
+                
+                {isUploadingPhoto && (
+                  <div className='absolute inset-0 bg-white bg-opacity-75 rounded-full flex items-center justify-center'>
+                    <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500'></div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+              disabled={!isOwner || isUploadingPhoto}
+            />
           </div>
           
           <div>
