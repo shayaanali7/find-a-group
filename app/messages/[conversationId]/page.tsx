@@ -225,33 +225,9 @@ const ConversationPage = () => {
           }
         })
 
-        // Always mark message as read when in the conversation
         if (newMessage.sender_id !== currentUser.id) {
           markMessageAsRead(conversationId, currentUser.id)
         }
-
-        // Update the conversations list to reset unread count and update last message
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        queryClient.setQueryData(['conversations', currentUser.id], (oldData: any) => {
-          if (!oldData) return oldData;
-          
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return oldData.map((conv: any) => {
-            if (conv.conversation_id === conversationId) {
-              return {
-                ...conv,
-                last_message: {
-                  content: newMessage.content,
-                  created_at: newMessage.created_at,
-                  sender_id: newMessage.sender_id
-                },
-                updated_at: newMessage.created_at,
-                unread_count: 0 // Reset unread count since user is in the conversation
-              };
-            }
-            return conv;
-          });
-        });
       })
       subscription = result
     }
@@ -271,25 +247,8 @@ const ConversationPage = () => {
   useEffect(() => {
     if (currentUser && conversationId) {
       markMessageAsRead(conversationId, currentUser.id)
-      
-      // Also update the conversations list to reset unread count
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      queryClient.setQueryData(['conversations', currentUser.id], (oldData: any) => {
-        if (!oldData) return oldData;
-        
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return oldData.map((conv: any) => {
-          if (conv.conversation_id === conversationId) {
-            return {
-              ...conv,
-              unread_count: 0
-            };
-          }
-          return conv;
-        });
-      });
     }
-  }, [currentUser, conversationId, queryClient])
+  }, [currentUser, conversationId])
 
   const handleScroll = useCallback(async () => {
     const container = messagesContainerRef.current
@@ -372,31 +331,6 @@ const ConversationPage = () => {
               pages: updatedPages
             }
           })
-
-          // Update conversations list with the sent message
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          queryClient.setQueryData(['conversations', currentUser.id], (oldData: any) => {
-            if (!oldData) return oldData;
-            
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return oldData.map((conv: any) => {
-              if (conv.conversation_id === conversationId) {
-                return {
-                  ...conv,
-                  last_message: {
-                    content: sentMessage.content,
-                    created_at: sentMessage.created_at,
-                    sender_id: sentMessage.sender_id
-                  },
-                  updated_at: sentMessage.created_at
-                };
-              }
-              return conv;
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            }).sort((a: any, b: any) => 
-              new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-            );
-          });
         }
       } 
     } catch (error) {

@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect } from 'react'
-import { getConversationUnreadCount, getUserConversations, subscribeToConversations, subscribeToMessages, type Conversation } from '../utils/supabaseComponets/messaging'
+import { getConversationUnreadCount, getUserConversations, subscribeToConversations, type Conversation } from '../utils/supabaseComponets/messaging'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -82,19 +82,16 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true, // Changed to true to refetch when user returns
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 2,
   });
 
   useEffect(() => {
     if (!userId) return;
-    
-    const subscriptions: RealtimeChannel[] = [];
-    
-    const setupSubscriptions = async () => {
-      // Subscribe to conversation updates
-      const conversationSub = await subscribeToConversations(userId, (updatedConversation) => {
+    let subscription: RealtimeChannel | null = null;
+    const setupSubscription = async () => {
+      const result = await subscribeToConversations(userId, (updatedConversation) => {
         queryClient.setQueryData(['conversations', userId], (oldData: ConversationWithDetails[] | undefined) => {
           if (!oldData) return oldData;
           
@@ -107,83 +104,16 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
           return oldData;
         });
       });
-      subscriptions.push(conversationSub);
-
-      // Subscribe to messages for all conversations to update unread counts and last messages
-      if (conversations.length > 0) {
-        for (const conversation of conversations) {
-          const messageSub = await subscribeToMessages(conversation.conversation_id, async (newMessage) => {
-            // Update the conversations list with new message
-            queryClient.setQueryData(['conversations', userId], (oldData: ConversationWithDetails[] | undefined) => {
-              if (!oldData) return oldData;
-              
-              const updated = oldData.map(conv => {
-                if (conv.conversation_id === conversation.conversation_id) {
-                  const isFromCurrentUser = newMessage.sender_id === userId;
-                  
-                  return {
-                    ...conv,
-                    last_message: {
-                      content: newMessage.content,
-                      created_at: newMessage.created_at,
-                      sender_id: newMessage.sender_id
-                    },
-                    updated_at: newMessage.created_at,
-                    // Increment unread count if message is not from current user
-                    unread_count: isFromCurrentUser 
-                      ? conv.unread_count 
-                      : (conv.unread_count || 0) + 1
-                  };
-                }
-                return conv;
-              });
-              
-              // Sort by updated_at
-              return updated.sort((a, b) => 
-                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-              );
-            });
-
-            // Invalidate and refetch the specific conversation's messages if it's not currently active
-            const currentPath = window.location.pathname;
-            const isCurrentConversation = currentPath.includes(`/messages/${conversation.conversation_id}`);
-            
-            if (!isCurrentConversation) {
-              // Invalidate the messages query for this conversation so it refetches when user opens it
-              queryClient.invalidateQueries({ 
-                queryKey: ['messages', conversation.conversation_id] 
-              });
-            }
-          });
-          subscriptions.push(messageSub);
-        }
-      }
+      subscription = result;
     };
-
-    setupSubscriptions();
+    setupSubscription();
     
     return () => {
-      subscriptions.forEach(sub => {
-        if (sub) {
-          sub.unsubscribe();
-        }
-      });
+      if (subscription) {
+        subscription.unsubscribe();
+      } 
     };
-  }, [userId, queryClient, conversations]);
-
-  // Refetch conversations when component becomes visible again
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        refetch();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [refetch]);
+  }, [userId, queryClient]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -205,6 +135,14 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
         <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500'></div>
       </div>
     )
+  }
+
+  if (loading) {
+    return (
+      <div className='flex items-center justify-center h-64'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500'></div>
+      </div>
+    );
   }
 
   if (error) {
