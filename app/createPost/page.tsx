@@ -10,11 +10,12 @@ import PostForm from './PostForm'
 import { StorePost } from './StorePost'
 
 interface CreatePostPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
-  const courseName = typeof searchParams.courseName === 'string' ? searchParams.courseName : '';
+  const resolvedSearchParams = await searchParams;
+  const courseName = typeof resolvedSearchParams.courseName === 'string' ? resolvedSearchParams.courseName : '';
   const user = await getUserServer();
   const imageURL = await GetProfilePicture();
   const username = await getUsername(user);
