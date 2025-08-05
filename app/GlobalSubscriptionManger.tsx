@@ -18,8 +18,10 @@ interface GroupMessage {
 }
 
 interface GroupData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   groupInfo: any
   messages: GroupMessage[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   members: any[]
   isUserMember: boolean
   isOwner: boolean
@@ -96,11 +98,7 @@ class GlobalSubscriptionManager {
         },
         async (payload) => {
           const newMessage = payload.new as GroupMessage
-          
-          // Only process messages for groups the user is a member of
           if (!this.userGroupIds.has(newMessage.group_id)) return
-
-          // Skip messages from the current user (they're handled optimistically)
           if (newMessage.user_id === this.currentUserId) return
 
           await this.handleNewMessage(newMessage)
@@ -112,7 +110,6 @@ class GlobalSubscriptionManager {
   private async handleNewMessage(newMessage: GroupMessage) {
     if (!this.queryClient || !this.currentUserId) return
 
-    // Get sender information
     const { data: senderData } = await this.supabase
       .from('profile')
       .select('id, username, name, profile_picture_url')
@@ -123,7 +120,6 @@ class GlobalSubscriptionManager {
       newMessage.sender = senderData
     }
 
-    // Update individual group chat data if it's cached
     this.queryClient.setQueryData(
       ['groupData', newMessage.group_id, this.currentUserId],
       (oldData: GroupData | undefined) => {
@@ -139,7 +135,6 @@ class GlobalSubscriptionManager {
       }
     )
 
-    // Update group chats list
     this.queryClient.setQueryData(
       ['groupChats', this.currentUserId],
       (oldData: GroupChat[] | undefined) => {
@@ -167,17 +162,13 @@ class GlobalSubscriptionManager {
     )
   }
 
-  // Call this when user joins/leaves groups
   updateUserGroups(groupIds: string[]) {
     this.userGroupIds = new Set(groupIds)
   }
 
-  // Call this when user joins a new group
   addUserGroup(groupId: string) {
     this.userGroupIds.add(groupId)
   }
-
-  // Call this when user leaves a group
   removeUserGroup(groupId: string) {
     this.userGroupIds.delete(groupId)
   }
