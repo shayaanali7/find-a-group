@@ -10,6 +10,9 @@ import { updateDatabase } from '../utils/supabaseComponets/updateDatabase';
 import { useRouter } from 'next/navigation';
 import { User } from '../interfaces/interfaces';
 
+type Platform = 'github' | 'instagram' | 'linkedin';
+type LinkErrors = Record<Platform, string>;
+
 const MultiStepSignup = ({ user }: {user: User}) => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -22,6 +25,11 @@ const MultiStepSignup = ({ user }: {user: User}) => {
   const [githubLink, setGithubLink] = useState<string>('');
   const [instagramLink, setInstagramLink] = useState<string>('');
   const [linkedinLink, setLinkedinLink] = useState<string>('');
+  const [linkErrors, setLinkErrors] = useState<LinkErrors>({
+    github: '',
+    instagram: '',
+    linkedin: ''
+  });
   const courses = ['CS2212', 'CS3319', 'CS2214', 'CS1027', 'CS1026'];
 
   const changeStatus = (index: number) => {
@@ -46,6 +54,18 @@ const MultiStepSignup = ({ user }: {user: User}) => {
         // Profile picture step - can be skipped
       }
       else if (currentStep === 3) {
+        const hasErrors = Object.values(linkErrors).some(err => err !== '');
+        
+        const hasValidationErrors = 
+          (githubLink.trim() && linkErrors.github) ||
+          (instagramLink.trim() && linkErrors.instagram) ||
+          (linkedinLink.trim() && linkErrors.linkedin);
+        
+        if (hasErrors || hasValidationErrors) {
+          setShowError(true);
+          setIsLoading(false);
+          return;
+        }
         await updateDatabase('profile', { 
           github_link: githubLink,
           instagram_link: instagramLink,
@@ -137,6 +157,8 @@ const MultiStepSignup = ({ user }: {user: User}) => {
             githubLink={githubLink}
             instagramLink={instagramLink}
             linkedinLink={linkedinLink}
+            errors={linkErrors}
+            setErrors={setLinkErrors}
           />
         );
       case 4:

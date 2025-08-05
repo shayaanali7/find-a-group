@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLoading } from './LoadingContext';
 import { useQuery } from '@tanstack/react-query';
 import { PostCard } from './PostCard'; 
-import {groupSizes, roles, groupStatus, locations} from '../data/tags.js'
+import {groupSizes, roles, groupStatus, locations} from '../data/tags.js' 
 import { getUsernameClient } from '../utils/supabaseComponets/clientUtils';
 import getUserClient from '../utils/supabaseComponets/getUserClient';
 

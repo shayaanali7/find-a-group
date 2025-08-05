@@ -6,14 +6,17 @@ import SearchBar, { SearchResult } from './searchbar';
 import getUserClient from '../utils/supabaseComponets/getUserClient';
 import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
 import { createClient } from '../utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 const AddGroupModal = ({ background }: { background?: boolean }) => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [groupMembers, setGroupMembers] = useState<SearchResult[]>([]);
   const [groupName, setGroupName] = useState<string>('');
   const [groupPhoto, setGroupPhoto] = useState<File | null>(null);
   const [groupPhotoPreview, setGroupPhotoPreview] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<{ id: string } | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const user = getUserClient();
 
   useEffect(() => {
@@ -88,7 +91,7 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
       const supabase = await createClient();
       const fileExt = groupPhoto.name.split('.').pop();
       const fileName = `${groupId}.${fileExt}`;
-      const filePath = `group-photos/${fileName}`;
+      const filePath = fileName;
 
       const { error: uploadError } = await supabase.storage
         .from('group-photos')
@@ -112,6 +115,7 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
 
   const handleAddGroup = async () => {
     try { 
+      setLoading(true);
       const supabase = await createClient();
       const { data, error } = await supabase
         .from('groups')
@@ -149,15 +153,18 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
           .insert(membersInserts)
           
         if (addMembersError) throw addMembersError;
+
+        setLoading(false);
+        setGroupName('');
+        setGroupPhoto(null);
+        setGroupPhotoPreview(null);
+        setGroupMembers([]);
+        setTimeout(() => {
+          router.push(`/groupsPage/${groupId}`)
+        }, 1000)
       }
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsOpen(false);
-      setGroupName('');
-      setGroupPhoto(null);
-      setGroupPhotoPreview(null);
-      setGroupMembers([]);
     }
   }
 
@@ -302,9 +309,9 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
               <button
                 onClick={handleAddGroup}
                 className='py-3 px-8 rounded-full font-semibold text-white bg-purple-500 hover:bg-purple-600 shadow-md transition-all duration-200 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300 disabled:opacity-50 disabled:cursor-not-allowed'
-                disabled={groupMembers.length === 1 || !groupName.trim()}
+                disabled={groupMembers.length === 1 || !groupName.trim() || loading}
               >
-                Create Group
+                {loading ? 'Creating...': 'Create Group'}
               </button>
 
               <button

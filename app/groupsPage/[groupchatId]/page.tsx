@@ -162,7 +162,6 @@ const GroupChatPage = () => {
   const queryClient = useQueryClient()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
   const [newMessage, setNewMessage] = useState<string>('')
   const [showMembers, setShowMembers] = useState<boolean>(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false)
@@ -185,7 +184,6 @@ const GroupChatPage = () => {
 
   const updateGroupPhotoMutation = useMutation({
     mutationFn: async (file: File) => {
-      // Delete old photo if exists
       if (groupData?.groupInfo.photo_url) {
         const oldFileName = groupData.groupInfo.photo_url.split('/').pop()
         if (oldFileName) {
@@ -194,8 +192,6 @@ const GroupChatPage = () => {
             .remove([`${oldFileName}`])
         }
       }
-
-      // Upload new photo
       const fileExt = file.name.split('.').pop()
       const fileName = `${groupId}.${fileExt}`
       const filePath = `${fileName}`
@@ -212,7 +208,6 @@ const GroupChatPage = () => {
         .from('group-photos')
         .getPublicUrl(filePath)
 
-      // Update group with new photo URL
       const { error: updateError } = await supabase
         .from('groups')
         .update({ photo_url: publicUrl })
@@ -245,7 +240,6 @@ const GroupChatPage = () => {
 
   const removeGroupPhotoMutation = useMutation({
     mutationFn: async () => {
-      // Delete photo from storage
       if (groupData?.groupInfo.photo_url) {
         const fileName = groupData.groupInfo.photo_url.split('/').pop()
         if (fileName) {
@@ -255,7 +249,6 @@ const GroupChatPage = () => {
         }
       }
 
-      // Update group to remove photo URL
       const { error: updateError } = await supabase
         .from('groups')
         .update({ photo_url: null })

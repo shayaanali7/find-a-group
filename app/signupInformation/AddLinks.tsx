@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Github, Instagram, Linkedin, ExternalLink, AlertCircle } from 'lucide-react';
+
+type Platform = 'github' | 'instagram' | 'linkedin';
 
 interface AddLinksProps {
   setGithubLink: (link: string) => void;
@@ -8,6 +10,8 @@ interface AddLinksProps {
   githubLink: string;
   instagramLink: string;
   linkedinLink: string;
+  errors: Record<Platform, string>;
+  setErrors: React.Dispatch<React.SetStateAction<Record<Platform, string>>>;
 }
 
 const AddLinks = ({ 
@@ -16,11 +20,12 @@ const AddLinks = ({
   setLinkedinLink, 
   githubLink, 
   instagramLink, 
-  linkedinLink 
+  linkedinLink, 
+  errors,
+  setErrors
 }: AddLinksProps) => {
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
-  const validateUrl = (url: string, platform: string): string => {
+  const validateUrl = (url: string, platform: Platform): string => {
     if (!url.trim()) return '';
     
     try {
@@ -49,7 +54,7 @@ const AddLinks = ({
     }
   };
 
-  const handleInputChange = (value: string, platform: string, setter: (link: string) => void) => {
+  const handleInputChange = (value: string, platform: Platform, setter: (link: string) => void) => {
     setter(value);
     
     const error = validateUrl(value, platform);
@@ -61,7 +66,7 @@ const AddLinks = ({
 
   const socialLinks = [
     {
-      platform: 'github',
+      platform: 'github' as Platform,
       label: 'GitHub',
       icon: <Github className="w-8 h-8 text-black" />,
       placeholder: 'https://github.com/yourusername',
@@ -71,7 +76,7 @@ const AddLinks = ({
       hoverColor: 'hover:from-gray-800 hover:to-black'
     },
     {
-      platform: 'instagram',
+      platform: 'instagram' as Platform,
       label: 'Instagram',
       icon: <Instagram className="w-8 h-8 text-black" />,
       placeholder: 'https://instagram.com/yourusername',
@@ -81,7 +86,7 @@ const AddLinks = ({
       hoverColor: 'hover:from-pink-600 hover:to-purple-700'
     },
     {
-      platform: 'linkedin',
+      platform: 'linkedin' as Platform,
       label: 'LinkedIn',
       icon: <Linkedin className="w-8 h-8 text-black" />,
       placeholder: 'https://linkedin.com/in/yourusername',
