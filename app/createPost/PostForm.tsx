@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from "next/navigation";
 import CoursePickerButton from '../components/CoursePickerButton';
 import TagModal from '../components/TagModal'
@@ -15,8 +15,10 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [course, setCourse] = useState<string>(courseName);
+  const [course, setCourse] = useState<string>('');
   const buttonClass = 'border-black border-1 hover:bg-gray-100';
+  const [error, setError] = useState<string>('');
+  const [showError, setShowError] = useState<boolean>(false);
 
   const handleTagsAdded = (newTags: string[]) => {
     setTags(newTags);
@@ -25,6 +27,13 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    if (course === '') {
+      setError('Please select a course for your post.')
+      setShowError(true);
+      setIsSubmitting(false);
+      return
+    }
     
     try {
       const formData = new FormData();
@@ -101,6 +110,26 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
           </div>
         </div>
       </div>
+
+      {showError && (
+        <div className="mt-4 flex items-center gap-3 w-fit max-w-full px-4 py-3 bg-red-100 text-red-800 border border-red-300 rounded-xl shadow-sm animate-fade-in">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 flex-shrink-0 text-red-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z"
+            />
+          </svg>
+          <span className="text-sm font-medium">{error}</span>
+        </div>
+      )}
     </form>
   )
 }

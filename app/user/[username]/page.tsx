@@ -14,6 +14,7 @@ import { createOrGetConversation } from '@/app/utils/supabaseComponets/messaging
 import { UserPost, UserProfile } from '@/app/interfaces/interfaces';
 import { fetchUserPosts } from '@/app/utils/supabaseComponets/clientUtils';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 
 interface ViewingUserData {
   id: string;
@@ -173,18 +174,20 @@ const ProfilePage = () => {
             <div className='md:w-12 w-16 flex justify-start'>
             </div>
             <div className='hidden lg:flex items-center h-[36px]'>
-              <Image 
-                src="/assets/groupup-logo-cut.PNG" 
-                alt='logo' 
-                height={36} 
-                width={180} 
-                className='w-full h-full object-contain' 
-              />
+              <Link href='/mainPage'>
+                <Image 
+                  src="/assets/groupup-logo-cut.PNG" 
+                  alt='logo' 
+                  height={36} 
+                  width={180} 
+                  className='w-full h-full object-contain' 
+                />
+            </Link>
             </div>
           </div>
         
           <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
-            <SearchBar placeholder='Search for a post'/>
+            <SearchBar placeholder='Search for posts, users and courses'/>
           </div>
 
           <div className='flex-shrink-0 w-10 lg:w-auto'>
@@ -217,18 +220,20 @@ const ProfilePage = () => {
             <div className='md:w-12 w-16 flex justify-start'>
             </div>
             <div className='hidden lg:flex items-center h-[36px]'>
-              <Image 
-                src="/assets/groupup-logo-cut.PNG" 
-                alt='logo' 
-                height={36} 
-                width={180} 
-                className='w-full h-full object-contain' 
-              />
+              <Link href='/mainPage'>
+                <Image 
+                  src="/assets/groupup-logo-cut.PNG" 
+                  alt='logo' 
+                  height={36} 
+                  width={180} 
+                  className='w-full h-full object-contain' 
+                />
+            </Link>
             </div>
           </div>
         
           <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
-            <SearchBar placeholder='Search for a post'/>
+            <SearchBar placeholder='Search for posts, users and courses'/>
           </div>
 
           <div className='flex-shrink-0 w-10 lg:w-auto'>
@@ -260,18 +265,20 @@ const ProfilePage = () => {
           <div className='md:w-12 w-16 flex justify-start'>
           </div>
           <div className='hidden lg:flex items-center h-[36px]'>
-            <Image 
-              src="/assets/groupup-logo-cut.PNG" 
-              alt='logo' 
-              height={36} 
-              width={180} 
-              className='w-full h-full object-contain' 
-            />
+            <Link href='/mainPage'>
+              <Image 
+                src="/assets/groupup-logo-cut.PNG" 
+                alt='logo' 
+                height={36} 
+                width={180} 
+                className='w-full h-full object-contain' 
+              />
+            </Link>
           </div>
         </div>
       
         <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
-          <SearchBar placeholder='Search for a post'/>
+          <SearchBar placeholder='Search for posts, users and courses'/>
         </div>
 
         <div className='flex-shrink-0 w-10 lg:w-auto'>

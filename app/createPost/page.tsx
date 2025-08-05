@@ -16,7 +16,10 @@ interface CreatePostPageProps {
 
 const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
   const resolvedSearchParams = await searchParams;
-  const courseName = typeof resolvedSearchParams.courseName === 'string' ? resolvedSearchParams.courseName : '';
+  let courseName = typeof resolvedSearchParams.courseName === 'string' ? resolvedSearchParams.courseName : '';
+  if (courseName === 'Feed') {
+    courseName = '';
+  }
   const user = await getUserServer();
   const imageURL = await GetProfilePicture();
   const username = await getUsername(user);
@@ -39,7 +42,7 @@ const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
         </div>
         
         <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
-          <SearchBar placeholder='Search for a post'/>
+          <SearchBar placeholder='Search for posts, users and courses'/>
         </div>
 
         <div className='flex-shrink-0 w-10 lg:w-auto'>

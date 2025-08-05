@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import Link from 'next/link'
 
 interface UserProfile {
   id: string
@@ -427,28 +428,30 @@ const ConversationPage = () => {
   return (
     <div className='w-full flex flex-col h-full overflow-hidden border-l border-purple-500'>
       <div className='flex items-center p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
-        <div className='flex items-center space-x-3'>
-          <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
-            {otherUser?.profile_picture_url ? (
-              <Image 
-                src={otherUser.profile_picture_url} 
-                alt={otherUser.name}
-                width={40}
-                height={40}
-                className='w-full h-full object-cover'
-              />
-            ) : (
-              <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
-                {otherUser?.name?.charAt(0) || '?'}
-              </div>
-            )}
+        <Link href={`/user/${otherUser?.username}`}>
+          <div className='flex items-center space-x-3 hover:opacity-70 cursor-pointer transition-all hover:scale-101'>
+            <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
+              {otherUser?.profile_picture_url ? (
+                <Image 
+                  src={otherUser.profile_picture_url} 
+                  alt={otherUser.name}
+                  width={40}
+                  height={40}
+                  className='w-full h-full object-cover'
+                />
+              ) : (
+                <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
+                  {otherUser?.name?.charAt(0) || '?'}
+                </div>
+              )}
+            </div>
+            
+            <div>
+              <h2 className='font-semibold text-lg'>{otherUser?.name}</h2>
+              <p className='text-sm text-gray-500'>@{otherUser?.username}</p>
+            </div>
           </div>
-          
-          <div>
-            <h2 className='font-semibold text-lg'>{otherUser?.name}</h2>
-            <p className='text-sm text-gray-500'>@{otherUser?.username}</p>
-          </div>
-        </div>
+        </Link>
       </div>
 
       <div 

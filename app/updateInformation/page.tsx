@@ -33,7 +33,7 @@ const UpdateUserInformation = async () => {
           </div>
         
           <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
-            <SearchBar placeholder='Search for a post'/>
+            <SearchBar placeholder='Search for posts, users and courses'/>
           </div>
 
           <div className='flex-shrink-0 w-10 lg:w-auto'>

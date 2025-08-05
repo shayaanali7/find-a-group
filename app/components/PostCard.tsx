@@ -2,6 +2,7 @@ import Link from 'next/link';
 import React from 'react'
 import { Post, UserInfo } from './RenderPosts';
 import Image from 'next/image';
+import OptionOnPostButton from './OptionOnPostButton';
 
 export const PostCard = React.memo(({ 
   post, 
@@ -9,7 +10,8 @@ export const PostCard = React.memo(({
   course, 
   formatDate, 
   handleClick, 
-  handleClickProfile 
+  handleClickProfile, 
+  isOwnPost = false
 }: {
   post: Post;
   user?: UserInfo;
@@ -17,6 +19,7 @@ export const PostCard = React.memo(({
   formatDate: (dateString: string) => string;
   handleClick: (postId: string) => void;
   handleClickProfile: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
+  isOwnPost?: boolean
 }) => {
   return (
     <div 
@@ -64,6 +67,8 @@ export const PostCard = React.memo(({
             </span>
           </Link>
         )}
+
+        {user && <OptionOnPostButton post={post.post_id} isOwnPost={isOwnPost} />}
       </div>
 
       <div className="space-y-3 mt-4">

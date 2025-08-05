@@ -6,6 +6,9 @@ import { useLoading } from './LoadingContext';
 import { useQuery } from '@tanstack/react-query';
 import { PostCard } from './PostCard'; 
 import {groupSizes, roles, groupStatus, locations} from '../data/tags.js'
+import { User } from '../interfaces/interfaces';
+import { getUsernameClient } from '../utils/supabaseComponets/clientUtils';
+import getUserClient from '../utils/supabaseComponets/getUserClient';
 
 type ProfileData = {
   id: string;
@@ -120,6 +123,17 @@ const fetchPostsWithUsers = async (
   })) || [];
 };
 
+const fetchCurrentUser = async (): Promise<string | null> => {
+  try {
+    const viewingUser = await getUserClient();
+    const viewingUserUsername = await getUsernameClient(viewingUser);
+    return viewingUserUsername?.data?.username || null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+};
+
 export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course: string, activeFilters?: string[] }) => {
   const { startLoading, stopLoading } = useLoading();
   const router = useRouter();
@@ -127,6 +141,16 @@ export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course:
   const [allPosts, setAllPosts] = useState<PostWithUser[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const processedDataRef = useRef<string>('');
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: fetchCurrentUser,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 2,
+  });
 
   const { courseFilters, tagFilters } = useMemo(() => {
     const allKnownTagLabels = [
@@ -317,6 +341,7 @@ export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course:
           formatDate={formatDate}
           handleClick={handleClick}
           handleClickProfile={handleClickProfile}
+          isOwnPost={currentUser === post.user?.username}
         />
       ))}
       

@@ -1,8 +1,9 @@
 'use client'
 import React, { useRef, useState } from 'react'
 import { createClient } from '../utils/supabase/client';
+import getUserClient from '../utils/supabaseComponets/getUserClient';
 
-const PostonCommentSection = ({ postId, id }: { postId: string, id: string }) => {
+const PostonCommentSection = ({ postId }: { postId: string }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [commentText, setCommentText] = useState<string>('');
 
@@ -18,6 +19,7 @@ const PostonCommentSection = ({ postId, id }: { postId: string, id: string }) =>
 
   const handleSubmit = async () => {
     if (commentText.trim()) {
+      const user = await getUserClient();
       const supabase = await createClient();
       try {
         const { error } = await supabase
@@ -25,7 +27,7 @@ const PostonCommentSection = ({ postId, id }: { postId: string, id: string }) =>
           .insert([
             {
               post_id: postId,
-              user_id: id,
+              user_id: user.id,
               context: commentText.trim()
             }
           ]);

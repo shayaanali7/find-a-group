@@ -9,7 +9,6 @@ export const StorePost = async (formData: FormData) => {
     const tags = formData.get('tags') as string;
     const courseName = formData.get('courseName') as string;
     const parsedTags = tags ? JSON.parse(tags) : [];
-    console.log(formData);
 
     const supabase = await createClient();
     const user = await getUserServer();

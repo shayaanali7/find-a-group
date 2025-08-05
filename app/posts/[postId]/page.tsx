@@ -13,6 +13,7 @@ import Link from 'next/link';
 import React from 'react'
 import RenderCommentSection from './RenderCommentSection';
 import DisplayMessagingButton from './DisplayMessagingButton';
+import OptionOnPostButton from '@/app/components/OptionOnPostButton';
 
 interface PostPageProps {
   params: Promise<{
@@ -51,18 +52,20 @@ const PostPage = async ({ params }: PostPageProps) => {
       <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
         <div className='flex-shrink-0 w-10 lg:w-[180px]'>
           <div className='hidden lg:flex items-center h-[36px]'>
-            <Image 
-              src="/assets/groupup-logo-cut.PNG" 
-              alt='logo' 
-              height={36} 
-              width={180} 
-              className='w-full h-full object-contain' 
-            />
+            <Link href='/mainPage'>
+              <Image 
+                src="/assets/groupup-logo-cut.PNG" 
+                alt='logo' 
+                height={36} 
+                width={180} 
+                className='w-full h-full object-contain' 
+              />
+            </Link>
           </div>
         </div>
         
         <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
-          <SearchBar placeholder='Search for a post'/>
+          <SearchBar placeholder='Search for posts, users and courses'/>
         </div>
 
         <div className='flex-shrink-0 w-10 lg:w-auto'>
@@ -111,9 +114,12 @@ const PostPage = async ({ params }: PostPageProps) => {
                   </div>
                 </Link>
 
-                {user.id !== profile?.id ? ( 
-                  (user.id && profile?.id) && <DisplayMessagingButton viewingUserId={user.id} postUserId={profile?.id} /> 
-                ): <div></div>}
+                <div className='flex justify-end items-center gap-2 ml-auto'>
+                  <OptionOnPostButton post={postId} isOwnPost={user.id === profile?.id} />
+                  {user.id !== profile?.id ? ( 
+                    (user.id && profile?.id) && <DisplayMessagingButton viewingUserId={user.id} postUserId={profile?.id} /> 
+                  ): <div></div>}
+                </div>
               </div>
 
               <div className="space-y-3 mt-4">
@@ -143,7 +149,7 @@ const PostPage = async ({ params }: PostPageProps) => {
             </div>
 
             <div>
-              {user.id && <PostonCommentSection postId={postId}  id={user.id} />}
+              {user.id && <PostonCommentSection postId={postId} />}
               <RenderCommentSection postId={postId} />
             </div>
           </div>

@@ -6,6 +6,7 @@ import ProfileButton from './ProfileButton';
 import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
 import Image from 'next/image';
 import HomePageContent from './HomePageContent';
+import Link from 'next/link';
 
 interface MainPageProps {
   pageTitle: string;
@@ -23,18 +24,20 @@ const HomePage = async ( {pageTitle}: MainPageProps ) => {
       <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
         <div className='flex-shrink-0 w-10 lg:w-[180px]'>
           <div className='hidden lg:flex items-center h-[36px]'>
-            <Image 
-              src="/assets/groupup-logo-cut.PNG" 
-              alt='logo' 
-              height={36} 
-              width={180} 
-              className='w-full h-full object-contain' 
-            />
+            <Link href='/mainPage'>
+              <Image 
+                src="/assets/groupup-logo-cut.PNG" 
+                alt='logo' 
+                height={36} 
+                width={180} 
+                className='w-full h-full object-contain' 
+              />
+            </Link>
           </div>
         </div>
         
         <div className='flex-1 max-w-2xl mx-4 lg:mx-auto'>
-          <SearchBar placeholder='Search for a post'/>
+          <SearchBar placeholder='Search for posts, users and courses'/>
         </div>
 
         <div className='flex-shrink-0 w-10 lg:w-auto'>

@@ -1,6 +1,7 @@
 'use client'
 import { createClient } from '@/app/utils/supabase/client';
 import { getProfileInformationClient } from '@/app/utils/supabaseComponets/clientUtils';
+import OptionOnPostButton from '@/app/components/OptionOnPostButton';
 import getUserClient from '@/app/utils/supabaseComponets/getUserClient';
 import { Heart, MessageCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -123,7 +124,12 @@ const CommentItem = memo(function CommentItem({
   onReplySubmit,
   onToggleReplies,
   onReplyTextChange,
-  formatDate
+  formatDate,
+  getUserInfo,
+  isCommentLiked,
+  getCommentLikeCount,
+  likeLoadingStates,
+  currentUserId 
 }: {
   comment: ThreadedComment;
   depth: number;
@@ -142,6 +148,11 @@ const CommentItem = memo(function CommentItem({
   onToggleReplies: (commentId: number, event?: React.MouseEvent) => void;
   onReplyTextChange: (text: string) => void;
   formatDate: (date: string) => string;
+  getUserInfo: (userId: string) => CommentsUser;
+  isCommentLiked: (commentId: number) => boolean;
+  getCommentLikeCount: (commentId: number) => number;
+  likeLoadingStates: Set<number>;
+  currentUserId: string | null;
 }) {
   const hasReplies = comment.replies && comment.replies.length > 0;
   const areRepliesCollapsed = collapsedReplies.has(comment.comment_id);
@@ -180,6 +191,14 @@ const CommentItem = memo(function CommentItem({
               </div>
             </div>
           </Link>
+
+          <div className='flex justify-end items-center gap-2 ml-auto'>
+            <OptionOnPostButton 
+              post={comment.comment_id.toString()} 
+              isOwnPost={currentUserId === comment.user_id}
+              isComment={true} 
+            />
+          </div>
         </div>
 
         <div className="mb-3">
@@ -269,28 +288,40 @@ const CommentItem = memo(function CommentItem({
       
       {hasReplies && !areRepliesCollapsed && (
         <div className="mt-2">
-          {comment.replies.map(reply => (
-            <CommentItem
-              key={reply.comment_id}
-              comment={reply}
-              depth={depth + 1}
-              userInfo={userInfo}
-              isLiked={isLiked}
-              likeCount={likeCount}
-              isLikeLoading={isLikeLoading}
-              replyingTo={replyingTo}
-              replyText={replyText}
-              isSubmittingReply={isSubmittingReply}
-              collapsedReplies={collapsedReplies}
-              onLikeClick={onLikeClick}
-              onReplyClick={onReplyClick}
-              onReplyCancel={onReplyCancel}
-              onReplySubmit={onReplySubmit}
-              onToggleReplies={onToggleReplies}
-              onReplyTextChange={onReplyTextChange}
-              formatDate={formatDate}
-            />
-          ))}
+          {comment.replies.map(reply => {
+            const replyUserInfo = getUserInfo(reply.user_id);
+            const replyIsLiked = isCommentLiked(reply.comment_id);
+            const replyLikeCount = getCommentLikeCount(reply.comment_id);
+            const replyIsLikeLoading = likeLoadingStates.has(reply.comment_id);
+            
+            return (
+              <CommentItem
+                key={reply.comment_id}
+                comment={reply}
+                depth={depth + 1}
+                userInfo={replyUserInfo} 
+                isLiked={replyIsLiked}       
+                likeCount={replyLikeCount}      
+                isLikeLoading={replyIsLikeLoading}
+                replyingTo={replyingTo}
+                replyText={replyText}
+                isSubmittingReply={isSubmittingReply}
+                collapsedReplies={collapsedReplies}
+                onLikeClick={onLikeClick}
+                onReplyClick={onReplyClick}
+                onReplyCancel={onReplyCancel}
+                onReplySubmit={onReplySubmit}
+                onToggleReplies={onToggleReplies}
+                onReplyTextChange={onReplyTextChange}
+                formatDate={formatDate}
+                getUserInfo={getUserInfo}
+                isCommentLiked={isCommentLiked}
+                getCommentLikeCount={getCommentLikeCount}
+                likeLoadingStates={likeLoadingStates}
+                currentUserId={currentUserId}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -736,6 +767,11 @@ const RenderCommentSection = ({ postId }: { postId: string }) => {
         onToggleReplies={toggleRepliesCollapse}
         onReplyTextChange={setReplyText}
         formatDate={formatDate}
+        getUserInfo={getUserInfo}
+        isCommentLiked={isCommentLiked}
+        getCommentLikeCount={getCommentLikeCount}
+        likeLoadingStates={likeLoadingStates}
+        currentUserId={currentUser}
       />
     );
   }, [
@@ -752,7 +788,8 @@ const RenderCommentSection = ({ postId }: { postId: string }) => {
     handleReplyCancel,
     handleReplySubmit,
     toggleRepliesCollapse,
-    formatDate
+    formatDate,
+    currentUser
   ]);
 
   if (isLoading) {
