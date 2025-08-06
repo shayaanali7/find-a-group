@@ -4,7 +4,7 @@ import { getConversationUnreadCount, getUserConversations, type Conversation } f
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { usePathname } from 'next/navigation'
 
 interface ConversationWithDetails extends Conversation {
