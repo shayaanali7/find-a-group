@@ -1,13 +1,11 @@
 'use client'
 import React, { useEffect } from 'react'
-import { getConversationUnreadCount, getUserConversations, subscribeToConversations, type Conversation } from '../utils/supabaseComponets/messaging'
+import { getConversationUnreadCount, getUserConversations, type Conversation } from '../utils/supabaseComponets/messaging'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { RealtimeChannel } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname } from 'next/navigation'
-import GlobalSubscriptionManager from '../GlobalSubscriptionManger'
 
 interface ConversationWithDetails extends Conversation {
   other_user: {
@@ -71,7 +69,6 @@ const fetchConversations = async (userId: string): Promise<ConversationWithDetai
 }
 
 const ConversationsList = ({ userId }: ConversationsListProps) => {
-  const queryClient = useQueryClient();
   const pathname = usePathname();
 
   const {
@@ -89,14 +86,6 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
     refetchOnReconnect: true,
     retry: 2,
   });
-
-  const handleNewConversation = (conversationId: string) => {
-    GlobalSubscriptionManager.getInstance().addUserConversation(conversationId)
-  }
-
-  const handleDeleteConversation = (conversationId: string) => {
-    GlobalSubscriptionManager.getInstance().removeUserConversation(conversationId)
-  }
 
   useEffect(() => {
     if (pathname && pathname.includes('/messages/') && userId) {
