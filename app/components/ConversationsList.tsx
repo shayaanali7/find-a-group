@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname } from 'next/navigation'
+import GlobalSubscriptionManager from '../GlobalSubscriptionManger'
 
 interface ConversationWithDetails extends Conversation {
   other_user: {
@@ -89,10 +90,16 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
     retry: 2,
   });
 
-  // Refetch conversations when navigating between conversation pages
+  const handleNewConversation = (conversationId: string) => {
+    GlobalSubscriptionManager.getInstance().addUserConversation(conversationId)
+  }
+
+  const handleDeleteConversation = (conversationId: string) => {
+    GlobalSubscriptionManager.getInstance().removeUserConversation(conversationId)
+  }
+
   useEffect(() => {
     if (pathname && pathname.includes('/messages/') && userId) {
-      // Small delay to ensure the previous conversation's subscription has been cleaned up
       const timer = setTimeout(() => {
         refetch();
       }, 100);
@@ -100,75 +107,6 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
       return () => clearTimeout(timer);
     }
   }, [pathname, userId, refetch]);
-
-  useEffect(() => {
-    if (!userId) return;
-    let subscription: RealtimeChannel | null = null;
-    
-    const setupSubscription = async () => {
-      const result = await subscribeToConversations(userId, (updatedConversation) => {
-        // Update the specific conversation in the cache
-        queryClient.setQueryData(['conversations', userId], (oldData: ConversationWithDetails[] | undefined) => {
-          if (!oldData) return oldData;
-          
-          const index = oldData.findIndex(c => c.conversation_id === updatedConversation.conversation_id);
-          if (index >= 0) {
-            const updated = [...oldData];
-            updated[index] = { ...updated[index], ...updatedConversation };
-            return updated.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-          }
-          return oldData;
-        });
-
-        // Also invalidate the query to ensure fresh data
-        queryClient.invalidateQueries({ 
-          queryKey: ['conversations', userId],
-          refetchType: 'none' // Don't refetch immediately, just mark as stale
-        });
-      });
-      subscription = result;
-    };
-
-    setupSubscription();
-    
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      } 
-    };
-  }, [userId, queryClient]);
-
-  // Listen for global message updates to refresh conversations list
-  useEffect(() => {
-    if (!userId) return;
-
-    const supabase = createClient();
-    
-    // Subscribe to all message updates that might affect this user's conversations
-    const messageSubscription = supabase
-      .channel('messages_for_conversations')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          // Check if this message affects any of the user's conversations
-          const conversationIds = conversations.map(c => c.conversation_id);
-          if (conversationIds.includes(payload.new.conversation_id)) {
-            // Refetch conversations to get updated last message and unread counts
-            refetch();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      messageSubscription.unsubscribe();
-    };
-  }, [userId, conversations, refetch]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);

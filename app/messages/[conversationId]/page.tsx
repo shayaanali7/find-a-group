@@ -2,14 +2,14 @@
 import { createClient } from '@/app/utils/supabase/client'
 import getUserClient, { getName, getUsername } from '@/app/utils/supabaseComponets/getUserClient'
 import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture'
-import { markMessageAsRead, Message, sendMessage, subscribeToMessages } from '@/app/utils/supabaseComponets/messaging'
-import { RealtimeChannel } from '@supabase/supabase-js'
+import { Message, sendMessage } from '@/app/utils/supabaseComponets/messaging'
 import { SendHorizonal, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
+import GlobalSubscriptionManager from '@/app/GlobalSubscriptionManger'
 
 interface UserProfile {
   id: string
@@ -203,105 +203,14 @@ const ConversationPage = () => {
   }, [messagesData])
 
   useEffect(() => {
-    if (!conversationId || !currentUser) return
-
-    let subscription: RealtimeChannel | null = null
-    const setupSubscription = async () => {
-      const result = await subscribeToMessages(conversationId, (newMessage) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
-          if (!oldData) return oldData
-          
-          const updatedPages = [...oldData.pages]
-          if (updatedPages.length > 0) {
-            updatedPages[0] = {
-              ...updatedPages[0],
-              messages: [...updatedPages[0].messages, newMessage]
-            }
-          }
-          
-          return {
-            ...oldData,
-            pages: updatedPages
-          }
-        })
-
-        if (newMessage.sender_id !== currentUser.id) {
-          markMessageAsRead(conversationId, currentUser.id)
-        }
-      })
-      subscription = result
-    }
-
-    setupSubscription()
-    return () => {
-      if (subscription) {
-        subscription?.unsubscribe()
-      }  
-    }
-  }, [conversationId, currentUser, queryClient])
-
-  useEffect(() => {
     scrollToBottom()
   }, [allMessages])
 
   useEffect(() => {
     if (currentUser && conversationId) {
-      markMessageAsRead(conversationId, currentUser.id)
+      GlobalSubscriptionManager.getInstance().markMessagesAsRead(conversationId, currentUser.id);
     }
   }, [currentUser, conversationId])
-  
-  useEffect(() => {
-  if (!conversationId || !currentUser) return
-
-  let subscription: RealtimeChannel | null = null
-  const setupSubscription = async () => {
-    const result = await subscribeToMessages(conversationId, (newMessage) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
-        if (!oldData) return oldData
-        
-        const updatedPages = [...oldData.pages]
-        if (updatedPages.length > 0) {
-          updatedPages[0] = {
-            ...updatedPages[0],
-            messages: [...updatedPages[0].messages, newMessage]
-          }
-        }
-        
-        return {
-          ...oldData,
-          pages: updatedPages
-        }
-      })
-
-      // Also invalidate conversations list when new message arrives
-      queryClient.invalidateQueries({ 
-        queryKey: ['conversations', currentUser.id],
-        refetchType: 'none'
-      });
-
-      if (newMessage.sender_id !== currentUser.id) {
-        markMessageAsRead(conversationId, currentUser.id)
-      }
-    })
-    subscription = result
-  }
-
-  setupSubscription()
-  
-  // Cleanup function with better error handling
-  return () => {
-    if (subscription) {
-      try {
-        subscription.unsubscribe()
-      } catch (error) {
-        console.log('Error unsubscribing from messages:', error)
-      }
-      subscription = null
-    }  
-  }
-}, [conversationId, currentUser, queryClient])
 
   const handleScroll = useCallback(async () => {
     const container = messagesContainerRef.current
@@ -393,6 +302,7 @@ const ConversationPage = () => {
       setSending(false)
     }
   }
+
   
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], { 

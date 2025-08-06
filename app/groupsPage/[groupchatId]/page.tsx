@@ -1,11 +1,11 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/app/utils/supabase/client'
-import { RealtimeChannel } from '@supabase/supabase-js'
 import { SendHorizonal, Users, Upload, X } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import Link from 'next/link'
 
 interface GroupMessage {
   id: string
@@ -356,18 +356,15 @@ const GroupChatPage = () => {
     const file = event.target.files?.[0]
     if (!file || !groupData?.isOwner) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file')
       return
     }
     
-    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       alert('Image size should be less than 5MB')
       return
     }
-
     setIsUploadingPhoto(true)
     updateGroupPhotoMutation.mutate(file)
   }
@@ -388,59 +385,6 @@ const GroupChatPage = () => {
   const getGroupInitial = (name: string) => {
     return name ? name.charAt(0).toUpperCase() : 'G'
   }
-
-  useEffect(() => {
-    if (!groupId || !currentUser || !groupData?.isUserMember) return
-
-    let subscription: RealtimeChannel | null = null
-    
-    const setupSubscription = async () => {
-      subscription = supabase
-        .channel(`group_messages:${groupId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'group_messages',
-            filter: `group_id=eq.${groupId}`
-          },
-          async (payload) => {
-            const newMessage = payload.new as GroupMessage
-            if (newMessage.user_id === currentUser.id) return
-
-            const { data: senderData } = await supabase
-              .from('profile')
-              .select('id, username, name, profile_picture_url')
-              .eq('id', newMessage.user_id)
-              .single()
-            
-            if (senderData) {
-              newMessage.sender = senderData
-            }
-
-            queryClient.setQueryData(['groupData', groupId, currentUser.id], (oldData: GroupData | undefined) => {
-              if (!oldData) return oldData
-              
-              const messageExists = oldData.messages.some(msg => msg.id === newMessage.id)
-              if (messageExists) return oldData
-
-              return {
-                ...oldData,
-                messages: [...oldData.messages, newMessage]
-              }
-            })
-          }
-        )
-        .subscribe()
-    }
-    setupSubscription()
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe()
-      }
-    }
-  }, [groupId, currentUser, groupData?.isUserMember, queryClient])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -504,7 +448,6 @@ const GroupChatPage = () => {
   }
 
   const { groupInfo, groupMembers, messages, isOwner } = groupData
-
   return (
     <div className='w-full flex flex-col h-full overflow-y-auto bg-white border-l-1 md:border-l-1 border-purple-500'>
       <div className='flex items-center justify-between p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
@@ -619,29 +562,42 @@ const GroupChatPage = () => {
         <h3 className='font-semibold text-sm mb-2'>Group Members</h3>
         <div className='flex flex-wrap gap-2'>
           {groupMembers.map((member) => (
-            <div key={member.user_id} className='flex items-center space-x-2 bg-white rounded-full px-3 py-1 text-sm'>
-              <div className='w-6 h-6 rounded-full overflow-hidden bg-gray-200'>
-                {member.user?.profile_picture_url ? (
-                  <Image 
-                    src={member.user.profile_picture_url} 
-                    alt={member.user.name}
-                    width={24}
-                    height={24}
-                    className='w-full h-full object-cover'
-                  />
-                ) : (
-                  <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white text-xs font-semibold'>
-                    {member.user?.name?.charAt(0) || '?'}
-                  </div>
-                )}
+            <Link 
+              href={`/user/${member.user?.username}`} 
+              className='transform transition-all duration-300 hover:scale-102 hover:opacity-70' 
+              key={member.user?.id}
+            >
+              <div className='flex items-center space-x-2 bg-white rounded-full px-3 py-1 text-sm'>
+                <div className='w-6 h-6 rounded-full overflow-hidden bg-gray-200'>
+                  {member.user?.profile_picture_url ? (
+                    <Image 
+                      src={member.user.profile_picture_url} 
+                      alt={member.user.name}
+                      width={24}
+                      height={24}
+                      className='w-full h-full object-cover'
+                    />
+                  ) : (
+                    <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white text-xs font-semibold'>
+                      {member.user?.name?.charAt(0) || '?'}
+                    </div>
+                  )}
+                </div>
+
+                <div className='flex items-center gap-2'>
+                  <span className='font-medium text-gray-900'>
+                    {member.user?.name || 'Unknown User'}
+                  </span>
+                  <span className='text-gray-500'>
+                    {member.user?.username ? `@${member.user.username}` : ''}
+                  </span>
+
+                  {member.is_owner && (
+                    <span className='text-xs text-purple-600 font-medium'>(Owner)</span>
+                  )}
+                </div>
               </div>
-              <span className='flex items-center gap-1'>
-                {member.user?.name}
-                {member.is_owner && (
-                  <span className='text-xs text-purple-600'>(Owner)</span>
-                )}
-              </span>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

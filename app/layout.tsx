@@ -4,6 +4,7 @@ import "./styles/globals.css";
 import { LoadingProvider } from "./components/LoadingContext";
 import TopLoadingBar from "./components/TopLoadingBar";
 import QueryProvider from "./queryProvider";
+import GlobalSubscriptionProvider from "./components/GlobalSubscriptionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,8 +34,10 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <QueryProvider>
           <LoadingProvider>
-            <TopLoadingBar />
-            {children}
+            <GlobalSubscriptionProvider>
+              <TopLoadingBar />
+              {children}
+            </GlobalSubscriptionProvider>
           </LoadingProvider>
         </QueryProvider>
         

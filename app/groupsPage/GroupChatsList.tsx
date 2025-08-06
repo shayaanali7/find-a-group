@@ -1,9 +1,9 @@
 'use client'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import { Users } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 
 interface GroupChat {
   id: string
@@ -122,8 +122,6 @@ const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
 }
 
 const GroupChatsList = ({ userId }: GroupChatsListProps) => {
-  const queryClient = useQueryClient()
-
   const {
     data: groupChats = [],
     isLoading,
@@ -140,58 +138,7 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
     retry: 2,
   })
 
-  useEffect(() => {
-    if (!userId) return
-
-    const subscription = supabase
-      .channel('group_messages_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'group_messages'
-        },
-        async (payload) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const newMessage = payload.new as any
-          
-          const { data: senderData } = await supabase
-            .from('profile')
-            .select('name')
-            .eq('id', newMessage.user_id)
-            .single()
-
-          queryClient.setQueryData(['groupChats', userId], (oldData: GroupChat[] | undefined) => {
-            if (!oldData) return oldData
-
-            return oldData.map(group => {
-              if (group.id === newMessage.group_id) {
-                return {
-                  ...group,
-                  last_message: {
-                    content: newMessage.content,
-                    created_at: newMessage.created_at,
-                    sender_id: newMessage.user_id,
-                    sender_name: senderData?.name || 'Unknown'
-                  }
-                }
-              }
-              return group
-            }).sort((a, b) => {
-              const aTime = a.last_message?.created_at || a.created_at
-              const bTime = b.last_message?.created_at || b.created_at
-              return new Date(bTime).getTime() - new Date(aTime).getTime()
-            })
-          })
-        }
-      )
-      .subscribe()
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [userId, queryClient])
+  // REMOVED: The useEffect with subscription - now handled by GlobalSubscriptionManager
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
