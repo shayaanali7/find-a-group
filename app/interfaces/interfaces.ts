@@ -47,3 +47,10 @@ export interface UserPost {
   created_at: string;
   tags?: string;
 }
+
+export interface GroupInfo {
+  id: string
+  name: string
+  photo_url?: string
+  created_at: string
+}

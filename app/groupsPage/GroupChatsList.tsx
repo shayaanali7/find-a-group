@@ -67,13 +67,31 @@ const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
 
     const groupChatsWithDetails = await Promise.all(
       allGroups.map(async (group) => {
-        const { data: lastMessageData } = await supabase
+        console.log('hello');
+        const { count: memberCount } = await supabase
+          .from('group_members')
+          .select('*', { count: 'exact' })
+          .eq('group_id', group.id)
+        
+        const { data: lastMessageData, error } = await supabase
           .from('group_messages')
           .select('content, created_at, user_id')
           .eq('group_id', group.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single()
+          .maybeSingle()
+        if (error) {
+          console.log('errror yikes')
+          return {
+            id: group.id,
+            name: group.name,
+            photo_url: group.photo_url,
+            created_at: group.created_at,
+            is_owner: group.is_owner,
+            last_message: undefined,
+            member_count: memberCount || 0,
+          }
+        }  
 
         let senderName = 'Unknown'
         if (lastMessageData) {
@@ -84,12 +102,7 @@ const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
             .single()
           
           senderName = senderData?.name || 'Unknown'
-        }
-
-        const { count: memberCount } = await supabase
-          .from('group_members')
-          .select('*', { count: 'exact' })
-          .eq('group_id', group.id)
+        }        
 
         return {
           id: group.id,

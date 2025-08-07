@@ -63,7 +63,6 @@ export default function UnifiedMessagingProvider({
     const initializeSubscription = async () => {
       try {
         await UnifiedMessagingManager.getInstance().initialize(queryClient, currentUser.id)
-        console.log('Unified messaging subscription initialized for user:', currentUser.id)
       } catch (error) {
         console.error('Failed to initialize unified messaging subscription:', error)
       }
@@ -77,7 +76,6 @@ export default function UnifiedMessagingProvider({
       async (event, session) => {
         if (event === 'SIGNED_OUT') {
           UnifiedMessagingManager.getInstance().cleanup()
-          console.log('User signed out, cleaned up unified messaging subscription')
         } else if (event === 'SIGNED_IN' && session?.user) {
           queryClient.invalidateQueries({ queryKey: ['userProfile'] })
         }
@@ -92,21 +90,6 @@ export default function UnifiedMessagingProvider({
   return (
     <>
       {children}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-50 z-50">
-          {(() => {
-            const stats = UnifiedMessagingManager.getInstance().getStats()
-            return (
-              <div>
-                <div>User: {currentUser ? '✅' : '❌'}</div>
-                <div>Unified Messaging: {stats.isActive ? '✅' : '❌'}</div>
-                <div>Groups: {stats.groupCount}</div>
-                <div>Conversations: {stats.conversationCount}</div>
-              </div>
-            )
-          })()}
-        </div>
-      )}
     </>
   )
 }

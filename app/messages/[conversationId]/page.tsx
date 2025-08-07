@@ -1,7 +1,7 @@
 'use client'
 import { createClient } from '@/app/utils/supabase/client'
 import { Message, sendMessage } from '@/app/utils/supabaseComponets/messaging'
-import { SendHorizonal, Loader2 } from 'lucide-react'
+import { SendHorizonal, Loader2, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
@@ -28,6 +28,18 @@ interface MessagesPage {
 }
 
 const MESSAGES_PER_PAGE = 30
+
+const deleteMessage = async (messageId: string): Promise<void> => {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('messages')
+    .delete()
+    .eq('messages_id', messageId)
+  
+  if (error) {
+    throw new Error(`Error deleting message: ${error.message}`)
+  }
+}
 
 const fetchConversationData = async (conversationId: string): Promise<ConversationData> => {
   const supabase = createClient()
@@ -102,6 +114,8 @@ const ConversationPage = () => {
   const [newMessage, setNewMessage] = useState<string>('')
   const [sending, setSending] = useState<boolean>(false)
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false)
+  const [deletingMessages, setDeletingMessages] = useState<Set<string>>(new Set())
+  const [hoveredMessage, setHoveredMessage] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
@@ -120,7 +134,6 @@ const ConversationPage = () => {
     refetchOnWindowFocus: false,
     retry: 2,
   })
-
 
   const {
     data: otherUser,
@@ -161,14 +174,87 @@ const ConversationPage = () => {
   }, [messagesData])
 
   useEffect(() => {
+    if (!conversationId) return
+
+    const supabase = createClient()
+    
+    const messageSubscription = supabase
+      .channel(`conversation-${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+            if (!oldData?.pages) return oldData
+            
+            const updatedPages = oldData.pages.map((page: MessagesPage) => ({
+              ...page,
+              messages: page.messages.filter(
+                (msg: Message) => msg.messages_id !== payload.old.messages_id
+              )
+            }))
+            
+            return {
+              ...oldData,
+              pages: updatedPages
+            }
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      messageSubscription.unsubscribe()
+    }
+  }, [conversationId, queryClient])
+
+  useEffect(() => {
     scrollToBottom()
   }, [allMessages])
 
   useEffect(() => {
-  if (currentUser?.id && conversationId && typeof conversationId === 'string') {
-    GlobalSubscriptionManager.getInstance().markMessagesAsRead(conversationId, currentUser.id);
+    if (currentUser?.id && conversationId && typeof conversationId === 'string') {
+      GlobalSubscriptionManager.getInstance().markMessagesAsRead(conversationId, currentUser.id);
+    }
+  }, [currentUser?.id, conversationId])
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (deletingMessages.has(messageId)) return
+
+    setDeletingMessages(prev => new Set(prev.add(messageId)))
+    
+    try {
+      await deleteMessage(messageId)
+      queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
+        if (!oldData?.pages) return oldData
+        
+        const updatedPages = oldData.pages.map((page: MessagesPage) => ({
+          ...page,
+          messages: page.messages.filter(
+            (msg: Message) => msg.messages_id !== messageId
+          )
+        }))
+        
+        return {
+          ...oldData,
+          pages: updatedPages
+        }
+      })
+    } catch (error) {
+      console.error('Error deleting message:', error)
+    } finally {
+      setDeletingMessages(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(messageId)
+        return newSet
+      })
+    }
   }
-}, [currentUser?.id, conversationId])
 
   const handleScroll = useCallback(async () => {
     const container = messagesContainerRef.current
@@ -261,7 +347,6 @@ const ConversationPage = () => {
     }
   }
 
-  
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], { 
       hour: '2-digit', 
@@ -347,20 +432,44 @@ const ConversationPage = () => {
           <div
             key={message.messages_id}
             className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
+            onMouseEnter={() => setHoveredMessage(message.messages_id)}
+            onMouseLeave={() => setHoveredMessage(null)}
           >
-            <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                message.sender_id === currentUser?.id
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-gray-200 text-gray-800'
-              }`}
-            >
-              <p className='text-sm'>{message.content}</p>
-              <p className={`text-xs mt-1 ${
-                message.sender_id === currentUser?.id ? 'text-purple-200' : 'text-gray-500'
-              }`}>
-                {formatTime(message.created_at)}
-              </p>
+            <div className={`relative group ${message.sender_id === currentUser?.id ? 'flex-row-reverse' : 'flex-row'} flex items-end gap-2`}>
+              {message.sender_id === currentUser?.id && (
+                <button
+                  onClick={() => handleDeleteMessage(message.messages_id)}
+                  disabled={deletingMessages.has(message.messages_id)}
+                  className={`
+                    opacity-0 group-hover:opacity-100 transition-opacity duration-200 
+                    p-1 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    ${hoveredMessage === message.messages_id ? 'opacity-100' : ''}
+                  `}
+                  title="Delete message"
+                >
+                  {deletingMessages.has(message.messages_id) ? (
+                    <Loader2 className='w-4 h-4 animate-spin' />
+                  ) : (
+                    <Trash2 className='w-4 h-4' />
+                  )}
+                </button>
+              )}
+              
+              <div
+                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  message.sender_id === currentUser?.id
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-200 text-gray-800'
+                } ${deletingMessages.has(message.messages_id) ? 'opacity-50' : ''}`}
+              >
+                <p className='text-sm'>{message.content}</p>
+                <p className={`text-xs mt-1 ${
+                  message.sender_id === currentUser?.id ? 'text-purple-200' : 'text-gray-500'
+                }`}>
+                  {formatTime(message.created_at)}
+                </p>
+              </div>
             </div>
           </div>
         ))}

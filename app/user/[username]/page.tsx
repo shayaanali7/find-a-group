@@ -163,10 +163,10 @@ const ProfilePage = () => {
     return name ? name.charAt(0).toUpperCase() : '?';
   };
 
-  const isLoading = viewingUserLoading || profileLoading;
-  const error = viewingUserError || profileError || postsError;
+  const isCoreLoading = viewingUserLoading || profileLoading;
+  const coreError = viewingUserError || profileError;
 
-  if (error) {
+  if (coreError) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
         <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
@@ -191,20 +191,12 @@ const ProfilePage = () => {
           </div>
 
           <div className='flex-shrink-0 w-10 lg:w-auto'>
-            {username && viewingUserData && <ProfileButton 
-              imageURL={viewingUserData?.imageURL} 
-              username={username} 
-              name={viewingUserData?.name}
-            />
-            }
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar courses={viewingUserData?.courses} />
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
             <div className='text-center'>
-              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
-              <p className='text-gray-600'>{`Error: ${error}`}</p>
+              <p className='text-red-600'>{`Error: ${coreError}`}</p>
             </div>
           </div>
         </div>
@@ -212,7 +204,7 @@ const ProfilePage = () => {
     );
   }
 
-  if (isLoading) {
+  if (isCoreLoading) {
     return (
       <main className='h-screen bg-white text-black flex flex-col items-center pt-2 font-sans'>
         <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
@@ -237,20 +229,13 @@ const ProfilePage = () => {
           </div>
 
           <div className='flex-shrink-0 w-10 lg:w-auto'>
-            {username && viewingUserData && <ProfileButton 
-              imageURL={viewingUserData?.imageURL} 
-              username={username} 
-              name={viewingUserData?.name}
-            />
-            }
           </div>
         </div>
         <div className='w-full flex flex-1 overflow-hidden'>  
-          <NavigationBar courses={viewingUserData?.courses} />
           <div className='w-6/10 flex-1 h-full overflow-y-auto bg-white flex items-center justify-center'>
             <div className='text-center'>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4'></div>
-              <p className='text-gray-600'>{`Loading...`}</p>
+              <p className='text-gray-600'>Loading profile...</p>
             </div>
           </div>
         </div>
@@ -326,11 +311,17 @@ const ProfilePage = () => {
               <p className='text-lg'>{profile?.bio}</p>
             </div>
 
+            {/* Activity Section - Loads independently */}
             <div>
               <h1 className='mt-5 ml-10 font-semibold text-2xl'>Activity</h1>
               <div className='mx-8 mt-4'>
                 {postsLoading ? (
                   <div className="space-y-4">
+                    <div className="text-center py-4">
+                      <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2'></div>
+                      <p className='text-gray-500 text-sm'>Loading activity...</p>
+                    </div>
+                    {/* Optional: Show skeleton placeholders while loading */}
                     {[...Array(3)].map((_, index) => (
                       <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm animate-pulse">
                         <div className="mt-4 space-y-2">
@@ -340,6 +331,10 @@ const ProfilePage = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                ) : postsError ? (
+                  <div className='text-center py-8 text-red-500'>
+                    <p>Error loading posts: {postsError.message}</p>
                   </div>
                 ) : userPosts.length > 0 ? (
                   <div className='space-y-4'>

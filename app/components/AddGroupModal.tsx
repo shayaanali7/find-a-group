@@ -131,17 +131,6 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
       
       if (data) {
         const groupId = data[0].id;
-        let photoUrl = null;
-        if (groupPhoto) {
-          photoUrl = await uploadGroupPhoto(groupId);
-        }
-        
-        if (photoUrl) {
-          await supabase
-            .from('groups')
-            .update({ photo_url: photoUrl })
-            .eq('id', groupId);
-        }
         const membersInserts = groupMembers.map(member => ({
           group_id: groupId,
           user_id: member.id,
@@ -153,6 +142,24 @@ const AddGroupModal = ({ background }: { background?: boolean }) => {
           .insert(membersInserts)
           
         if (addMembersError) throw addMembersError;
+
+        let photoUrl = null;
+        if (groupPhoto) {
+          photoUrl = await uploadGroupPhoto(groupId);
+        }
+        
+        console.log('Photo: ' + photoUrl)
+        if (photoUrl) {
+          const { data, error } = await supabase
+            .from('groups')
+            .update({ photo_url: photoUrl })
+            .eq('id', groupId)
+            .select();
+          if (error) {
+            console.log(error?.message)
+          }
+          else console.log('Updated Data ' + data);
+        }
 
         setLoading(false);
         setGroupName('');
