@@ -10,15 +10,9 @@ import getUserClient, { getName, getUsername } from '@/app/utils/supabaseCompone
 import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture'
 import { useLoading } from '../components/LoadingContext'
 import Image from 'next/image'
+import { UserProfileLayout } from '../interfaces/interfaces'
 
-interface UserProfile {
-  id: string
-  username: string
-  name: string
-  profile_picture_url?: string | null
-}
-
-const fetchUserProfile = async (): Promise<UserProfile | null> => {
+const fetchUserProfile = async (): Promise<UserProfileLayout | null> => {
   try {
     const user = await getUserClient()
     if (!user?.id) return null

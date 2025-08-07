@@ -39,25 +39,6 @@ interface MessagesPage {
 
 const MESSAGES_PER_PAGE = 30
 
-const fetchCurrentUser = async (): Promise<CurrentUserData> => {
-  const user = await getUserClient()
-  const imageUrl = await getClientPicture()
-  const username = await getUsername(user)
-  const name = await getName(user)
-  
-  if (!user.id) {
-    throw new Error('Error getting user id')
-  }
-
-  return {
-    id: user.id,
-    username: username.data?.username || '',
-    name: name.data?.name || '',
-    profile_picture_url: imageUrl,
-    imageURL: imageUrl
-  }
-}
-
 const fetchConversationData = async (conversationId: string): Promise<ConversationData> => {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -65,11 +46,9 @@ const fetchConversationData = async (conversationId: string): Promise<Conversati
     .select('user1_id, user2_id')
     .eq('conversation_id', conversationId)
     .single()
-    
   if (error) {
     throw new Error(`Error fetching conversation: ${error.message}`)
   }
-  
   return data
 }
 
@@ -137,19 +116,7 @@ const ConversationPage = () => {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
 
-  const {
-    data: currentUser,
-    isLoading: currentUserLoading,
-    error: currentUserError
-  } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: fetchCurrentUser,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 2,
-  })
-
+  const currentUser = queryClient.getQueryData<UserProfile>(['userProfile'])
   const {
     data: conversationData,
     isLoading: conversationLoading,
@@ -163,6 +130,7 @@ const ConversationPage = () => {
     refetchOnWindowFocus: false,
     retry: 2,
   })
+
 
   const {
     data: otherUser,
@@ -207,10 +175,10 @@ const ConversationPage = () => {
   }, [allMessages])
 
   useEffect(() => {
-    if (currentUser && conversationId) {
-      GlobalSubscriptionManager.getInstance().markMessagesAsRead(conversationId, currentUser.id);
-    }
-  }, [currentUser, conversationId])
+  if (currentUser?.id && conversationId && typeof conversationId === 'string') {
+    GlobalSubscriptionManager.getInstance().markMessagesAsRead(conversationId, currentUser.id);
+  }
+}, [currentUser?.id, conversationId])
 
   const handleScroll = useCallback(async () => {
     const container = messagesContainerRef.current
@@ -311,8 +279,8 @@ const ConversationPage = () => {
     })
   }
 
-  const isLoading = currentUserLoading || conversationLoading || otherUserLoading || messagesLoading
-  const error = currentUserError || conversationError || otherUserError || messagesError
+  const isLoading =  conversationLoading || otherUserLoading || messagesLoading
+  const error = conversationError || otherUserError || messagesError
  
   if (isLoading) {
     return (

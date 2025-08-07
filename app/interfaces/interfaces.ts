@@ -20,6 +20,13 @@ export interface UserProfile {
   reputation?: number
 }
 
+export interface UserProfileLayout {
+  id: string
+  username: string
+  name: string
+  profile_picture_url?: string | null
+}
+
 export interface BasicInformation {
    id: string
   username: string

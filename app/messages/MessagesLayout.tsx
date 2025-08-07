@@ -21,6 +21,7 @@ interface CurrentUserData {
 
 const fetchCurrentUser = async (): Promise<CurrentUserData> => {
   const user = await getUserClient()
+  console.log(user);
   const imageUrl = await getClientPicture()
   const username = await getUsername(user)
   const name = await getName(user)
