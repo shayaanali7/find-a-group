@@ -1,7 +1,5 @@
 'use client'
 import { createClient } from '@/app/utils/supabase/client'
-import getUserClient, { getName, getUsername } from '@/app/utils/supabaseComponets/getUserClient'
-import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture'
 import { Message, sendMessage } from '@/app/utils/supabaseComponets/messaging'
 import { SendHorizonal, Loader2 } from 'lucide-react'
 import Image from 'next/image'
@@ -16,14 +14,6 @@ interface UserProfile {
   username: string
   name: string
   profile_picture_url?: string | null
-}
-
-interface CurrentUserData {
-  id: string
-  username: string
-  name: string
-  profile_picture_url: string | null
-  imageURL: string | null
 }
 
 interface ConversationData {
