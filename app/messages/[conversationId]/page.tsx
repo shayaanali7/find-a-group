@@ -189,6 +189,7 @@ const ConversationPage = () => {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
             if (!oldData?.pages) return oldData
             
@@ -230,6 +231,7 @@ const ConversationPage = () => {
     
     try {
       await deleteMessage(messageId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryClient.setQueryData(['messages', conversationId], (oldData: any) => {
         if (!oldData?.pages) return oldData
         

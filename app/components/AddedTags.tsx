@@ -17,7 +17,7 @@ const AddedTags = ({ filters, onRemoveTag }: AddedTagsProps) => {
 				return (
 					<div
 						key={index}
-						className={`bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold px-3 py-1 rounded-full text-sm flex items-center gap-1`}
+						className={`cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-500 hover:bg-gradient-to-r transform hover:from-purple-600 hover:to-indigo-600 transition-colors duration-300 text-white font-semibold px-3 py-1 rounded-full text-sm flex items-center gap-1`}
 					>
 						<span>{filter}</span>
 						{onRemoveTag && (

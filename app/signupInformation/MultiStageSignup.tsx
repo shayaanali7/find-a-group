@@ -17,6 +17,7 @@ const MultiStepSignup = ({ user }: {user: User}) => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [courseHasBeenAdded, setCourseHasBeenAdded] = useState<boolean[]>([false, false, false, false, false]);
+  const [searchedCourses, setSearchedCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -38,6 +39,11 @@ const MultiStepSignup = ({ user }: {user: User}) => {
     );
   }
 
+  const getTotalSelectedCourses = () => {
+    const arraySelectedCount = courseHasBeenAdded.filter(Boolean).length;
+    return arraySelectedCount + searchedCourses.length;
+  };
+
   const handleContinue = async () => {
     setIsLoading(true);
     setShowError(false);
@@ -47,8 +53,9 @@ const MultiStepSignup = ({ user }: {user: User}) => {
       if (currentStep === 0 && selectedYear !== '' && major !== '') {
         await updateDatabase('profile', { year: selectedYear, major: major}, user);
       }
-      else if (currentStep === 1 && coursesToAdd.length !== 0) {
-        await updateDatabase('user_courses', { courses: coursesToAdd }, user);
+      else if (currentStep === 1 && (coursesToAdd.length !== 0 || searchedCourses.length !== 0)) {
+        const allCourses = [...coursesToAdd, ...searchedCourses.map(course => course.name)];
+        await updateDatabase('user_courses', { courses: allCourses }, user);
       }
       else if (currentStep === 2) {
         // Profile picture step - can be skipped
@@ -142,6 +149,8 @@ const MultiStepSignup = ({ user }: {user: User}) => {
             courseHasBeenAdded={courseHasBeenAdded}
             changeStatus={changeStatus}
             showError={showError}
+            searchedCourses={searchedCourses}
+            setSearchedCourses={setSearchedCourses}
           />
         );
       case 2:
@@ -210,6 +219,23 @@ const MultiStepSignup = ({ user }: {user: User}) => {
               />
             ))}
           </div>
+
+          {currentStep === 1 && (
+            <div className='flex-1 flex justify-center px-8'>
+              <div className={`px-6 py-3 rounded-xl font-semibold text-center transition-all duration-300 ${
+                getTotalSelectedCourses() > 0 
+                  ? 'bg-green-100 text-green-800' 
+                  : showError 
+                    ? 'bg-red-100 text-red-800' 
+                    : 'bg-gray-100 text-gray-600'
+              }`}>
+                {getTotalSelectedCourses() > 0 
+                  ? `Selected ${getTotalSelectedCourses()} course${getTotalSelectedCourses() !== 1 ? 's' : ''} total`
+                  : `${showError ? 'Please select at least one course' : 'No courses selected yet'}`
+                }
+              </div>
+            </div>
+          )}
 
           <div className='flex flex-row gap-4'>
             {(currentStep !== 0 && currentStep !== 1) && (
