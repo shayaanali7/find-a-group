@@ -1,13 +1,12 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { Search, Plus, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import SearchBar, { SearchResult } from '../components/searchbar'
 
 interface AddCoursesButtonsProps {
   courses: string[];
   courseHasBeenAdded: boolean[];
   changeStatus: (index: number) => void;
-  showError: boolean;
   searchedCourses: SelectedCourse[];
   setSearchedCourses: React.Dispatch<React.SetStateAction<SelectedCourse[]>>;
 }
@@ -23,7 +22,6 @@ const AddCoursesButtons = ({
   courses, 
   courseHasBeenAdded, 
   changeStatus, 
-  showError,
   searchedCourses,
   setSearchedCourses
 }: AddCoursesButtonsProps) => {

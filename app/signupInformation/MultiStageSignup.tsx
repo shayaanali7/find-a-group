@@ -17,6 +17,7 @@ const MultiStepSignup = ({ user }: {user: User}) => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [courseHasBeenAdded, setCourseHasBeenAdded] = useState<boolean[]>([false, false, false, false, false]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchedCourses, setSearchedCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
@@ -148,7 +149,6 @@ const MultiStepSignup = ({ user }: {user: User}) => {
             courses={courses}
             courseHasBeenAdded={courseHasBeenAdded}
             changeStatus={changeStatus}
-            showError={showError}
             searchedCourses={searchedCourses}
             setSearchedCourses={setSearchedCourses}
           />
