@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useUser } from './user';
 import { createClient } from '@/app/utils/supabase/client';
 
