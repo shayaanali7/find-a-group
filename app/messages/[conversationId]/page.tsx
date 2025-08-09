@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import SendMessage from './SendMessage'
-import { useUser } from '@/lib/store/user'
+import { useUser } from '../../../lib/store/user'
 import ChatMessages from './ChatMessages'
 import { createClient } from '@/app/utils/supabase/client'
 

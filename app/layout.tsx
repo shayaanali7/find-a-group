@@ -5,8 +5,7 @@ import { LoadingProvider } from "./components/LoadingContext";
 import TopLoadingBar from "./components/TopLoadingBar";
 import QueryProvider from "./queryProvider";
 import GlobalSubscriptionProvider from "./components/GlobalSubscriptionProvider";
-import InitUser from "@/lib/store/InitUser";
-
+import InitUser from "../lib/store/InitUser"
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
