@@ -22,7 +22,7 @@ const PostonCommentSection = ({ postId }: { postId: string }) => {
       const user = await getUserClient();
       const supabase = await createClient();
       try {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .rpc('insert_comment_and_get_count', {
             p_post_id: postId,
             p_user_id: user.id,
