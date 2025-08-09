@@ -381,7 +381,7 @@ const GroupChatPage = () => {
                     {message.sender?.profile_picture_url ? (
                       <Image src={message.sender.profile_picture_url} alt={message.sender.name} width={32} height={32} className='w-full h-full object-cover' />
                     ) : (
-                      <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white text-xs font-semibold'>
+                      <div className='w-full h-full bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-semibold'>
                         {message.sender?.name?.charAt(0) || '?'}
                       </div>
                     )}

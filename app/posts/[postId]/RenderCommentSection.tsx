@@ -176,7 +176,7 @@ const CommentItem = memo(function CommentItem({
                 />
               </div>
             ) : (
-              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                 {userInfo?.name.charAt(0)?.toUpperCase() || '?'}
               </div>
             )}

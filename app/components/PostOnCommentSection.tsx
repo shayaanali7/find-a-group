@@ -22,18 +22,18 @@ const PostonCommentSection = ({ postId }: { postId: string }) => {
       const user = await getUserClient();
       const supabase = await createClient();
       try {
-        const { error } = await supabase
-          .from('comments')
-          .insert([
-            {
-              post_id: postId,
-              user_id: user.id,
-              context: commentText.trim()
-            }
-          ]);
+        const { data, error } = await supabase
+          .rpc('insert_comment_and_get_count', {
+            p_post_id: postId,
+            p_user_id: user.id,
+            p_context: commentText.trim()
+          });
+          
         if (error) {
           setCommentText('Error Adding Comment');
-        } 
+          return;
+        }
+        
       } catch (error) {
         console.error('Error inserting comment:', error);
       }

@@ -83,6 +83,9 @@ const GroupSettingsButton = ({groupMembers, groupId}: GroupSettingsButtonProps) 
       alert('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        window.location.reload()
+      })
     }
   };
 
