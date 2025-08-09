@@ -25,6 +25,7 @@ interface OtherUserProfile {
 const fetchOtherUser = async (conversationId: string | undefined, currentUserId: string): Promise<OtherUserProfile | null> => {
   const supabase = createClient();
   if (!conversationId) return null;
+  console.log('hi')
 
   const { data, error } = await supabase
     .from('conversations')
