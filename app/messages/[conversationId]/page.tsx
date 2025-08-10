@@ -7,6 +7,7 @@ import SendMessage from './SendMessage'
 import { useUser } from '../../../lib/store/user'
 import ChatMessages from './ChatMessages'
 import { createClient } from '@/app/utils/supabase/client'
+import { useQueryClient } from '@tanstack/react-query'
 
 export interface Message {
   messages_id: string,
@@ -58,6 +59,7 @@ const ConversationPage = () => {
   const params = useParams()
   const conversationId = Array.isArray(params.conversationId) ? params.conversationId[0] : params.conversationId
   const currentUser = useUser();
+  const queryClient = useQueryClient();
   const [otherUser, setOtherUser] = useState<OtherUserProfile | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,6 +95,29 @@ const ConversationPage = () => {
         msg.messages_id === tempId ? realMessage : msg
       )
     );
+
+    if (currentUser.user?.id) {
+      queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        return oldData.map((conv: any) => {
+          if (conv.conversation_id === conversationId) {
+            return {
+              ...conv,
+              last_message: {
+                content: realMessage.content,
+                created_at: realMessage.created_at,
+                sender_id: realMessage.sender_id
+              },
+              updated_at: realMessage.created_at
+            };
+          }
+          return conv;
+        }).sort((a: any, b: any) => 
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+      });
+    }
   };
 
   const handleMessageError = (tempId: string) => {
@@ -131,12 +156,34 @@ const ConversationPage = () => {
         },
         (payload) => {
           const newMessage = payload.new as Message;
-          console.log('hello')
           setMessages(current => {
             const exists = current.some(msg => msg.messages_id === newMessage.messages_id);
             if (exists) return current;
             return [...current, newMessage];
           });
+
+          if (currentUser.user?.id && newMessage.sender_id !== currentUser.user.id) {
+            queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
+              if (!oldData) return oldData;
+              
+              return oldData.map((conv: any) => {
+                if (conv.conversation_id === conversationId) {
+                  return {
+                    ...conv,
+                    last_message: {
+                      content: newMessage.content,
+                      created_at: newMessage.created_at,
+                      sender_id: newMessage.sender_id
+                    },
+                    updated_at: newMessage.created_at
+                  };
+                }
+                return conv;
+              }).sort((a: any, b: any) => 
+                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+              );
+            });
+          }
         }
       )
       .on('postgres_changes', 
@@ -147,12 +194,17 @@ const ConversationPage = () => {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          console.log('deletion done')
           const deletedMessage = payload.old as Message;
           setMessages(current => {
             const filtered = current.filter(msg => msg.messages_id !== deletedMessage.messages_id);
             return filtered;
           });
+
+          if (currentUser.user?.id) {
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', currentUser.user.id]
+            });
+          }
         }
       )
       .on('postgres_changes', 
@@ -164,24 +216,46 @@ const ConversationPage = () => {
         },
         (payload) => {
           const updatedMessage = payload.new as Message;
-          console.log('update done');
           setMessages(current =>
             current.map(msg =>
               msg.messages_id === updatedMessage.messages_id ? updatedMessage : msg
             )
           );
+
+          if (currentUser.user?.id) {
+            queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
+              if (!oldData) return oldData;
+              
+              return oldData.map((conv: any) => {
+                if (conv.conversation_id === conversationId) {
+                  return {
+                    ...conv,
+                    last_message: {
+                      content: updatedMessage.content,
+                      created_at: updatedMessage.created_at,
+                      sender_id: updatedMessage.sender_id
+                    },
+                    updated_at: updatedMessage.created_at
+                  };
+                }
+                return conv;
+              }).sort((a: any, b: any) => 
+                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+              );
+            });
+          }
         }
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, currentUser.user?.id, queryClient]);
   
   return (
     <div className='w-full flex flex-col h-full overflow-hidden border-l border-purple-500'>
       <div className='flex items-center p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
-        <Link href={`/user`}>
+        <Link href={`/user/${otherUser?.username}`}>
           <div className='flex items-center space-x-3 hover:opacity-70 cursor-pointer transition-all hover:scale-101'>
             <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
               {otherUser?.profile_picture_url ? (

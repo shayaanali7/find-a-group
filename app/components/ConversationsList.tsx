@@ -35,6 +35,7 @@ const fetchConversations = async (userId: string): Promise<ConversationWithDetai
     if (!conversationData) {
       return [];
     }
+    console.log(conversationData);
     
     const conversationWithDetails = await Promise.all(
       conversationData.map(async (conv) => {
