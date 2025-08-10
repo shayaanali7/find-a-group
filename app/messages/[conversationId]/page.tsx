@@ -8,6 +8,7 @@ import { useUser } from '../../../lib/store/user'
 import ChatMessages from './ChatMessages'
 import { createClient } from '@/app/utils/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
+import { markMessageAsRead } from '@/app/utils/supabaseComponets/messaging'
 
 export interface Message {
   messages_id: string,
@@ -63,6 +64,40 @@ const ConversationPage = () => {
   const [otherUser, setOtherUser] = useState<OtherUserProfile | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  console.log(currentUser.user?.user_metadata)
+
+  const markAsReadAndUpdateCache = () => {
+    if (conversationId && currentUser.user?.id) {
+      markMessageAsRead(conversationId, currentUser.user.id);
+      queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: unknown) => {
+        if (!Array.isArray(oldData)) return oldData;
+        
+        return oldData.map((conv: any) => {
+          if (conv.conversation_id === conversationId) {
+            return {
+              ...conv,
+              unread_count: 0
+            };
+          }
+          return conv;
+        });
+      });
+    }
+  };
+
+  useEffect(() => {
+    markAsReadAndUpdateCache();
+  }, [conversationId, currentUser.user?.id]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        markAsReadAndUpdateCache();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [conversationId, currentUser.user?.id]);
 
   useEffect(() => {
     const getOtherUser = async () => {
@@ -111,7 +146,8 @@ const ConversationPage = () => {
                 created_at: realMessage.created_at,
                 sender_id: realMessage.sender_id
               },
-              updated_at: realMessage.created_at
+              updated_at: realMessage.created_at,
+              unread_count: 0
             };
           }
           return conv;
@@ -166,6 +202,37 @@ const ConversationPage = () => {
           });
 
           if (currentUser.user?.id && newMessage.sender_id !== currentUser.user.id) {
+            markMessageAsRead(conversationId, currentUser.user.id);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
+              if (!oldData) return oldData;
+              
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              return oldData.map((conv: any) => {
+                if (conv.conversation_id === conversationId) {
+                  return {
+                    ...conv,
+                    last_message: {
+                      content: newMessage.content,
+                      created_at: newMessage.created_at,
+                      sender_id: newMessage.sender_id
+                    },
+                    updated_at: newMessage.created_at,
+                    unread_count: 0
+                  };
+                }
+                return conv;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              }).sort((a: any, b: any) => 
+                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+              );
+            });
+            queryClient.invalidateQueries({
+              queryKey: ['conversations', currentUser.user.id]
+            });
+            
+          } else if (currentUser.user?.id) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
               if (!oldData) return oldData;

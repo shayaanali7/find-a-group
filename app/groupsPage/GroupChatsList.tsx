@@ -67,7 +67,6 @@ const fetchGroupChats = async (userId: string): Promise<GroupChat[]> => {
 
     const groupChatsWithDetails = await Promise.all(
       allGroups.map(async (group) => {
-        console.log('hello');
         const { count: memberCount } = await supabase
           .from('group_members')
           .select('*', { count: 'exact' })
@@ -150,8 +149,6 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
     refetchOnReconnect: true,
     retry: 2,
   })
-
-  // REMOVED: The useEffect with subscription - now handled by GlobalSubscriptionManager
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)

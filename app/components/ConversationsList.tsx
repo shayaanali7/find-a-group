@@ -188,12 +188,16 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
               </p>
               
               <div className='flex items-center mt-1 w-full min-w-0'>
-                {conversation.last_message && (
+                {conversation.last_message ? (
                   <p className='text-xs sm:text-sm text-gray-600 truncate flex-1 min-w-0'>
                     {conversation.last_message.sender_id === userId ? 'You: ' : ''}
                     {conversation.last_message.content}
                   </p>
-                )}
+                ) : 
+                  <p className='text-xs sm:text-sm text-gray-600 truncate flex-1 min-w-0'>
+                    No Messages Yet!
+                  </p>
+                }
                 {conversation.unread_count && conversation.unread_count > 0 && (
                   <span className='ml-2 bg-purple-500 text-white text-xs rounded-full px-2 py-1 flex-shrink-0 min-w-0'>
                     {conversation.unread_count > 99 ? '99+' : conversation.unread_count}

@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useRouter } from "next/navigation";
 import CoursePickerButton from '../components/CoursePickerButton';
 import TagModal from '../components/TagModal'
+import { useLoading } from '../components/LoadingContext';
 
 interface PostFormProps {
   courseName: string;
@@ -19,12 +20,14 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
   const buttonClass = 'border-black border-1 hover:bg-gray-100';
   const [error, setError] = useState<string>('');
   const [showError, setShowError] = useState<boolean>(false);
+   const { startLoading, stopLoading } = useLoading();
 
   const handleTagsAdded = (newTags: string[]) => {
     setTags(newTags);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    startLoading();
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -56,6 +59,7 @@ const PostForm = ({ courseName, createPost }: PostFormProps) => {
     } finally {
       setTimeout(() => {
         setIsSubmitting(false);
+        stopLoading();
       }, 1000)
     }
   };

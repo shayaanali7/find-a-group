@@ -107,6 +107,7 @@ export const markMessageAsRead = async (conversationId: string, userId: string) 
       .from('messages')
       .update({ is_read: true })
       .eq('conversation_id', conversationId)
+      .eq('is_read', false)
       .neq('sender_id', userId)
     
     return { error }
@@ -192,3 +193,65 @@ export const getConversationUnreadCount = async (conversationId: string, userId:
     return { data: 0, error }
   }
 }
+
+export const markGroupMessageAsRead = async (groupId: string, userId: string) => {
+  try {
+    const supabase = createClient();
+    
+    // Update the last_read_at timestamp in group_members table
+    // Note: You'll need to add this column to your group_members table if it doesn't exist
+    const { error } = await supabase
+      .from('group_members')
+      .update({ 
+        last_read_at: new Date().toISOString() 
+      })
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error marking group messages as read:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error marking group messages as read:', error);
+    return false;
+  }
+};
+
+export const getGroupUnreadCount = async (groupId: string, userId: string) => {
+  try {
+    const supabase = createClient();
+    
+    // Get user's last read timestamp from group_members
+    const { data: memberData } = await supabase
+      .from('group_members')
+      .select('last_read_at')
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!memberData) return 0;
+
+    const lastReadAt = memberData.last_read_at || '1970-01-01T00:00:00.000Z';
+
+    // Count messages after last read timestamp
+    const { count, error } = await supabase
+      .from('group_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('group_id', groupId)
+      .neq('user_id', userId) // Don't count own messages
+      .gt('created_at', lastReadAt);
+
+    if (error) {
+      console.error('Error getting group unread count:', error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error('Unexpected error getting group unread count:', error);
+    return 0;
+  }
+};

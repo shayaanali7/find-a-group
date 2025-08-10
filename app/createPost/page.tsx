@@ -9,6 +9,7 @@ import ShowRules from './ShowRules'
 import PostForm from './PostForm'
 import { StorePost } from './StorePost'
 import Image from 'next/image'
+import Link from 'next/link'
 
 interface CreatePostPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -31,13 +32,15 @@ const CreatePostPage = async ({ searchParams }: CreatePostPageProps) => {
       <div className='w-full flex items-center border-b border-purple-500 pb-2 flex-shrink-0 px-4'>
         <div className='flex-shrink-0 w-10 lg:w-[180px]'>
           <div className='hidden lg:flex items-center h-[36px]'>
-            <Image 
-              src="/assets/groupup-logo-cut.PNG" 
-              alt='logo' 
-              height={36} 
-              width={180} 
-              className='w-full h-full object-contain' 
-            />
+            <Link href='/mainPage'>
+              <Image 
+                src="/assets/groupup-logo-cut.PNG" 
+                alt='logo' 
+                height={36} 
+                width={180} 
+                className='w-full h-full object-contain' 
+              />
+            </Link>
           </div>
         </div>
         

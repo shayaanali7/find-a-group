@@ -22,7 +22,7 @@ const PostonCommentSection = ({ postId }: { postId: string }) => {
       const user = await getUserClient();
       const supabase = await createClient();
       try {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .rpc('insert_comment_and_get_count', {
             p_post_id: postId,
             p_user_id: user.id,
@@ -32,6 +32,10 @@ const PostonCommentSection = ({ postId }: { postId: string }) => {
         if (error) {
           setCommentText('Error Adding Comment');
           return;
+        }
+        console.log(data);
+        if (data?.is_first_comment === true) {
+          window.location.reload();
         }
         
       } catch (error) {

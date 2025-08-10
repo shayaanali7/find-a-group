@@ -1,3 +1,4 @@
+/*
 import { createClient } from './utils/supabase/client'
 import { QueryClient } from '@tanstack/react-query'
 import { RealtimeChannel } from '@supabase/supabase-js'
@@ -518,3 +519,5 @@ class GlobalSubscriptionManager {
 }
 
 export default GlobalSubscriptionManager
+
+*/
