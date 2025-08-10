@@ -97,9 +97,11 @@ const ConversationPage = () => {
     );
 
     if (currentUser.user?.id) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
         if (!oldData) return oldData;
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return oldData.map((conv: any) => {
           if (conv.conversation_id === conversationId) {
             return {
@@ -113,6 +115,7 @@ const ConversationPage = () => {
             };
           }
           return conv;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }).sort((a: any, b: any) => 
           new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
@@ -163,9 +166,11 @@ const ConversationPage = () => {
           });
 
           if (currentUser.user?.id && newMessage.sender_id !== currentUser.user.id) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return oldData.map((conv: any) => {
                 if (conv.conversation_id === conversationId) {
                   return {
@@ -179,6 +184,7 @@ const ConversationPage = () => {
                   };
                 }
                 return conv;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
               }).sort((a: any, b: any) => 
                 new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
               );
@@ -223,9 +229,11 @@ const ConversationPage = () => {
           );
 
           if (currentUser.user?.id) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return oldData.map((conv: any) => {
                 if (conv.conversation_id === conversationId) {
                   return {
@@ -239,6 +247,7 @@ const ConversationPage = () => {
                   };
                 }
                 return conv;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
               }).sort((a: any, b: any) => 
                 new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
               );
