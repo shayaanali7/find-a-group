@@ -1,13 +1,17 @@
 'use client'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
+import { Users } from 'lucide-react'
 import { useUser } from '../../../lib/store/user'
 import { createClient } from '@/app/utils/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { markGroupMessageAsRead } from '@/app/utils/supabaseComponets/messaging'
 import SendGroupMessage from '../SendGroupMessage'
 import GroupChatMessages from '../GroupChatMessages'
+import GroupPhotoUploader from '../GroupPhotoUploader'
+import GroupSettingsButton from '../GroupSettingsButton'
 
 export interface GroupMessage {
   id: string,
@@ -28,6 +32,7 @@ interface GroupMember {
   joined_at: string;
   is_owner: boolean;
   user?: {
+    id: string;
     name: string;
     username: string;
     profile_picture_url?: string;
@@ -45,8 +50,7 @@ interface GroupInfo {
 const fetchGroupInfo = async (groupId: string | undefined): Promise<GroupInfo | null> => {
   const supabase = createClient();
   if (!groupId) return null;
-
-  // Fetch group details
+  
   const { data: groupData, error: groupError } = await supabase
     .from('groups')
     .select('id, name, photo_url, created_at')
@@ -72,7 +76,7 @@ const fetchGroupInfo = async (groupId: string | undefined): Promise<GroupInfo | 
     for (const member of membersData) {
       const { data: profileData } = await supabase
         .from('profile')
-        .select('name, username, profile_picture_url')
+        .select('id, name, username, profile_picture_url')
         .eq('id', member.user_id)
         .single();
 
@@ -92,12 +96,16 @@ const fetchGroupInfo = async (groupId: string | undefined): Promise<GroupInfo | 
 const GroupChatPage = () => {
   const params = useParams()
   const groupId = Array.isArray(params.groupchatId) ? params.groupchatId[0] : params.groupchatId
-  console.log(groupId);
   const currentUser = useUser();
   const queryClient = useQueryClient();
   const [groupInfo, setGroupInfo] = useState<GroupInfo | null>(null);
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [messages, setMessages] = useState<GroupMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showMembers, setShowMembers] = useState(false);
+  const isOwner = groupMembers.some(member => 
+    member.user_id === currentUser.user?.id && member.is_owner
+  );
 
   const markAsReadAndUpdateCache = () => {
     if (groupId && currentUser.user?.id) {
@@ -137,6 +145,9 @@ const GroupChatPage = () => {
       if (groupId) {
         const info = await fetchGroupInfo(groupId);
         setGroupInfo(info);
+        if (info?.members) {
+          setGroupMembers(info.members);
+        }
       }
     };
 
@@ -403,69 +414,79 @@ const GroupChatPage = () => {
       supabase.removeChannel(channel);
     };
   }, [groupId, currentUser.user?.id, queryClient]);
-
-  const renderGroupHeader = () => {
-    if (!groupInfo) return null;
-
-    const memberCount = groupInfo.members?.length || 0;
-    const displayMembers = groupInfo.members?.slice(0, 3) || [];
-    const remainingCount = Math.max(0, memberCount - 3);
-
-    return (
-      <div className='flex items-center space-x-3'>
-        <div className='relative'>
-          {groupInfo.photo_url ? (
-            <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
-              <Image 
-                src={groupInfo.photo_url} 
-                alt={groupInfo.name}
-                width={40}
-                height={40}
-                className='w-full h-full object-cover'
-              />
-            </div>
-          ) : (
-            <div className='w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
-              {groupInfo.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
-        
-        <div className='flex-1'>
-          <h2 className='font-semibold text-lg'>{groupInfo.name}</h2>
-          <div className='flex items-center space-x-1'>
-            {displayMembers.map((member, index) => (
-              <div key={member.id} className='w-4 h-4 rounded-full overflow-hidden bg-gray-300'>
-                {member.user?.profile_picture_url ? (
-                  <Image 
-                    src={member.user.profile_picture_url} 
-                    alt={member.user.name}
-                    width={16}
-                    height={16}
-                    className='w-full h-full object-cover'
-                  />
-                ) : (
-                  <div className='w-full h-full bg-purple-400 flex items-center justify-center text-white text-xs'>
-                    {member.user?.name?.charAt(0) || '?'}
-                  </div>
-                )}
-              </div>
-            ))}
-            <span className='text-sm text-gray-500 ml-2'>
-              {memberCount} {memberCount === 1 ? 'member' : 'members'}
-              {remainingCount > 0 && ` (+${remainingCount} more)`}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
   
   return (
-    <div className='w-full flex flex-col h-full overflow-hidden border-l border-purple-500'>
-      <div className='flex items-center p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
-        {renderGroupHeader()}
+    <div className='w-full flex flex-col h-full overflow-y-auto bg-white border-l-1 md:border-l-1 border-purple-500'>
+      <div className='flex items-center justify-between p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
+        <div className='flex items-center space-x-3'>
+          {groupInfo && (
+            <GroupPhotoUploader
+              groupInfo={groupInfo}
+              groupId={groupId || ''}
+              isOwner={isOwner}
+              currentUser={currentUser.user ? {
+                id: currentUser.user.id,
+                username: currentUser.user.user_metadata?.username || '',
+                name: currentUser.user.user_metadata?.name || currentUser.user.email?.split('@')[0] || '',
+                profile_picture_url: currentUser.user.user_metadata?.profile_picture_url
+              } : undefined}
+            />
+          )}
+          <div>
+            <div className='flex items-center gap-2'>
+              <h2 className='font-semibold text-lg'>{groupInfo?.name}</h2>
+              {isOwner && <span className='text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full'>Owner</span>}
+            </div>
+            <p className='text-sm text-gray-500'>{groupMembers.length} members</p>
+          </div>
+        </div>
+        <div className='flex justify-between gap-2.5'>
+          <button 
+            onClick={() => setShowMembers(!showMembers)} 
+            className='p-2 transform transition-all hover:bg-purple-300 duration-300 rounded-full'
+          >
+            <Users className='w-5 h-5' />
+          </button>
+          {isOwner && <GroupSettingsButton groupMembers={groupMembers} groupId={groupId} />}
+        </div>
       </div>
+
+      <div className={`bg-gray-50 border-b border-purple-500 overflow-hidden transition-all duration-300 ease-in-out ${showMembers ? 'max-h-40 py-4 px-4 opacity-100' : 'max-h-0 py-0 px-4 opacity-0'}`}>
+        <h3 className='font-semibold text-sm mb-2'>Group Members</h3>
+        <div className='flex flex-wrap gap-2'>
+          {groupMembers.map((member) => (
+            <Link 
+              href={`/user/${member.user?.username}`} 
+              className='transform transition-all duration-300 hover:scale-102 hover:opacity-70' 
+              key={member.user?.id}
+            >
+              <div className='flex items-center space-x-2 bg-white rounded-full px-3 py-1 text-sm'>
+                <div className='w-6 h-6 rounded-full overflow-hidden bg-gray-200'>
+                  {member.user?.profile_picture_url ? (
+                    <Image 
+                      src={member.user.profile_picture_url} 
+                      alt={member.user.name} 
+                      width={24} 
+                      height={24} 
+                      className='w-full h-full object-cover' 
+                    />
+                  ) : (
+                    <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white text-xs font-semibold'>
+                      {member.user?.name?.charAt(0) || '?'}
+                    </div>
+                  )}
+                </div>
+                <div className='flex items-center gap-2'>
+                  <span className='font-medium text-gray-900'>{member.user?.name || 'Unknown User'}</span>
+                  <span className='text-gray-500'>{member.user?.username ? `@${member.user.username}` : ''}</span>
+                  {member.is_owner && <span className='text-xs text-purple-600 font-medium'>(Owner)</span>}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <div className='flex-1 overflow-y-auto p-4 space-y-4'>
         <GroupChatMessages 
           messages={messages} 
@@ -473,6 +494,7 @@ const GroupChatPage = () => {
           loading={loading}
         />
       </div>
+      
       <SendGroupMessage 
         groupId={groupId}
         user={currentUser.user}

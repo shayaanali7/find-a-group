@@ -111,35 +111,6 @@ const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) 
     }
   }
 
-  const renderSenderInfo = (message: GroupMessage) => {
-    const isOwnMessage = message.user_id === user?.id;
-    
-    if (isOwnMessage) return null;
-
-    return (
-      <div className="flex items-center space-x-2 mb-1">
-        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200">
-          {message.sender?.profile_picture_url ? (
-            <Image 
-              src={message.sender.profile_picture_url} 
-              alt={message.sender.name}
-              width={24}
-              height={24}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-purple-400 flex items-center justify-center text-white text-xs font-semibold">
-              {message.sender?.name?.charAt(0) || '?'}
-            </div>
-          )}
-        </div>
-        <span className="text-xs text-gray-600 font-medium">
-          {message.sender?.name || 'Unknown User'}
-        </span>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -168,17 +139,9 @@ const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) 
         const canEdit = isOwnMessage && !isOptimistic && !isDeleting && !isUpdating;
         const canDelete = isOwnMessage && !isOptimistic && !isDeleting && !isEditing;
 
-        const previousMessage = index > 0 ? messages[index - 1] : null;
-        const showSenderInfo = !isOwnMessage && (
-          !previousMessage || 
-          previousMessage.user_id !== message.user_id ||
-          previousMessage.user_id === user?.id
-        );
-
         return (
           <div key={message.id} className="group">
-            {showSenderInfo && renderSenderInfo(message)}
-            <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} ${showSenderInfo && !isOwnMessage ? 'ml-8' : ''}`}>
+            <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
               <div 
                 className="flex items-end gap-2 group"
                 onMouseEnter={() => !isEditing && setHoveredMessageId(message.id)}

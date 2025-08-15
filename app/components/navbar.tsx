@@ -40,7 +40,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
     queryKey: ['userProfile'],
     queryFn: fetchUserProfile,
     staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 2,

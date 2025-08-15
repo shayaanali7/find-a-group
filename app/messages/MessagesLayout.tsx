@@ -55,7 +55,7 @@ const MessagesLayout = ({ children }: MessagesLayoutProps) => {
     queryKey: ['currentUser'],
     queryFn: fetchCurrentUser,
     staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 2,
   })

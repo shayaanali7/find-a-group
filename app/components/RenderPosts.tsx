@@ -144,8 +144,8 @@ export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course:
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: fetchCurrentUser,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 2,
@@ -183,8 +183,8 @@ export const RenderPosts = React.memo(({ course, activeFilters = [] }: { course:
   } = useQuery({
     queryKey: ['posts', course, page, tagFilters, courseFilters],
     queryFn: () => fetchPostsWithUsers(course, page, 20, tagFilters, courseFilters),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 2,

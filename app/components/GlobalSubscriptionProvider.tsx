@@ -16,6 +16,14 @@ interface Message {
   conversation_id: string;
 }
 
+interface GroupMessage {
+  id: string;
+  user_id: string;
+  created_at: string;
+  content: string;
+  group_id: string;
+}
+
 const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProps) => {
   const queryClient = useQueryClient();
   const currentUser = useUser();
@@ -35,29 +43,22 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
         },
         (payload) => {
           const newMessage = payload.new as Message;
-          
-          // Always invalidate conversations to update unread counts and last messages
           queryClient.invalidateQueries({
             queryKey: ['conversations', currentUser?.user?.id]
           });
 
-          // Check if this conversation's messages are cached
           const messagesQueryKey = ['messages', newMessage.conversation_id];
           const existingMessagesData = queryClient.getQueryData(messagesQueryKey);
 
           if (existingMessagesData) {
-            // If messages are cached, add the new message to the cache
             queryClient.setQueryData(messagesQueryKey, (oldData: any) => {
               if (!oldData) return oldData;
               
-              // Check if message already exists to prevent duplicates
               const messageExists = oldData.pages.some((page: any) => 
                 page.messages.some((msg: any) => msg.messages_id === newMessage.messages_id)
               );
-              
               if (messageExists) return oldData;
-              
-              // Add new message to the first page (most recent)
+    
               const newPages = [...oldData.pages];
               if (newPages[0]) {
                 newPages[0] = {
@@ -72,8 +73,6 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
               };
             });
           }
-          // If messages aren't cached, we don't need to do anything
-          // The conversation will load fresh messages when opened
         }
       )
       .on('postgres_changes', 
@@ -84,13 +83,10 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
         },
         (payload) => {
           const updatedMessage = payload.new as Message;
-          
-          // Update conversations list
           queryClient.invalidateQueries({
             queryKey: ['conversations', currentUser?.user?.id]
           });
 
-          // Update cached messages if they exist
           const messagesQueryKey = ['messages', updatedMessage.conversation_id];
           const existingMessagesData = queryClient.getQueryData(messagesQueryKey);
 
@@ -121,16 +117,12 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
         },
         (payload) => {
           const deletedMessage = payload.old as Message;
-          
-          // Update conversations list
           queryClient.invalidateQueries({
             queryKey: ['conversations', currentUser?.user?.id]
           });
 
-          // Update cached messages if they exist
           const messagesQueryKey = ['messages', deletedMessage.conversation_id];
           const existingMessagesData = queryClient.getQueryData(messagesQueryKey);
-
           if (existingMessagesData) {
             queryClient.setQueryData(messagesQueryKey, (oldData: any) => {
               if (!oldData) return oldData;
@@ -148,6 +140,84 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
           }
         }
       )
+      .on('postgres_changes', 
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_messages'
+        },
+        (payload) => {
+          const newGroupMessage = payload.new as GroupMessage;
+          queryClient.invalidateQueries({
+            queryKey: ['group-chats', currentUser?.user?.id]
+          });
+
+          const groupMessagesQueryKey = ['group-messages', newGroupMessage.group_id];
+          const existingGroupMessagesData = queryClient.getQueryData(groupMessagesQueryKey);
+
+          if (existingGroupMessagesData) {
+            queryClient.setQueryData(groupMessagesQueryKey, (oldData: any) => {
+              if (!oldData) return oldData;
+              
+              const messageExists = Array.isArray(oldData) && 
+                oldData.some((msg: any) => msg.id === newGroupMessage.id);
+              if (messageExists) return oldData;
+              
+              return Array.isArray(oldData) ? [...oldData, newGroupMessage] : oldData;
+            });
+          }
+        }
+      )
+      .on('postgres_changes', 
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'group_messages'
+        },
+        (payload) => {
+          const updatedGroupMessage = payload.new as GroupMessage;
+          queryClient.invalidateQueries({
+            queryKey: ['group-chats', currentUser?.user?.id]
+          });
+
+          const groupMessagesQueryKey = ['group-messages', updatedGroupMessage.group_id];
+          const existingGroupMessagesData = queryClient.getQueryData(groupMessagesQueryKey);
+
+          if (existingGroupMessagesData) {
+            queryClient.setQueryData(groupMessagesQueryKey, (oldData: any) => {
+              if (!oldData || !Array.isArray(oldData)) return oldData;
+              
+              return oldData.map((msg: any) =>
+                msg.id === updatedGroupMessage.id ? updatedGroupMessage : msg
+              );
+            });
+          }
+        }
+      )
+      .on('postgres_changes', 
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'group_messages'
+        },
+        (payload) => {
+          const deletedGroupMessage = payload.old as GroupMessage;
+          queryClient.invalidateQueries({
+            queryKey: ['group-chats', currentUser?.user?.id]
+          });
+
+          const groupMessagesQueryKey = ['group-messages', deletedGroupMessage.group_id];
+          const existingGroupMessagesData = queryClient.getQueryData(groupMessagesQueryKey);
+
+          if (existingGroupMessagesData) {
+            queryClient.setQueryData(groupMessagesQueryKey, (oldData: any) => {
+              if (!oldData || !Array.isArray(oldData)) return oldData;
+              
+              return oldData.filter((msg: any) => msg.id !== deletedGroupMessage.id);
+            });
+          }
+        }
+      )
       .subscribe();
 
     return () => {
@@ -159,96 +229,3 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
 }
 
 export default GlobalSubscriptionProvider
-
-/*
-interface UserProfile {
-  id: string
-  username: string
-  name: string
-  profile_picture_url?: string | null
-}
-
-const supabase = createClient()
-
-const fetchUserProfile = async (): Promise<UserProfile | null> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
-
-    const { data: profile, error } = await supabase
-      .from('profile')
-      .select('id, username, name, profile_picture_url')
-      .eq('id', user.id)
-      .single()
-
-    if (error) {
-      console.error('Error fetching user profile:', error)
-      return null
-    }
-
-    return profile
-  } catch (error) {
-    console.error('Error in fetchUserProfile:', error)
-    return null
-  }
-}
-
-export default function UnifiedMessagingProvider({ 
-  children 
-}: { 
-  children: React.ReactNode 
-}) {
-  const queryClient = useQueryClient()
-  const { data: currentUser, isLoading } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: fetchUserProfile,
-    staleTime: 5 * 60 * 1000,
-    retry: 2,
-    refetchOnWindowFocus: false,
-  })
-
-  useEffect(() => {
-    if (isLoading) return
-
-    if (!currentUser?.id) {
-      UnifiedMessagingManager.getInstance().cleanup()
-      console.log('No user found, cleaned up unified messaging subscription')
-      return
-    }
-    
-    const initializeSubscription = async () => {
-      try {
-        await UnifiedMessagingManager.getInstance().initialize(queryClient, currentUser.id)
-      } catch (error) {
-        console.error('Failed to initialize unified messaging subscription:', error)
-      }
-    }
-
-    initializeSubscription()
-  }, [currentUser?.id, queryClient, isLoading])
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          UnifiedMessagingManager.getInstance().cleanup()
-        } else if (event === 'SIGNED_IN' && session?.user) {
-          queryClient.invalidateQueries({ queryKey: ['userProfile'] })
-        }
-      }
-    )
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [queryClient])
-
-  return (
-    <>
-      {children}
-    </>
-  )
-}
-
-*/
-

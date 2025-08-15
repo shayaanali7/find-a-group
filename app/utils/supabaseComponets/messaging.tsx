@@ -197,9 +197,6 @@ export const getConversationUnreadCount = async (conversationId: string, userId:
 export const markGroupMessageAsRead = async (groupId: string, userId: string) => {
   try {
     const supabase = createClient();
-    
-    // Update the last_read_at timestamp in group_members table
-    // Note: You'll need to add this column to your group_members table if it doesn't exist
     const { error } = await supabase
       .from('group_members')
       .update({ 
@@ -223,8 +220,6 @@ export const markGroupMessageAsRead = async (groupId: string, userId: string) =>
 export const getGroupUnreadCount = async (groupId: string, userId: string) => {
   try {
     const supabase = createClient();
-    
-    // Get user's last read timestamp from group_members
     const { data: memberData } = await supabase
       .from('group_members')
       .select('last_read_at')
@@ -235,13 +230,11 @@ export const getGroupUnreadCount = async (groupId: string, userId: string) => {
     if (!memberData) return 0;
 
     const lastReadAt = memberData.last_read_at || '1970-01-01T00:00:00.000Z';
-
-    // Count messages after last read timestamp
     const { count, error } = await supabase
       .from('group_messages')
       .select('*', { count: 'exact', head: true })
       .eq('group_id', groupId)
-      .neq('user_id', userId) // Don't count own messages
+      .neq('user_id', userId)
       .gt('created_at', lastReadAt);
 
     if (error) {

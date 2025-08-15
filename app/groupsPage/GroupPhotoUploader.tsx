@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { createClient } from '@/app/utils/supabase/client'
-import { Upload, X, Loader2 } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { GroupInfo, UserProfileLayout } from '@/app/interfaces/interfaces'
 
@@ -33,7 +33,6 @@ const GroupPhotoUploader: React.FC<GroupPhotoUploaderProps> = ({
 
   const updateGroupPhotoMutation = useMutation({
     mutationFn: async (file: File) => {
-      // Remove old photo if exists
       if (groupInfo.photo_url) {
         const oldFileName = groupInfo.photo_url.split('/').pop()
         if (oldFileName) {
@@ -41,7 +40,6 @@ const GroupPhotoUploader: React.FC<GroupPhotoUploaderProps> = ({
         }
       }
       
-      // Upload new photo
       const fileExt = file.name.split('.').pop()
       const fileName = `${groupId}.${fileExt}`
       const { error: uploadError } = await supabase.storage
@@ -52,12 +50,10 @@ const GroupPhotoUploader: React.FC<GroupPhotoUploaderProps> = ({
         throw new Error(`Failed to upload photo: ${uploadError.message}`)
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('group-photos')
         .getPublicUrl(fileName)
 
-      // Update group record
       const { error: updateError } = await supabase
         .from('groups')
         .update({ photo_url: publicUrl })
@@ -86,7 +82,6 @@ const GroupPhotoUploader: React.FC<GroupPhotoUploaderProps> = ({
 
   const removeGroupPhotoMutation = useMutation({
     mutationFn: async () => {
-      // Remove photo from storage
       if (groupInfo.photo_url) {
         const fileName = groupInfo.photo_url.split('/').pop()
         if (fileName) {
@@ -94,7 +89,6 @@ const GroupPhotoUploader: React.FC<GroupPhotoUploaderProps> = ({
         }
       }
       
-      // Update group record to remove photo URL
       const { error: updateError } = await supabase
         .from('groups')
         .update({ photo_url: null })
@@ -121,13 +115,11 @@ const GroupPhotoUploader: React.FC<GroupPhotoUploaderProps> = ({
     const file = event.target.files?.[0]
     if (!file || !isOwner) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file')
       return
     }
 
-    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       alert('Image size should be less than 5MB')
       return

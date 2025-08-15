@@ -35,7 +35,6 @@ const fetchConversations = async (userId: string): Promise<ConversationWithDetai
     if (!conversationData) {
       return [];
     }
-    console.log(conversationData);
     
     const conversationWithDetails = await Promise.all(
       conversationData.map(async (conv) => {
@@ -81,8 +80,8 @@ const ConversationsList = ({ userId }: ConversationsListProps) => {
     queryKey: ['conversations', userId],
     queryFn: () => fetchConversations(userId),
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 2,

@@ -140,11 +140,11 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
     error,
     refetch
   } = useQuery({
-    queryKey: ['groupChats', userId],
+    queryKey: ['group-chats', userId],
     queryFn: () => fetchGroupChats(userId),
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000, 
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000, 
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 2,
@@ -214,7 +214,6 @@ const GroupChatsList = ({ userId }: GroupChatsListProps) => {
                   alt={groupChat.name}
                   className="w-10 h-10 rounded-full object-cover border-2 border-purple-200"
                   onError={(e) => {
-                    // Fallback to default if image fails to load
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     const fallback = target.nextElementSibling as HTMLElement;
