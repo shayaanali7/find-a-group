@@ -36,14 +36,22 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
 
   const {
     data: userProfile,
+    isLoading: isProfileLoading,
+    error: profileError
   } = useQuery({
     queryKey: ['userProfile'],
     queryFn: fetchUserProfile,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
-    retry: 2,
+    retry: (failureCount, error) => {
+      if (error?.message?.includes('auth') || error?.message?.includes('unauthorized')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    refetchOnMount: true,
   });
 
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -156,6 +164,36 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ courses }) => {
       </div>
     </div>
   )
+
+  if (isProfileLoading) {
+    return (
+      <div className='p-4 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-indigo-50/50'>
+        <div className='flex items-center w-full gap-3 p-3 rounded-xl bg-white/70 border border-purple-100/50'>
+          <div className='w-10 h-10 rounded-full bg-gray-200 animate-pulse'></div>
+          <div className='flex-grow'>
+            <div className='w-20 h-4 bg-gray-200 rounded animate-pulse mb-1'></div>
+            <div className='w-16 h-3 bg-gray-200 rounded animate-pulse'></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (profileError || !userProfile) {
+    return (
+      <div className='p-4 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-indigo-50/50'>
+        <div className='flex items-center w-full gap-3 p-3 rounded-xl bg-white/70 border border-purple-100/50 text-gray-500'>
+          <div className='w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center'>
+            <span className='text-sm'>?</span>
+          </div>
+          <div className='flex-grow'>
+            <div className='font-medium text-sm'>Profile</div>
+            <div className='text-xs'>Loading error</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
