@@ -322,6 +322,7 @@ const GroupChatPage = () => {
             });
             
           } else if (currentUser.user?.id) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(['group-chats', currentUser.user.id], (oldData: any) => {
               if (!oldData) return oldData;
               

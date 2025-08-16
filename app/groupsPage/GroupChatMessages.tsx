@@ -128,7 +128,7 @@ const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) 
 
   return (
     <div className="space-y-4">
-      {messages.map((message, _) => {
+      {messages.map((message) => {
         const isOptimistic = message.id.startsWith('temp-');
         const isOwnMessage = message.user_id === user?.id;
         const isHovered = hoveredMessageId === message.id;
