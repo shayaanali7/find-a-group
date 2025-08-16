@@ -113,6 +113,7 @@ const GroupChatPage = () => {
       queryClient.setQueryData(['group-chats', currentUser.user.id], (oldData: unknown) => {
         if (!Array.isArray(oldData)) return oldData;
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return oldData.map((chat: any) => {
           if (chat.group_id === groupId) {
             return {
@@ -181,9 +182,11 @@ const GroupChatPage = () => {
     );
 
     if (currentUser.user?.id) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryClient.setQueryData(['group-chats', currentUser.user.id], (oldData: any) => {
         if (!oldData) return oldData;
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return oldData.map((chat: any) => {
           if (chat.group_id === groupId) {
             return {
@@ -198,6 +201,7 @@ const GroupChatPage = () => {
             };
           }
           return chat;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }).sort((a: any, b: any) => 
           new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
@@ -289,9 +293,11 @@ const GroupChatPage = () => {
           if (currentUser.user?.id && newMessage.user_id !== currentUser.user.id) {
             markGroupMessageAsRead(groupId, currentUser.user.id);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(['group-chats', currentUser.user.id], (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return oldData.map((chat: any) => {
                 if (chat.group_id === groupId) {
                   return {
@@ -306,6 +312,7 @@ const GroupChatPage = () => {
                   };
                 }
                 return chat;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
               }).sort((a: any, b: any) => 
                 new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
               );
@@ -318,6 +325,7 @@ const GroupChatPage = () => {
             queryClient.setQueryData(['group-chats', currentUser.user.id], (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return oldData.map((chat: any) => {
                 if (chat.group_id === groupId) {
                   return {
@@ -331,6 +339,7 @@ const GroupChatPage = () => {
                   };
                 }
                 return chat;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
               }).sort((a: any, b: any) => 
                 new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
               );
@@ -386,9 +395,11 @@ const GroupChatPage = () => {
           );
 
           if (currentUser.user?.id) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(['group-chats', currentUser.user.id], (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return oldData.map((chat: any) => {
                 if (chat.group_id === groupId) {
                   return {
@@ -402,6 +413,7 @@ const GroupChatPage = () => {
                   };
                 }
                 return chat;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
               }).sort((a: any, b: any) => 
                 new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
               );

@@ -3,7 +3,6 @@ import { User } from '@supabase/supabase-js';
 import React, { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/app/utils/supabase/client';
 import { Trash2, Edit3, Check, X } from 'lucide-react';
-import Image from 'next/image';
 
 export interface GroupMessage {
   id: string,
@@ -129,7 +128,7 @@ const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) 
 
   return (
     <div className="space-y-4">
-      {messages.map((message, index) => {
+      {messages.map((message, _) => {
         const isOptimistic = message.id.startsWith('temp-');
         const isOwnMessage = message.user_id === user?.id;
         const isHovered = hoveredMessageId === message.id;

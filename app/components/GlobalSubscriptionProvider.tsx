@@ -51,10 +51,13 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
           const existingMessagesData = queryClient.getQueryData(messagesQueryKey);
 
           if (existingMessagesData) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(messagesQueryKey, (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const messageExists = oldData.pages.some((page: any) => 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 page.messages.some((msg: any) => msg.messages_id === newMessage.messages_id)
               );
               if (messageExists) return oldData;
@@ -91,11 +94,14 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
           const existingMessagesData = queryClient.getQueryData(messagesQueryKey);
 
           if (existingMessagesData) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(messagesQueryKey, (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const newPages = oldData.pages.map((page: any) => ({
                 ...page,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 messages: page.messages.map((msg: any) =>
                   msg.messages_id === updatedMessage.messages_id ? updatedMessage : msg
                 )
@@ -124,11 +130,14 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
           const messagesQueryKey = ['messages', deletedMessage.conversation_id];
           const existingMessagesData = queryClient.getQueryData(messagesQueryKey);
           if (existingMessagesData) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(messagesQueryKey, (oldData: any) => {
               if (!oldData) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const newPages = oldData.pages.map((page: any) => ({
                 ...page,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 messages: page.messages.filter((msg: any) => msg.messages_id !== deletedMessage.messages_id)
               }));
               
@@ -156,10 +165,12 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
           const existingGroupMessagesData = queryClient.getQueryData(groupMessagesQueryKey);
 
           if (existingGroupMessagesData) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(groupMessagesQueryKey, (oldData: any) => {
               if (!oldData) return oldData;
               
               const messageExists = Array.isArray(oldData) && 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 oldData.some((msg: any) => msg.id === newGroupMessage.id);
               if (messageExists) return oldData;
               
@@ -184,9 +195,11 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
           const existingGroupMessagesData = queryClient.getQueryData(groupMessagesQueryKey);
 
           if (existingGroupMessagesData) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(groupMessagesQueryKey, (oldData: any) => {
               if (!oldData || !Array.isArray(oldData)) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return oldData.map((msg: any) =>
                 msg.id === updatedGroupMessage.id ? updatedGroupMessage : msg
               );
@@ -210,9 +223,11 @@ const GlobalSubscriptionProvider = ({ children }: GlobalSubscriptionProviderProp
           const existingGroupMessagesData = queryClient.getQueryData(groupMessagesQueryKey);
 
           if (existingGroupMessagesData) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             queryClient.setQueryData(groupMessagesQueryKey, (oldData: any) => {
               if (!oldData || !Array.isArray(oldData)) return oldData;
               
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               return oldData.filter((msg: any) => msg.id !== deletedGroupMessage.id);
             });
           }

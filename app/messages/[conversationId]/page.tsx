@@ -72,6 +72,7 @@ const ConversationPage = () => {
       queryClient.setQueryData(['conversations', currentUser.user.id], (oldData: unknown) => {
         if (!Array.isArray(oldData)) return oldData;
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return oldData.map((conv: any) => {
           if (conv.conversation_id === conversationId) {
             return {

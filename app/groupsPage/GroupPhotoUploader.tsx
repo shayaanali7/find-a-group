@@ -6,7 +6,9 @@ import { GroupInfo, UserProfileLayout } from '@/app/interfaces/interfaces'
 
 interface GroupData {
   groupInfo: GroupInfo
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   groupMembers: any[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages: any[]
   isUserMember: boolean
   isOwner: boolean
