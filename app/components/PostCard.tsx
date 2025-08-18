@@ -50,10 +50,10 @@ export const PostCard = React.memo(({
           )}
           
           <div className="min-w-0">
-            <h3 className="font-semibold text-gray-900 text-sm whitespace-nowrap">
+            <h3 className="font-semibold text-gray-900 text-xs sm:text-sm whitespace-nowrap">
               {user?.name || 'Unknown User'}
             </h3>
-            <div className="flex items-center gap-2 text-gray-500 text-xs whitespace-nowrap">
+            <div className="flex items-center gap-1 sm:gap-2 text-gray-500 text-[10px] sm:text-xs whitespace-nowrap">
               <span>@{user?.username || 'unknown'}</span>
               <span>• {formatDate(post.created_at)}</span>
             </div>

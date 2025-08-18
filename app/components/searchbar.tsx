@@ -68,19 +68,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder, groupModal, onClickA
         .from('profile')
         .select('id, username, name, profile_picture_url')
         .or(`username.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`)
-        .limit(5);
+        .limit(4);
 
       const { data: courses, error: coursesError } = await supabase
         .from('courses')
         .select('course_id, course_name')
         .or(`course_name.ilike.%${searchTerm}%`)
-        .limit(5);
+        .limit(3);
 
       const { data: posts, error: postsError } = await supabase
         .from('posts')
         .select('post_id, user_id, header, content, course_name')
         .or(`header.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%,course_name.ilike.%${searchTerm}%`)
-        .limit(5);
+        .limit(2);
       
       if (usersError || postsError || coursesError) {
         console.error('Error fetching search results:', usersError || postsError || coursesError);
