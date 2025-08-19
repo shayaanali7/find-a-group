@@ -15,6 +15,7 @@ import { UserPost, UserProfile } from '@/app/interfaces/interfaces';
 import { fetchUserPosts } from '@/app/utils/supabaseComponets/clientUtils';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useLoading } from '@/app/components/LoadingContext';
 
 interface ViewingUserData {
   id: string;
@@ -94,6 +95,7 @@ const ProfilePage = () => {
   const params = useParams()
   const username = Array.isArray(params.username) ? params.username[0] : params.username;
   const [isMessageLoading, setIsMessageLoading] = useState<boolean>(false);
+  const { startLoading, stopLoading } = useLoading();
 
   const {
     data: viewingUserData,
@@ -142,6 +144,7 @@ const ProfilePage = () => {
   const handleMessageButton = async () => {
     if (profile) {
       setIsMessageLoading(true);
+      startLoading();
       try {
         if (viewingUserData) {
            const { data: conversation, error } = await createOrGetConversation(viewingUserData?.id, profile?.id);
@@ -155,6 +158,7 @@ const ProfilePage = () => {
         console.log(error);
       } finally {
         setIsMessageLoading(false);
+        stopLoading();
       }
     }
   }
@@ -308,10 +312,9 @@ const ProfilePage = () => {
             </div>
 
             <div className='ml-8 mr-2 rounded-2xl bg-gray-100 p-4'>
-              <p className='text-lg'>{profile?.bio}</p>
+              <p className='text-lg break-words'>{profile?.bio}</p>
             </div>
 
-            {/* Activity Section - Loads independently */}
             <div>
               <h1 className='mt-5 ml-10 font-semibold text-2xl'>Activity</h1>
               <div className='mx-8 mt-4'>
@@ -321,7 +324,6 @@ const ProfilePage = () => {
                       <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2'></div>
                       <p className='text-gray-500 text-sm'>Loading activity...</p>
                     </div>
-                    {/* Optional: Show skeleton placeholders while loading */}
                     {[...Array(3)].map((_, index) => (
                       <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm animate-pulse">
                         <div className="mt-4 space-y-2">
