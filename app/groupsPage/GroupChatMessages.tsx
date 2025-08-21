@@ -1,8 +1,9 @@
 'use client'
 import { User } from '@supabase/supabase-js';
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/app/utils/supabase/client';
 import { Trash2, Edit3, Check, X } from 'lucide-react';
+import { QueryClient } from '@tanstack/react-query';
 
 export interface GroupMessage {
   id: string,
@@ -19,10 +20,12 @@ export interface GroupMessage {
 interface GroupChatMessagesProps {
   messages: GroupMessage[], 
   user: User | undefined,
-  loading: boolean
+  loading: boolean,
+  setMessages: Dispatch<SetStateAction<GroupMessage[]>>,
+  queryClient: QueryClient,
 }
 
-const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) => {
+const GroupChatMessages = ({ messages, user, loading, setMessages, queryClient }: GroupChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
@@ -56,6 +59,14 @@ const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) 
       
       if (error) {
         console.error('Error deleting message:', error);
+      } else {
+        setMessages(current => current.filter(msg => msg.id !== messageId));
+
+        if (user.id) {
+          queryClient.invalidateQueries({
+            queryKey: ['group-chats', user.id]
+          });
+        }
       }
     } catch (error) {
       console.error('Unexpected error deleting message:', error);
@@ -128,7 +139,7 @@ const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) 
 
   return (
     <div className="space-y-4">
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         const isOptimistic = message.id.startsWith('temp-');
         const isOwnMessage = message.user_id === user?.id;
         const isHovered = hoveredMessageId === message.id;
@@ -138,14 +149,46 @@ const GroupChatMessages = ({ messages, user, loading }: GroupChatMessagesProps) 
         const canEdit = isOwnMessage && !isOptimistic && !isDeleting && !isUpdating;
         const canDelete = isOwnMessage && !isOptimistic && !isDeleting && !isEditing;
 
+        const prevMessage = index > 0 ? messages[index - 1] : null;
+        const showSenderName = !isOwnMessage && (
+          !prevMessage || 
+          prevMessage.user_id !== message.user_id ||
+          (new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime()) > 300000 // 5 minutes
+        );
+
         return (
           <div key={message.id} className="group">
+            {showSenderName && (
+              <div className="flex justify-start mb-1 ml-10">
+                <span className="text-xs text-gray-600 font-medium">
+                  {message.sender?.name || 'Unknown User'}
+                </span>
+              </div>
+            )}
+            
             <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
               <div 
                 className="flex items-end gap-2 group"
                 onMouseEnter={() => !isEditing && setHoveredMessageId(message.id)}
                 onMouseLeave={() => setHoveredMessageId(null)}
               >
+                {!isOwnMessage && (
+                  <div className={`w-8 h-8 rounded-full overflow-hidden bg-gray-300 flex-shrink-0 ${
+                    showSenderName ? 'self-end' : 'self-end opacity-0'
+                  }`}>
+                    {message.sender?.profile_picture_url ? (
+                      <img 
+                        src={message.sender.profile_picture_url} 
+                        alt={message.sender.name || 'User'} 
+                        className='w-full h-full object-cover' 
+                      />
+                    ) : (
+                      <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white text-xs font-semibold'>
+                        {(message.sender?.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div
                   className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-all duration-200 ${
                     isOwnMessage

@@ -422,7 +422,7 @@ const GroupChatPage = () => {
           }
         }
       )
-      .subscribe();
+      .subscribe()
     return () => {
       supabase.removeChannel(channel);
     };
@@ -503,8 +503,10 @@ const GroupChatPage = () => {
       <div className='flex-1 overflow-y-auto p-4 space-y-4'>
         <GroupChatMessages 
           messages={messages} 
+          setMessages={setMessages}
           user={currentUser.user} 
           loading={loading}
+          queryClient={queryClient}
         />
       </div>
       

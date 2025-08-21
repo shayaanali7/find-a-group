@@ -64,7 +64,6 @@ const ConversationPage = () => {
   const [otherUser, setOtherUser] = useState<OtherUserProfile | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
-  console.log(currentUser.user?.user_metadata)
 
   const markAsReadAndUpdateCache = () => {
     if (conversationId && currentUser.user?.id) {
