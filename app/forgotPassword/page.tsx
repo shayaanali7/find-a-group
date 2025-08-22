@@ -26,19 +26,19 @@ export default function ForgotPasswordPage() {
                 <div className="p-4 rounded-lg bg-green-100 text-green-800 text-center">
                   <h2 className="font-semibold mb-2">Check Your Email</h2>
                   <p className="text-sm">
-                    We've sent a password reset link to your email address. 
+                    We&apos;ve sent a password reset link to your email address. 
                     Please check your inbox and follow the instructions to reset your password.
                   </p>
                 </div>
                 <p className="text-sm text-gray-600 text-center">
-                  Didn't receive the email? Check your spam folder or try again.
+                  Didn&apos;t receive the email? Check your spam folder or try again.
                 </p>
               </div>
             ) : (
               <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="mb-6">
                   <p className="text-sm text-gray-600 text-center">
-                    Enter your email address and we'll send you a link to reset your password.
+                    Enter your email address and we&apos;ll send you a link to reset your password.
                   </p>
                 </div>
 

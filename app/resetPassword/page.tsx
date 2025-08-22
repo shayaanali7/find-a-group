@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { useResetPassword } from './useResetPassword'
 
 export default function ResetPasswordPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { resetPassword, error, isPending, isSuccess } = useResetPassword()
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null)
