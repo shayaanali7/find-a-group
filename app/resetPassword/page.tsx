@@ -163,7 +163,7 @@ function ResetPasswordContent() {
           ) : (
             <p className='text-center text-sm text-gray-500 mt-4'>
               Remember your password?
-              <Link href="/login" className='text-purple-600 hover:underline ml-1'>
+              <Link href="/loginPage" className='text-purple-600 hover:underline ml-1'>
                 Back to Login
               </Link>
             </p>

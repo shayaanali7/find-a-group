@@ -11,13 +11,25 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        console.log('Full URL:', window.location.href)
+        console.log('Hash:', window.location.hash)
+        console.log('Search:', window.location.search)
+
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
         const searchParams = new URLSearchParams(window.location.search)
         const supabase = createClient();
 
+        console.log('Hash params:', Object.fromEntries(hashParams))
+        console.log('Search params:', Object.fromEntries(searchParams))
+
         const type = hashParams.get('type') || searchParams.get('type')
         const accessToken = hashParams.get('access_token') || searchParams.get('access_token')
         const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token')
+        const code = searchParams.get('code')
+        const recovery = searchParams.get('recovery')
+        
+        console.log('Auth callback params:', { type, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken, hasCode: !!code, recovery })
+
         const { data, error } = await supabase.auth.getSession()
         
         if (error) {
@@ -25,7 +37,7 @@ export default function AuthCallback() {
         } else {
           console.log('Current session:', data.session ? 'Present' : 'None')
         }
-
+        
         if (accessToken && refreshToken) {
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -43,7 +55,16 @@ export default function AuthCallback() {
           }
         }
 
-        if (type === 'recovery') {
+        const isPasswordRecovery = type === 'recovery' || 
+                                 window.location.href.includes('type=recovery') ||
+                                 window.location.hash.includes('type=recovery') ||
+                                 recovery === 'true' ||
+                                 (code && data.session && !type)
+
+        console.log('Detected flow type:', isPasswordRecovery ? 'password recovery' : 'other')
+
+        if (isPasswordRecovery) {
+          console.log('Processing password recovery flow')
           setMessage('Email verified! Redirecting to password reset...')
           setTimeout(() => {
             setStatus('verified')
@@ -51,9 +72,22 @@ export default function AuthCallback() {
           }, 1500)
 
           setTimeout(() => {
-            router.push('/resetPassword')
+            if (data.session) {
+              const resetUrl = `/resetPassword?access_token=${data.session.access_token}&refresh_token=${data.session.refresh_token}`
+              router.push(resetUrl)
+            } else if (accessToken && refreshToken) {
+              const resetUrl = `/resetPassword?access_token=${accessToken}&refresh_token=${refreshToken}`
+              router.push(resetUrl)
+            } else {
+              router.push('/resetPassword')
+            }
           }, 3000)
-        } else if (type === 'signup' || type === 'email_change' || (!type && (accessToken || data.session))) {
+        } 
+        else if (type === 'signup' || type === 'email_change' || 
+                (code && data.session && !isPasswordRecovery) || 
+                (!type && accessToken) ||
+                (!type && data.session && !isPasswordRecovery)) {
+          console.log('Processing signup/email change/general auth flow')
           setTimeout(() => {
             setStatus('verified')
             setMessage('Email verified successfully!')
@@ -62,8 +96,9 @@ export default function AuthCallback() {
           setTimeout(() => {
             router.push('/loginPage')
           }, 3000)
-        } else {
-          console.log('No valid auth tokens found')
+        } 
+        else {
+          console.log('No valid auth flow detected')
           setStatus('error')
           setMessage('Invalid or expired link')
           setTimeout(() => {
