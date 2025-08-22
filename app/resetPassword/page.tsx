@@ -1,11 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ModalScreen from '../components/ModalScreen'
 import Link from 'next/link'
 import { useResetPassword } from './useResetPassword'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams()
   const { resetPassword, error, isPending, isSuccess } = useResetPassword()
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null)
@@ -171,5 +171,25 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </ModalScreen>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <ModalScreen isOpen={true}>
+      <div className='flex flex-col h-full text-black items-center justify-center'>
+        <div className="text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    </ModalScreen>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }
