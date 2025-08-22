@@ -156,7 +156,7 @@ function ResetPasswordContent() {
         <div className='mb-4'>
           {isSuccess ? (
             <p className='text-center text-sm text-gray-500 mt-4'>
-              <Link href="/login" className='text-purple-600 hover:underline'>
+              <Link href="/loginPage" className='text-purple-600 hover:underline'>
                 Go to Login
               </Link>
             </p>

@@ -2,7 +2,7 @@
 import { createClient } from '@/app/utils/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { SendHorizonal } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 
 interface GroupMessage {
   id: string,
@@ -27,6 +27,7 @@ interface SendGroupMessageProps {
 const SendGroupMessage = ({ groupId, user, onOptimisticAdd, onMessageSent, onMessageError }: SendGroupMessageProps) => {
   const [sending, setSending] = useState<boolean>(false);
   const [newMessage, setNewMessage] = useState<string>('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !groupId || !user) return;
@@ -89,6 +90,9 @@ const SendGroupMessage = ({ groupId, user, onOptimisticAdd, onMessageSent, onMes
       setNewMessage(messageContent);
     } finally {
       setSending(false);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
     }
   };
 
@@ -108,6 +112,7 @@ const SendGroupMessage = ({ groupId, user, onOptimisticAdd, onMessageSent, onMes
     <form onSubmit={handleSubmit} className='p-4 border-t border-purple-500 bg-white flex-shrink-0'>
       <div className='flex items-center space-x-2'>
         <input
+          ref={inputRef}
           type='text'
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}

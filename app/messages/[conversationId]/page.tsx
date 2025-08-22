@@ -62,6 +62,7 @@ const ConversationPage = () => {
   const currentUser = useUser();
   const queryClient = useQueryClient();
   const [otherUser, setOtherUser] = useState<OtherUserProfile | null>(null);
+  const [otherUserLoading, setOtherUserLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -101,13 +102,35 @@ const ConversationPage = () => {
 
   useEffect(() => {
     const getOtherUser = async () => {
-      if (conversationId && currentUser.user?.id) {
+      if (!conversationId || !currentUser.user?.id) {
+        setOtherUserLoading(false);
+        return;
+      }
+
+      setOtherUserLoading(true);
+      try {
         const user = await fetchOtherUser(conversationId, currentUser.user.id);
         setOtherUser(user);
+      } catch (error) {
+        console.error('Error getting other user:', error);
+        setOtherUser(null);
+      } finally {
+        setOtherUserLoading(false);
       }
     };
 
-    getOtherUser();
+    if (conversationId && currentUser.user?.id) {
+      getOtherUser();
+    } else if (conversationId && !currentUser.user?.id) {
+      const checkUser = () => {
+        if (currentUser.user?.id) {
+          getOtherUser();
+        }
+      };
+      
+      const timeout = setTimeout(checkUser, 100);
+      return () => clearTimeout(timeout);
+    }
   }, [conversationId, currentUser.user?.id])
 
   const addOptimisticMessage = (content: string) => {
@@ -328,34 +351,55 @@ const ConversationPage = () => {
     };
   }, [conversationId, currentUser.user?.id, queryClient]);
   
+  console.log(otherUser);
+
   return (
     <div className='w-full flex flex-col h-full overflow-hidden border-l border-purple-500'>
       <div className='flex items-center p-3 border-b ml-2 mr-2 border-purple-500 bg-white flex-shrink-0'>
-        <Link href={`/user/${otherUser?.username}`}>
-          <div className='flex items-center space-x-3 hover:opacity-70 cursor-pointer transition-all hover:scale-101'>
-            <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
-              {otherUser?.profile_picture_url ? (
-                <Image 
-                  src={otherUser.profile_picture_url} 
-                  alt={otherUser.name}
-                  width={40}
-                  height={40}
-                  className='w-full h-full object-cover'
-                />
-              ) : (
-                <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
-                  {otherUser?.name?.charAt(0) || '?'}
-                </div>
-              )}
-              
-            </div>
-            
+        {otherUserLoading ? (
+          <div className='flex items-center space-x-3'>
+            <div className='w-10 h-10 rounded-full bg-gray-300 animate-pulse'></div>
             <div>
-              <h2 className='font-semibold text-lg'>{otherUser?.name}</h2>
-              <p className='text-sm text-gray-500'>@{otherUser?.username}</p>
+              <div className='h-4 bg-gray-300 rounded animate-pulse w-24 mb-1'></div>
+              <div className='h-3 bg-gray-300 rounded animate-pulse w-16'></div>
             </div>
           </div>
-        </Link>
+        ) : otherUser ? (
+          <Link href={`/user/${otherUser.username}`}>
+            <div className='flex items-center space-x-3 hover:opacity-70 cursor-pointer transition-all hover:scale-101'>
+              <div className='w-10 h-10 rounded-full overflow-hidden bg-gray-200'>
+                {otherUser.profile_picture_url ? (
+                  <Image 
+                    src={otherUser.profile_picture_url} 
+                    alt={otherUser.name}
+                    width={40}
+                    height={40}
+                    className='w-full h-full object-cover'
+                  />
+                ) : (
+                  <div className='w-full h-full bg-purple-500 flex items-center justify-center text-white font-semibold'>
+                    {otherUser.name?.charAt(0) || '?'}
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <h2 className='font-semibold text-lg'>{otherUser.name}</h2>
+                <p className='text-sm text-gray-500'>@{otherUser.username}</p>
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <div className='flex items-center space-x-3'>
+            <div className='w-10 h-10 rounded-full bg-red-200 flex items-center justify-center'>
+              <span className='text-red-600 font-semibold'>!</span>
+            </div>
+            <div>
+              <h2 className='font-semibold text-lg text-red-600'>User not found</h2>
+              <p className='text-sm text-gray-500'>Unable to load user data</p>
+            </div>
+          </div>
+        )}
       </div>
       <div className='flex-1 overflow-y-auto p-4 space-y-4'>
         <ChatMessages 
