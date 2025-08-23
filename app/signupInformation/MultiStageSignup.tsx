@@ -16,7 +16,7 @@ type LinkErrors = Record<Platform, string>;
 const MultiStepSignup = ({ user }: {user: User}) => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [courseHasBeenAdded, setCourseHasBeenAdded] = useState<boolean[]>([false, false, false, false, false]);
+  const [courseHasBeenAdded, setCourseHasBeenAdded] = useState<boolean[]>([false, false, false, false]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchedCourses, setSearchedCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -32,7 +32,7 @@ const MultiStepSignup = ({ user }: {user: User}) => {
     instagram: '',
     linkedin: ''
   });
-  const courses = ['CS2212', 'CS3319', 'CS2214', 'CS1027', 'CS1026'];
+  const courses = ['CS2212', 'CS3307', 'CS3319', 'BA1220'];
 
   const changeStatus = (index: number) => {
     setCourseHasBeenAdded(prev => 

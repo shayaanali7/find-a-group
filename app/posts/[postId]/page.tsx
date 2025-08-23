@@ -142,7 +142,7 @@ const PostPage = async ({ params }: PostPageProps) => {
                   </div>
                 )}
                 
-                <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                <div className="text-black text-sm leading-relaxed whitespace-pre-wrap break-words">
                   {postData.content}
                 </div>
               </div>

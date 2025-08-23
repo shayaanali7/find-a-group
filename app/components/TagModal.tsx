@@ -47,6 +47,7 @@ const TagModal = ({ text, onTagsAdded }: TagModalProps) => {
           onRemoveTag={handleRemoveConfirmedTag}
         />
         <button 
+          type="button"
           className='border-black border hover:bg-gray-100 rounded-full p-1 px-5 flex-shrink-0' 
           onClick={() => {
             setSelectedTags(confirmedTags);
@@ -76,6 +77,7 @@ const TagModal = ({ text, onTagsAdded }: TagModalProps) => {
 
             <div className='flex-shrink-0 flex justify-end gap-3 pt-4 pb-2'>
               <button
+                type="button"
                 onClick={handleAddTags}
                 className='w-32 py-2 px-8 rounded-full font-semibold text-white bg-purple-500 hover:bg-purple-600 shadow transition-colors duration-200 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300'
               >
@@ -83,6 +85,7 @@ const TagModal = ({ text, onTagsAdded }: TagModalProps) => {
               </button>
 
               <button
+                type="button"
                 onClick={handleModalClose}
                 className='w-32 py-2 px-8 rounded-full font-semibold text-purple-500 bg-white hover:bg-purple-50 shadow border border-purple-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-300'
               >

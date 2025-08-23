@@ -89,7 +89,7 @@ export const PostCard = React.memo(({
           </div>
         )}
         
-        <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+        <div className="text-black text-sm leading-relaxed whitespace-pre-wrap break-words">
           {post.content}
         </div>
       </div>
