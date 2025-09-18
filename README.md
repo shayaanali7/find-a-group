@@ -43,3 +43,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 # Run the development server
 npm run dev
+
+## 📜 License
+This project is licensed under the MIT License. 
