@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Group Finder
 
-## Getting Started
+A full-stack web application that enables university students to create and join groups for course projects. The app provides secure authentication, real-time collaboration, and intelligent search features to make it easier for students to connect with peers and work together effectively.  
 
-First, run the development server:
+## 🚀 Features
+- 🔐 **Authentication** – Secure user sign-up/sign-in with Supabase.  
+- 💬 **Real-time Collaboration** – Live group creation, membership updates, and instant messaging.  
+- 📊 **Optimized Backend** – PostgreSQL with subscriptions and database indices for reduced query times.  
+- 🎨 **Responsive UI** – Built with Tailwind CSS and modular React components for cross-platform usability.  
+- ⚡ **Efficient Data Handling** – React Query for caching and background synchronization, reducing unnecessary API calls.  
+- 🔎 **Search & Filtering** – Robust multi-criteria system to discover posts, courses, and peers.  
 
+## 🌐 Live Demo
+👉 [Try Group Finder here](https://groupfinder-co.vercel.app)  
+
+## 🛠️ Tech Stack
+- **Frontend:** Next.js, TypeScript, React, Tailwind CSS  
+- **Backend/Database:** Supabase, PostgreSQL  
+- **State/Data Management:** React Query  
+- **Deployment:** Vercel  
+
+## 📂 Getting Started
+
+### Prerequisites
+- Node.js (>= 18.x)  
+- npm or yarn  
+- Supabase account & project setup  
+
+### Installation
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/group-finder.git
+
+# Navigate into the project folder
+cd group-finder
+
+# Install dependencies
+npm install
+
+# Create a .env.local file and add your Supabase credentials
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
