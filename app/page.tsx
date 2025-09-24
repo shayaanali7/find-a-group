@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   alternates: {
       canonical: "https://groupfinder-co.vercel.app/",
   },
+  verification: {
+      google: "7lWVk2VsgnS9WxJLJOebAZaSNAtd4HeYLEqcCQnp3A8",
+  }
 };
 
 export default async function HomePage() {
