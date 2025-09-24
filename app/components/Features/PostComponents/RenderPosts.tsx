@@ -1,13 +1,13 @@
 'use client'
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
-import { createClient } from '../utils/supabase/client';
+import { createClient } from '../../../utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useLoading } from './LoadingContext';
+import { useLoading } from '../../UI/Loading/LoadingContext';
 import { useQuery } from '@tanstack/react-query';
-import { PostCard } from './PostCard'; 
-import {groupSizes, roles, groupStatus, locations} from '../data/tags.js' 
-import { getUsernameClient } from '../utils/supabaseComponets/clientUtils';
-import getUserClient from '../utils/supabaseComponets/getUserClient';
+import { PostCard } from '../../UI/Cards/PostCard'; 
+import {groupSizes, roles, groupStatus, locations} from '../../../data/tags.js' 
+import { getUsernameClient } from '../../../utils/supabaseComponets/clientUtils';
+import getUserClient from '../../../utils/supabaseComponets/getUserClient';
 
 type ProfileData = {
   id: string;

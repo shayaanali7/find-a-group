@@ -1,6 +1,6 @@
 import React from 'react'
 import { Calendar, BookOpen, Link, User } from 'lucide-react'
-import { UserProfile } from '../interfaces/interfaces';
+import { UserProfile } from '../../../interfaces/interfaces';
 
 interface ProfileCardProps {
   profile: UserProfile | null;

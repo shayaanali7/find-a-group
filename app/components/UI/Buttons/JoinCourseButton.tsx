@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { addCourse, removeCourse } from '../utils/supabaseComponets/changeCourseStatus';
-import ModalScreen from './ModalScreen';
+import { addCourse, removeCourse } from '../../../utils/supabaseComponets/changeCourseStatus';
+import ModalScreen from '../Modals/ModalScreen';
 import { AlertTriangle, BookOpen, CheckCircle, Clock } from 'lucide-react';
 
 interface JoinCourseButtonProps {

@@ -1,9 +1,9 @@
 import React from 'react'
-import SearchBar from '../components/searchbar';
-import getUserServer, { getName, getUsername } from '../utils/supabaseComponets/getUserServer';
-import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
-import ProfileButton from './ProfileButton';
-import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
+import SearchBar from '../UI/Forms/searchbar';
+import getUserServer, { getName, getUsername } from '../../utils/supabaseComponets/getUserServer';
+import { getUserCourses } from '../../utils/supabaseComponets/getUserCourses';
+import ProfileButton from '../UI/Buttons/ProfileButton';
+import { GetProfilePicture } from '../../utils/supabaseComponets/getProfilePicture';
 import Image from 'next/image';
 import HomePageContent from './HomePageContent';
 import Link from 'next/link';

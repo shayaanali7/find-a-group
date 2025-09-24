@@ -1,6 +1,6 @@
 'use client'
 import React, { ReactNode, useEffect } from 'react'
-import { ReactPortal } from './ReactPortal';
+import { ReactPortal } from '../../Providers/ReactPortal';
 
 interface ModalScreenProps {
     children: ReactNode;

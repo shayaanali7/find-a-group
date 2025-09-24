@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import MainContentLayout from './MainContentLayout';
-import FilterList from './filterList';
+import FilterList from '../Features/Filters/filterList';
 
 const HomePageContent = ({ pageTitle, courses, id }: { pageTitle: string, courses: Array<string>, id: string }) => {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);

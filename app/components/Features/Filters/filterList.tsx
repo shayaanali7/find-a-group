@@ -1,9 +1,9 @@
 'use client'
 import React, { useState } from 'react'
-import FilterCard from './filterCard'
-import SearchBar, { SearchResult } from './searchbar'
+import FilterCard from '../../UI/Cards/filterCard'
+import SearchBar, { SearchResult } from '../../UI/Forms/searchbar'
 import { X } from 'lucide-react'
-import {groupSizes, roles, groupStatus, locations} from '../data/tags.js'
+import {groupSizes, roles, groupStatus, locations} from '../../../data/tags.js'
 
 interface FilterListProps {
 	saveButtonOn: boolean;

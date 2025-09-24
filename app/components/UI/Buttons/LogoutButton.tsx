@@ -1,9 +1,9 @@
 'use client'
 import { LogOut } from 'lucide-react'
 import React from 'react'
-import { createClient } from '../utils/supabase/client'
+import { createClient } from '../../../utils/supabase/server'
 import { useRouter } from 'next/navigation'
-import { useLoading } from './LoadingContext'
+import { useLoading } from '../Loading/LoadingContext'
 
 const LogoutButton = () => {
   const router = useRouter();

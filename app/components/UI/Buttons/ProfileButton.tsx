@@ -4,7 +4,7 @@ import { Pencil, Settings } from 'lucide-react'
 import Link from 'next/link'
 import LogoutButton from './LogoutButton'
 import Image from 'next/image'
-import { useLoading } from './LoadingContext'
+import { useLoading } from '../Loading/LoadingContext'
 
 const ProfileButton = ({ imageURL, username, name }: { imageURL: (string | null), username: string, name: string}) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);

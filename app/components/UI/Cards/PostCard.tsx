@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import React from 'react'
-import { Post, UserInfo } from './RenderPosts';
+import { Post, UserInfo } from '../../Features/PostComponents/RenderPosts';
 import Image from 'next/image';
-import OptionOnPostButton from './OptionOnPostButton';
+import OptionOnPostButton from '../Buttons/OptionOnPostButton';
 
 export const PostCard = React.memo(({ 
   post, 

@@ -1,7 +1,7 @@
 'use client'
 import { ChevronDown } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
-import SearchBar from './searchbar';
+import SearchBar from '../Forms/searchbar';
 
 interface CoursePickerButtonProps {
   course: string

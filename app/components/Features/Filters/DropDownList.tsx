@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
-import { useLoading } from './LoadingContext'
+import { useLoading } from '../../UI/Loading/LoadingContext'
 
 interface DropDownListProps { 
 	name: string

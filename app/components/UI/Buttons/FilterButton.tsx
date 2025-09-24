@@ -1,10 +1,10 @@
 'use client'
 import React, { useState } from 'react';
 import { Filter, X } from 'lucide-react';
-import ModalScreen from './ModalScreen';
-import {groupSizes, roles, groupStatus, locations} from '../data/tags.js'
-import SearchBar, { SearchResult } from './searchbar';
-import FilterCard from './filterCard';
+import ModalScreen from '../Modals/ModalScreen';
+import {groupSizes, roles, groupStatus, locations} from '../../../data/tags.js'
+import SearchBar, { SearchResult } from '../Forms/searchbar';
+import FilterCard from '../Cards/filterCard';
 
 interface FilterListProps {
 	saveButtonOn: boolean;

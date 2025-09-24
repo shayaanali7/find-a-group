@@ -2,13 +2,13 @@
 import React, { useState } from 'react'
 import { Home, MessageCircle, X, Menu, Users, BookOpen } from "lucide-react";
 import Link from 'next/link';
-import DropDownList from './DropDownList';
-import AddGroupModal from './AddGroupModal';
-import getUserClient from '../utils/supabaseComponets/getUserClient';
-import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
+import DropDownList from '../Features/Filters/DropDownList';
+import AddGroupModal from '../UI/Modals/AddGroupModal';
+import getUserClient from '../../utils/supabaseComponets/getUserClient';
+import { getProfileInformationClient } from '../../utils/supabaseComponets/clientUtils';
 import Image from 'next/image';
-import { useLoading } from './LoadingContext';
-import { BasicInformation } from '../interfaces/interfaces';
+import { useLoading } from '../UI/Loading/LoadingContext';
+import { BasicInformation } from '../../interfaces/interfaces';
 import { useQuery } from '@tanstack/react-query';
 
 interface NavigationBarProps {

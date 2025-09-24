@@ -1,7 +1,7 @@
 'use client'
 import React, { useRef, useState } from 'react'
-import { createClient } from '../utils/supabase/client';
-import getUserClient from '../utils/supabaseComponets/getUserClient';
+import { createClient } from '../../../utils/supabase/client';
+import getUserClient from '../../../utils/supabaseComponets/getUserClient';
 
 const PostonCommentSection = ({ postId }: { postId: string }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);

@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from 'react'
 import { CirclePlus, X, Crown, Camera, Upload } from 'lucide-react';
 import ModalScreen from './ModalScreen';
-import SearchBar, { SearchResult } from './searchbar';
-import getUserClient from '../utils/supabaseComponets/getUserClient';
-import { getProfileInformationClient } from '../utils/supabaseComponets/clientUtils';
-import { createClient } from '../utils/supabase/client';
+import SearchBar, { SearchResult } from '../Forms/searchbar';
+import getUserClient from '../../../utils/supabaseComponets/getUserClient';
+import { getProfileInformationClient } from '../../../utils/supabaseComponets/clientUtils';
+import { createClient } from '../../../utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
 const AddGroupModal = ({ background }: { background?: boolean }) => {

@@ -1,10 +1,10 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import NavigationBar from './navbar'
-import FilterButton from './FilterButton'
-import CreatePostButton from './CreatePostButton'
-import JoinCourseButton from './JoinCourseButton'
-import { RenderPosts } from './RenderPosts'
+import FilterButton from '../UI/Buttons/FilterButton'
+import CreatePostButton from '../UI/Buttons/CreatePostButton'
+import JoinCourseButton from '../UI/Buttons/JoinCourseButton'
+import { RenderPosts } from '../Features/PostComponents/RenderPosts'
 
 interface MainContentLayoutProps {
     pageTitle: string, 

@@ -1,10 +1,10 @@
 'use client'
 import React, { useEffect, useState, useRef } from 'react'
 import { AlertTriangle, BookOpen, CheckCircle, Clock, Ellipsis, Flag, Trash2 } from 'lucide-react';
-import ModalScreen from './ModalScreen';
-import { createClient } from '../utils/supabase/client';
-import getUserClient from '../utils/supabaseComponets/getUserClient';
-import { getUsernameClient } from '../utils/supabaseComponets/clientUtils';
+import ModalScreen from '../Modals/ModalScreen';
+import { createClient } from '../../../utils/supabase/client';
+import getUserClient from '../../../utils/supabaseComponets/getUserClient';
+import { getUsernameClient } from '../../../utils/supabaseComponets/clientUtils';
 import { HiQuestionMarkCircle } from 'react-icons/hi';
 
 const OptionOnPostButton = ({post, isOwnPost, isComment}: {post: string, isOwnPost: boolean, isComment?: boolean }) => {

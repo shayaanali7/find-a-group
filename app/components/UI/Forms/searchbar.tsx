@@ -1,9 +1,9 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
 import { GraduationCap, MessageSquare, Search, User } from "lucide-react"
-import { createClient } from '../utils/supabase/client'
+import { createClient } from '../../../utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useLoading } from './LoadingContext'
+import { useLoading } from '../Loading/LoadingContext'
 
 
 interface SearchBarProps {

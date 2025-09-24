@@ -1,8 +1,8 @@
 'use client'
 import React, { useState } from 'react'
 import ModalScreen from './ModalScreen';
-import FilterList from './filterList';
-import AddedTags from './AddedTags';
+import FilterList from '../../Features/Filters/filterList';
+import AddedTags from '../../Features/Filters/AddedTags';
 
 interface TagModalProps {
     text: string;
