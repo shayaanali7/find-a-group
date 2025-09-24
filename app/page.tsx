@@ -2,6 +2,28 @@ import Image from "next/image"
 import Link from "next/link";
 import { createClient } from "./utils/supabase/server";
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Group Finder - Discover Teams for Projects",
+  description: "Join Group Finder to find classmates and build project teams efficiently.",
+  icons: {
+    icon: "/icon.png",
+  },
+  openGraph: {
+    title: "Group Finder - Discover Teams for Projects",
+    description: "Join Group Finder to find classmates and build project teams efficiently.",
+    url: "https://groupfinder-co.vercel.app/",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+      canonical: "https://groupfinder-co.vercel.app/",
+  },
+};
 
 export default async function HomePage() {
   const supabase = await createClient();
