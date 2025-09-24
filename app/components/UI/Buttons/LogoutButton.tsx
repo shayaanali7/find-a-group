@@ -1,7 +1,7 @@
 'use client'
 import { LogOut } from 'lucide-react'
 import React from 'react'
-import { createClient } from '../../../utils/supabase/server'
+import { createClient } from '../../../utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useLoading } from '../Loading/LoadingContext'
 
