@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
-import SearchBar, { SearchResult } from '../components/searchbar'
+import SearchBar, { SearchResult } from '../components/UI/Forms/searchbar'
 
 interface AddCoursesButtonsProps {
   courses: string[];

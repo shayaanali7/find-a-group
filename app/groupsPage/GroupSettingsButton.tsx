@@ -1,10 +1,10 @@
 'use client'
 import React, { useState } from 'react'
 import { GroupMember } from './[groupchatId]/page'
-import ModalScreen from '../components/ModalScreen'
+import ModalScreen from '../components/UI/Modals/ModalScreen'
 import { AlertTriangle, Crown, Settings, X, Loader2, Plus } from 'lucide-react'
 import { createClient } from '../utils/supabase/client'
-import SearchBar, { SearchResult } from '../components/searchbar'
+import SearchBar, { SearchResult } from '../components/UI/Forms/searchbar'
 import { UserProfileLayout } from '../interfaces/interfaces'
 
 interface GroupSettingsButtonProps {

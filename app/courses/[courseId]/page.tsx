@@ -1,4 +1,4 @@
-import HomePage from '@/app/components/HomePage';
+import HomePage from '@/app/components/Layout/HomePage';
 import React from 'react'
 
 const CoursePage = async ({ params }:  { params: Promise<{ courseId: string }> }) => {

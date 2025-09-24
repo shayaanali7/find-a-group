@@ -1,5 +1,5 @@
 import React from 'react'
-import HomePage from '../components/HomePage'
+import HomePage from '../components/Layout/HomePage'
 import { createClient } from '../utils/supabase/server'
 import { redirect } from 'next/navigation';
 

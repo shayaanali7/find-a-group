@@ -3,14 +3,14 @@ import React, { useState, useCallback, useMemo } from 'react'
 import { Home, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
-import SearchBar from '@/app/components/searchbar'
-import ProfileButton from '@/app/components/ProfileButton'
+import SearchBar from '@/app/components/UI/Forms/searchbar'
+import ProfileButton from '@/app/components/UI/Buttons/ProfileButton'
 import getUserClient, { getName, getUsername } from '@/app/utils/supabaseComponets/getUserClient'
 import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture'
-import { useLoading } from '../components/LoadingContext'
+import { useLoading } from '../components/UI/Loading/LoadingContext'
 import Image from 'next/image'
 import { UserProfileLayout } from '../interfaces/interfaces'
-import ConversationsList from '../components/ConversationsList'
+import ConversationsList from '../components/Features/Conversations/ConversationsList'
 
 const fetchUserProfile = async (): Promise<UserProfileLayout | null> => {
   try {

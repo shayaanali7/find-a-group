@@ -1,12 +1,12 @@
 'use client'
 import React, { useState } from 'react'
-import NavigationBar from '../../components/navbar';
-import SearchBar from '../../components/searchbar';
-import ProfileCard from '../../components/ProfileCard';
+import NavigationBar from '../../components/Layout/navbar';
+import SearchBar from '../../components/UI/Forms/searchbar';
+import ProfileCard from '../../components/UI/Cards/ProfileCard';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import { getClientPicture } from '@/app/utils/supabaseComponets/getClientPicture';
-import ProfileButton from '@/app/components/ProfileButton';
+import ProfileButton from '@/app/components/UI/Buttons/ProfileButton';
 import Image from 'next/image';
 import getUserClient, { getName } from '@/app/utils/supabaseComponets/getUserClient';
 import { MessageCircle } from 'lucide-react';
@@ -15,7 +15,7 @@ import { UserPost, UserProfile } from '@/app/interfaces/interfaces';
 import { fetchUserPosts } from '@/app/utils/supabaseComponets/clientUtils';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useLoading } from '@/app/components/LoadingContext';
+import { useLoading } from '@/app/components/UI/Loading/LoadingContext';
 
 interface ViewingUserData {
   id: string;

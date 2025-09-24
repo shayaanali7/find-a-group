@@ -1,6 +1,6 @@
 import React from 'react'
 import { Users } from 'lucide-react'
-import AddGroupModal from '../components/AddGroupModal'
+import AddGroupModal from '../components/UI/Modals/AddGroupModal'
 
 const GroupsMainPage = () => {
   return (

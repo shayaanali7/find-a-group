@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState, useActionState } from 'react'
-import ModalScreen from '../components/ModalScreen'
+import ModalScreen from '../components/UI/Modals/ModalScreen'
 import Link from 'next/link';
 import { signUpUser } from '../utils/supabaseComponets/signupUser';
 import { validateEmail, validateName, validatePassword, validateUsername } from '../utils/validation';

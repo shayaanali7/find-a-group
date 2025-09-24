@@ -1,9 +1,9 @@
 'use client'
 import React, { useState } from 'react'
 import { useRouter } from "next/navigation";
-import CoursePickerButton from '../components/CoursePickerButton';
-import TagModal from '../components/TagModal'
-import { useLoading } from '../components/LoadingContext';
+import CoursePickerButton from '../components/UI/Buttons/CoursePickerButton';
+import TagModal from '../components/UI/Modals/TagModal'
+import { useLoading } from '../components/UI/Loading/LoadingContext';
 
 interface PostFormProps {
   courseName: string;

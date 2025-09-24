@@ -1,10 +1,10 @@
 import React from 'react'
-import SearchBar from '../components/searchbar';
+import SearchBar from '../components/UI/Forms/searchbar';
 import getUserServer, { getName, getUsername } from '../utils/supabaseComponets/getUserServer';
 import { getUserCourses } from '../utils/supabaseComponets/getUserCourses';
 import { GetProfilePicture } from '../utils/supabaseComponets/getProfilePicture';
-import ProfileButton from '../components/ProfileButton';
-import NavigationBar from '../components/navbar';
+import ProfileButton from '../components/UI/Buttons/ProfileButton';
+import NavigationBar from '../components/Layout/navbar';
 import UpdateUserInformationForm from './UpdateInformationForm';
 import Image from 'next/image';
 

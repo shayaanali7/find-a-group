@@ -1,5 +1,5 @@
 'use client'
-import ModalScreen from '../components/ModalScreen'
+import ModalScreen from '../components/UI/Modals/ModalScreen'
 import Link from 'next/link'
 import { useForgotPassword } from './passwordHooks'
 

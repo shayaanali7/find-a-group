@@ -1,7 +1,7 @@
 'use client'
 import { TriangleAlert } from 'lucide-react'
 import React, { useState } from 'react'
-import ModalScreen from '../components/ModalScreen';
+import ModalScreen from '../components/UI/Modals/ModalScreen';
 
 const ShowRules = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);

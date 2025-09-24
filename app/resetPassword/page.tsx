@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import ModalScreen from '../components/ModalScreen'
+import ModalScreen from '../components/UI/Modals/ModalScreen'
 import Link from 'next/link'
 import { useResetPassword } from './useResetPassword'
 

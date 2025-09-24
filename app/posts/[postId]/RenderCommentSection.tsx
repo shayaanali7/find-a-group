@@ -1,7 +1,7 @@
 'use client'
 import { createClient } from '@/app/utils/supabase/client';
 import { getProfileInformationClient } from '@/app/utils/supabaseComponets/clientUtils';
-import OptionOnPostButton from '@/app/components/OptionOnPostButton';
+import OptionOnPostButton from '@/app/components/UI/Buttons/OptionOnPostButton';
 import getUserClient from '@/app/utils/supabaseComponets/getUserClient';
 import { Heart, MessageCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import Image from 'next/image';

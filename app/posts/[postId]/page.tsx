@@ -1,8 +1,8 @@
-import PostonCommentSection from '@/app/components/PostOnCommentSection';
-import NavigationBar from '@/app/components/navbar';
-import ProfileButton from '@/app/components/ProfileButton';
-import ProfileCard from '@/app/components/ProfileCard';
-import SearchBar from '@/app/components/searchbar';
+import PostonCommentSection from '@/app/components/Features/PostComponents/PostOnCommentSection';
+import NavigationBar from '@/app/components/Layout/navbar';
+import ProfileButton from '@/app/components/UI/Buttons/ProfileButton';
+import ProfileCard from '@/app/components/UI/Cards/ProfileCard';
+import SearchBar from '@/app/components/UI/Forms/searchbar';
 import { createClient } from '@/app/utils/supabase/server';
 import { getProfileInformation } from '@/app/utils/supabaseComponets/getProfileInformation';
 import { GetProfilePicture } from '@/app/utils/supabaseComponets/getProfilePicture';
@@ -13,7 +13,7 @@ import Link from 'next/link';
 import React from 'react'
 import RenderCommentSection from './RenderCommentSection';
 import DisplayMessagingButton from './DisplayMessagingButton';
-import OptionOnPostButton from '@/app/components/OptionOnPostButton';
+import OptionOnPostButton from '@/app/components/UI/Buttons/OptionOnPostButton';
 
 interface PostPageProps {
   params: Promise<{

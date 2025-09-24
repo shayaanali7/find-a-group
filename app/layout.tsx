@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./styles/globals.css";
-import { LoadingProvider } from "./components/LoadingContext";
-import TopLoadingBar from "./components/TopLoadingBar";
+import { LoadingProvider } from "./components/UI/Loading/LoadingContext";
+import TopLoadingBar from "./components/UI/Loading/TopLoadingBar";
 import QueryProvider from "./queryProvider";
-import GlobalSubscriptionProvider from "./components/GlobalSubscriptionProvider";
+import GlobalSubscriptionProvider from "./components/Providers/GlobalSubscriptionProvider";
 import InitUser from "../lib/store/InitUser"
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,7 +47,6 @@ export default function RootLayout({
             </GlobalSubscriptionProvider>
           </LoadingProvider>
         </QueryProvider>
-        
       </body>
     </html>
   );
