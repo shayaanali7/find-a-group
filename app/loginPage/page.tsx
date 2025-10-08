@@ -60,6 +60,15 @@ export default function LoginPage() {
                 {isPending ? 'Logging in...' : 'Login'}
               </button>
             </form>
+            <div className="mb-4 mt-15 p-3 bg-purple-50 border border-purple-300 rounded-lg shadow-sm flex items-center gap-2">
+              <span className="inline-block w-3 h-3 bg-purple-400 rounded mr-2"></span>
+              <div>
+                <span className="font-semibold text-purple-700">Guest Login:</span>
+                <span className="block text-sm text-purple-600">
+                  Use <span className="font-mono bg-purple-100 px-1 rounded">groupfinderguest@gmail.com</span> and <span className="font-mono bg-purple-100 px-1 rounded">Groupfinderpass123$</span> to try the app as a guest.
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
